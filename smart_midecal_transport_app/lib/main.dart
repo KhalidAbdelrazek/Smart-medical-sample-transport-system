@@ -2,10 +2,14 @@ import 'package:bloc/bloc.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:provider/provider.dart';
+import 'package:easy_localization/easy_localization.dart';
+
 import 'package:smart_midecal_transport_app/core/provider/theme_provider.dart';
+import 'package:smart_midecal_transport_app/core/provider/locale_provider.dart';
 import 'package:smart_midecal_transport_app/core/routes/route_names.dart';
 import 'package:smart_midecal_transport_app/core/routes/routes.dart';
 import 'package:smart_midecal_transport_app/core/utils/shared_pref_services.dart';
+
 import 'core/di/di.dart';
 import 'core/theme/app_theme.dart';
 import 'core/utils/my_bloc_observer.dart';
@@ -13,19 +17,34 @@ import 'core/utils/my_bloc_observer.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  // Initialize Bloc observer
+  // Initialize localization
+  await EasyLocalization.ensureInitialized();
+
+  // Bloc observer
   Bloc.observer = MyBlocObserver();
 
-  // Configure dependencies
+  // Dependency injection
   configureDependencies();
 
-  // Initialize Shared Preferences
+  // Shared preferences
   await SharedPrefService.instance.init();
 
   runApp(
-    ChangeNotifierProvider(
-      create: (_) => ThemeProvider(),
-      child: const MyApp(),
+    EasyLocalization(
+      supportedLocales: const [
+        Locale('en'),
+        Locale('ar'),
+      ],
+      path: 'assets/translations',
+      fallbackLocale: const Locale('en'),
+      saveLocale: true, // EasyLocalization will save last used locale
+      child: MultiProvider(
+        providers: [
+          ChangeNotifierProvider(create: (_) => ThemeProvider()),
+          ChangeNotifierProvider(create: (_) => LocaleProvider()),
+        ],
+        child: const MyApp(),
+      ),
     ),
   );
 }
@@ -35,27 +54,32 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final themeProvider = Provider.of<ThemeProvider>(context);
+    final localeProvider = Provider.of<LocaleProvider>(context);
+
     return ScreenUtilInit(
-      designSize: const Size(375, 812), // Your UI design resolution
+      designSize: const Size(375, 812),
       minTextAdapt: true,
       splitScreenMode: true,
-      builder: (context, child) {
-        final themeProvider = Provider.of<ThemeProvider>(context);
-        
+      builder: (_, __) {
         return MaterialApp(
           debugShowCheckedModeBanner: false,
           title: 'Smart Medical Transport App',
+
+          // Localization setup
+          locale: localeProvider.currentLocale, // Read saved locale
+          supportedLocales: context.supportedLocales,
+          localizationsDelegates: context.localizationDelegates,
+
+          // Theme setup
           theme: AppTheme().lightTheme,
           darkTheme: AppTheme().darkTheme,
+          themeMode:
+              themeProvider.isDark ? ThemeMode.dark : ThemeMode.light,
 
-          // Follow system theme unless manually overridden
-          themeMode: themeProvider.isDark == null
-              ? ThemeMode.system
-              : (themeProvider.isDark ? ThemeMode.dark : ThemeMode.light),
-
-          // App routes
+          // App navigation
           routes: Routes.routes,
-          initialRoute: RouteNames.register,
+          initialRoute: RouteNames.onBoarding,
         );
       },
     );
