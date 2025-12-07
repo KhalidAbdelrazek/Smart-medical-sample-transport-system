@@ -12,13 +12,19 @@ import 'core/utils/my_bloc_observer.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  // Initialize Bloc observer
   Bloc.observer = MyBlocObserver();
+
+  // Configure dependencies
   configureDependencies();
+
+  // Initialize Shared Preferences
   await SharedPrefService.instance.init();
 
   runApp(
     ChangeNotifierProvider(
-      create: (context) => ThemeProvider(),
+      create: (_) => ThemeProvider(),
       child: const MyApp(),
     ),
   );
@@ -30,25 +36,28 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ScreenUtilInit(
-      designSize: const Size(375, 812), // Update to your UI design resolution
+      designSize: const Size(375, 812), // Your UI design resolution
       minTextAdapt: true,
       splitScreenMode: true,
       builder: (context, child) {
-        var themeProvider = Provider.of<ThemeProvider>(context);
-
+        final themeProvider = Provider.of<ThemeProvider>(context);
+        
         return MaterialApp(
           debugShowCheckedModeBanner: false,
           title: 'Smart Medical Transport App',
           theme: AppTheme().lightTheme,
           darkTheme: AppTheme().darkTheme,
-          themeMode:
-              themeProvider.isDark ? ThemeMode.dark : ThemeMode.light,
+
+          // Follow system theme unless manually overridden
+          themeMode: themeProvider.isDark == null
+              ? ThemeMode.system
+              : (themeProvider.isDark ? ThemeMode.dark : ThemeMode.light),
+
+          // App routes
           routes: Routes.routes,
           initialRoute: RouteNames.register,
         );
       },
-
-      // 👇 This will be your initial route (optional)
     );
   }
 }
