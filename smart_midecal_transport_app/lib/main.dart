@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:smart_midecal_transport_app/core/di/di.dart';
 
 void main() {
+  configureDependencies();  
   runApp(const MyApp());
 }
 
