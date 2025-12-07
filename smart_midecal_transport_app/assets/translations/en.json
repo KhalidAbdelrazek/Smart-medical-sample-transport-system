@@ -1,0 +1,26 @@
+{
+  "main_character": {
+    "robot_name": "MedBot"
+  },
+
+  "onboarding": {
+    "back_button": "Back",
+    "explore_button": "Explore Now",
+    "finish_button": "Finish",
+    "next_button": "Next",
+
+    "onboarding_1_title": "Revolutionizing Medical Logistics",
+    "onboarding_1_description": "Experience a smarter, faster, and safer way to transport medical samples across hospital departments using our autonomous robotic system.",
+
+    "onboarding_2_title": "Safe & Contactless Sample Transport",
+    "onboarding_2_description": "Reduce infection risks and eliminate human errors with fully automated, secure transportation of medical samples.",
+
+    "onboarding_3_title": "Smart Navigation & Real-Time Tracking",
+    "onboarding_3_description": "Monitor robot status, location, and delivery progress instantly through a user-friendly mobile app.",
+
+    "onboarding_4_title": "Powered by Robotics, IoT & Embedded Systems",
+    "onboarding_4_description": "Our system integrates ROS, IoT sensors, and embedded controllers to deliver a reliable and scalable hospital solution.",
+
+    "onboarding_5_button": "Start Now"
+  }
+}
