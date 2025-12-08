@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 
-abstract class AppColors{
-
+abstract class AppColors {
   static const primaryLight = Color(0xFF0F172A);
   static const primaryDark = Color(0xFFF8FAFC);
   static const secondary = Color(0xFFCBD5E1);
@@ -14,8 +13,7 @@ abstract class AppColors{
   static const appbarLightColor = Color(0xffFFFFFF);
   static const appbarDarkColor = Color(0xff0F172A);
   static const bottomBarColor = Color(0xff0F172A);
-
-
+  static const buttonColor = Color(0xff1D4ED8);
 
   static const darker = Color(0xFF3E4249);
   static const cardLightColor = Colors.white;
@@ -30,7 +28,6 @@ abstract class AppColors{
   static const receiveMessageLightColor = Color(0x682CA8FF);
   static const onlineColor = Color(0xFF43EE7D);
 
-
   static const inActiveColor = Colors.grey;
 
   static const yellow = Color(0xFFffcb66);
@@ -42,5 +39,16 @@ abstract class AppColors{
   static const sky = Color(0xFFABDEE6);
   static const blue = Color(0xFF509BE4);
 
-  static const listColors = [green, purple, yellow, orange, sky, secondary, red, blue, pink, yellow,];
+  static const listColors = [
+    green,
+    purple,
+    yellow,
+    orange,
+    sky,
+    secondary,
+    red,
+    blue,
+    pink,
+    yellow,
+  ];
 }

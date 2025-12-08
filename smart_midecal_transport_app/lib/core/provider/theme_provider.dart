@@ -29,4 +29,9 @@ class ThemeProvider extends ChangeNotifier {
     await _prefs.setBool(_darkKey, false);
     notifyListeners();
   }
+
+  void toggleTheme() {
+    
+  }
+  
 }
