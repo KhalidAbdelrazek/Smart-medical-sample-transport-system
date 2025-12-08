@@ -7,6 +7,8 @@ class CustomButton extends StatelessWidget {
   final Color? backgroundColor;
   final int? borderRadius;
   final void Function()? onPressed;
+  final double? width;
+  final double? height;
 
   const CustomButton({
     super.key,
@@ -14,16 +16,14 @@ class CustomButton extends StatelessWidget {
     this.onPressed,
     this.color,
     this.backgroundColor,
-    this.borderRadius,
+    this.borderRadius, this.width, this.height,
   });
 
   @override
   Widget build(BuildContext context) {
-    double width = MediaQuery.of(context).size.width;
-    double height = MediaQuery.of(context).size.height;
     return SizedBox(
-      width: width.w,
-      height: height.h,
+      width: width?.w,
+      height: height?.h,
       child: ElevatedButton(
         style: ElevatedButton.styleFrom(
           backgroundColor:
