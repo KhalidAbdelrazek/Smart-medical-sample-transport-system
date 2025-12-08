@@ -15,11 +15,14 @@ class SharedPrefService {
   }
 
   // todo: onBoarding =>
-  bool? isFirsTime() {
+  bool? onBoardingViewed() {
+    print('Onboarding viewed: ${_prefs.getBool(onBoardingKey)}');
     return _prefs.getBool(onBoardingKey);
   }
 
   Future<void> setOnboardingViewed(bool value) async {
     await _prefs.setBool(onBoardingKey, value);
+    print('setOnboardingViewed: ${_prefs.getBool(onBoardingKey)}');
+
   }
 }
