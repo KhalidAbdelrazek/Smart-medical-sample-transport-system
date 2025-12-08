@@ -58,7 +58,7 @@ class MyApp extends StatelessWidget {
     final localeProvider = Provider.of<LocaleProvider>(context);
 
     return ScreenUtilInit(
-      designSize: const Size(375, 812),
+      designSize: const Size(393, 837),
       minTextAdapt: true,
       splitScreenMode: true,
       builder: (_, __) {
@@ -79,7 +79,7 @@ class MyApp extends StatelessWidget {
 
           // App navigation
           routes: Routes.routes,
-          initialRoute: RouteNames.onBoarding,
+          initialRoute: SharedPrefService.instance.onBoardingViewed() ?? false ? RouteNames.register : RouteNames.onBoarding,
         );
       },
     );
