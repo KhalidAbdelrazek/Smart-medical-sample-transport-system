@@ -8,8 +8,8 @@ import 'package:smart_midecal_transport_app/core/common/dialog_utils.dart';
 import 'package:smart_midecal_transport_app/core/di/di.dart';
 import 'package:smart_midecal_transport_app/core/provider/locale_provider.dart';
 import 'package:smart_midecal_transport_app/core/provider/theme_provider.dart';
-import 'package:smart_midecal_transport_app/presentation/authentication/cubit/sign_in_cubit.dart';
-import 'package:smart_midecal_transport_app/presentation/authentication/cubit/sign_in_state.dart';
+import 'package:smart_midecal_transport_app/presentation/authentication/ui/cubit/sign_in_cubit.dart';
+import 'package:smart_midecal_transport_app/presentation/authentication/ui/cubit/sign_in_state.dart';
 import 'package:smart_midecal_transport_app/presentation/authentication/ui/widgets/role_selector.dart';
 import 'package:smart_midecal_transport_app/presentation/authentication/ui/widgets/sign_in_form.dart';
 
