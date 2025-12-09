@@ -46,5 +46,6 @@ class LocaleProvider extends ChangeNotifier {
     } else {
       await setEnglish(context);
     }
+    print(_currentLocale);
   }
 }
