@@ -30,8 +30,9 @@ class ThemeProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  void toggleTheme() {
-    
+  void toggleTheme() async{
+    _isDark = !_isDark;
+    await _prefs.setBool(_darkKey, _isDark);
+    notifyListeners();
   }
-  
 }

@@ -10,8 +10,10 @@ abstract class AppColors {
   static const shadowColor = Colors.black87;
   static const textBoxColor = Colors.white;
   static const mainColor = Color(0xFF0F172A);
+  
   static const appbarLightColor = Color(0xffFFFFFF);
   static const appbarDarkColor = Color(0xff0F172A);
+
   static const bottomBarColor = Color(0xff0F172A);
   static const buttonColor = Color(0xff1D4ED8);
 

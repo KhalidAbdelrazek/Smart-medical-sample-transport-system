@@ -36,5 +36,19 @@
     "email_invalid": "Invalid email format",
     "password_required": "Password is required",
     "short_password": "Password must be at least 6 characters"
+  },
+
+  "bottomNavBar": {
+    "home": "Home",
+    "request_sample": "Request Sample",
+    "transports": "Transports",
+    "settings": "Settings"
+  },
+
+  "appbar": {
+    "employee_dashboard": "Employee Dashboard",
+    "blood_sample_bags": "Blood Sample-Bags",
+    "active_transports": "Active Transports",
+    "settings": "Settings"
   }
 }

@@ -124,18 +124,18 @@ class AppTheme {
     fontFamily: GoogleFonts.inter().fontFamily,
     drawerTheme: DrawerThemeData(backgroundColor: AppColors.drawerLightBgColor),
     appBarTheme: AppBarTheme(
-      surfaceTintColor: AppColors.cardLightColor,
-      backgroundColor: AppColors.cardLightColor,
+      surfaceTintColor: AppColors.appbarLightColor,
+      backgroundColor: AppColors.appbarLightColor,
       elevation: 6,
       shadowColor: Colors.black.withOpacity(0.1),
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(bottom: Radius.circular(24)),
-      ),
+      // shape: const RoundedRectangleBorder(
+      //   borderRadius: BorderRadius.vertical(bottom: Radius.circular(24)),
+      // ),
       iconTheme: IconThemeData(color: AppColors.mainColor),
       titleTextStyle: TextStyle(
         color: AppColors.mainColor,
         fontSize: 20.sp,
-        fontWeight: FontWeight.w600,
+        fontWeight: FontWeight.w500,
       ),
     ),
 
@@ -168,18 +168,18 @@ class AppTheme {
     drawerTheme: DrawerThemeData(backgroundColor: AppColors.drawerDarkBgColor),
     fontFamily: GoogleFonts.inter().fontFamily,
     appBarTheme: AppBarTheme(
-      surfaceTintColor: AppColors.cardDarkColor,
-      backgroundColor: AppColors.cardDarkColor,
+      surfaceTintColor: AppColors.appbarDarkColor,
+      backgroundColor: AppColors.appbarDarkColor,
       elevation: 6,
       shadowColor: Colors.black.withOpacity(0.1),
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(bottom: Radius.circular(24)),
-      ),
+      // shape: const RoundedRectangleBorder(
+      //   borderRadius: BorderRadius.vertical(bottom: Radius.circular(24)),
+      // ),
       iconTheme: IconThemeData(color: Colors.white),
       titleTextStyle: TextStyle(
         color: Colors.white,
         fontSize: 20.sp,
-        fontWeight: FontWeight.w600,
+        fontWeight: FontWeight.w500,
       ),
     ),
     cardColor: AppColors.cardDarkColor,

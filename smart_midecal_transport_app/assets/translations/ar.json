@@ -2,6 +2,7 @@
   "main_character": {
     "robot_name": "ميد بوت"
   },
+
   "onboarding": {
     "back_button": "رجوع",
     "explore_button": "استكشف الآن",
@@ -22,6 +23,7 @@
 
     "onboarding_5_button": "ابدأ الآن"
   },
+
   "sign_in": {
     "app_title": "النقل الطبي الذكي",
     "subtitle": "تسجيل الدخول إلى حسابك",
@@ -30,11 +32,27 @@
     "remember_me": "تذكرني",
     "forgot_password": "هل نسيت كلمة المرور؟",
     "sign_in_button": "تسجيل الدخول",
+
     "role": {
       "employee": "موظف",
       "employer": "صاحب العمل"
     }
   },
+
+  "bottomNavBar": {
+    "home": "الرئيسية",
+    "request_sample": "طلب عينة",
+    "transports": "النقل",
+    "settings": "الإعدادات"
+  },
+
+  "appbar": {
+    "employee_dashboard": "لوحة تحكم الموظف",
+    "blood_sample_bags": "أكياس العينات الدموية",
+    "active_transports": "عمليات النقل النشطة",
+    "settings": "الإعدادات"
+  },
+
   "errors": {
     "email_required": "البريد الإلكتروني مطلوب",
     "email_invalid": "صيغة البريد الإلكتروني غير صحيحة",
