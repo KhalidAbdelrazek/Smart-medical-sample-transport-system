@@ -1,13 +1,13 @@
 abstract class AppAssets {
   static const String _imgPath = 'assets/images/';
-  static const String _svgPath = 'assets/svg/';
+  static const String _svgPath = 'assets/icons/';
 
   // todo : images =>
   static const String onBoarding1 = '${_imgPath}onboarding1.png';
   static const String onBoarding2 = '${_imgPath}onboarding2.png';
   static const String onBoarding3 = '${_imgPath}onboarding3.png';
   static const String onBoarding4 = '${_imgPath}onboarding4.png';
-  
+
   static const String appLogo = '${_imgPath}logo.png';
 
   static const String signInEmployeeIcon =
@@ -18,5 +18,12 @@ abstract class AppAssets {
   // --------------------------------------------------------------------------
 
   // todo : svg Pictures =>
-  static const String egypt = '${_svgPath}ar.svg';
+  static const String home = '${_svgPath}home.svg';
+  static const String actievHome = '${_svgPath}active home.svg';
+  static const String request = '${_svgPath}request.svg';
+  static const String activeRequest = '${_svgPath}active request.svg';
+  static const String transport = '${_svgPath}transport.svg';
+  static const String activeTransport = '${_svgPath}active transport.svg';
+  static const String settings = '${_svgPath}settings.svg';
+  static const String activeSettings = '${_svgPath}active settings.svg';
 }
