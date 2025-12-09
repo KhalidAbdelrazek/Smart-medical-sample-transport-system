@@ -1,5 +1,10 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:smart_midecal_transport_app/core/assets/app_assets.dart';
+import 'package:smart_midecal_transport_app/core/provider/locale_provider.dart';
+import 'package:smart_midecal_transport_app/core/provider/theme_provider.dart';
 import 'package:smart_midecal_transport_app/core/theme/color.dart';
 import 'package:smart_midecal_transport_app/core/utils/constant.dart';
 import 'package:smart_midecal_transport_app/presentation/home/ui/home_tab.dart';
@@ -47,25 +52,29 @@ class RootScreenState extends State<RootScreen> with TickerProviderStateMixin {
       "icon": AppAssets.home,
       "active_icon": AppAssets.actievHome,
       "page": HomeTab(),
-      "title": "Home",
+      "title": "bottomNavBar.home".tr(),
+      "appbarTitle": "appbar.employee_dashboard".tr(),
     },
     {
       "icon": AppAssets.request,
       "active_icon": AppAssets.activeRequest,
       "page": RequestSampleTab(),
-      "title": "Request Sample",
+      "title": "bottomNavBar.request_sample".tr(),
+      "appbarTitle": "appbar.blood_sample_bags".tr(),
     },
     {
       "icon": AppAssets.transport,
       "active_icon": AppAssets.activeTransport,
       "page": TransportTab(),
-      "title": "Transports",
+      "title": "bottomNavBar.transports".tr(),
+      "appbarTitle": "appbar.active_transports".tr(),
     },
     {
       "icon": AppAssets.settings,
       "active_icon": AppAssets.activeSettings,
       "page": SettingsTab(),
-      "title": "Settings",
+      "title": "bottomNavBar.settings".tr(),
+      "appbarTitle": "appbar.settings".tr(),
     },
   ];
 
@@ -79,35 +88,38 @@ class RootScreenState extends State<RootScreen> with TickerProviderStateMixin {
 
   @override
   Widget build(BuildContext context) {
+    final themeProvider = context.watch<ThemeProvider>();
+    final localeProvider = context.watch<LocaleProvider>();
+
     return Scaffold(
       appBar: AppBar(
-        surfaceTintColor: Theme.of(context).cardColor,
-        backgroundColor: Theme.of(context).cardColor,
         elevation: 6,
         shadowColor: Colors.black.withOpacity(0.1),
-        shape: const RoundedRectangleBorder(
-          borderRadius: BorderRadius.vertical(
-            bottom: Radius.circular(24),
+        actions: [
+          Builder(
+            builder: (context) {
+              return IconButton(
+                onPressed: () => themeProvider.toggleTheme(),
+                icon: Icon(
+                  themeProvider.isDark ? Icons.dark_mode : Icons.light_mode,
+                ),
+              );
+            },
           ),
-        ),
-        leading: Builder(
-          builder: (context) {
-            return IconButton(
-              onPressed: () {
-                Scaffold.of(context).openDrawer();
-              },
-              icon: Icon(Icons.menu, color: Theme.of(context).primaryColor),
-            );
-          },
-        ),
+          Builder(
+            builder: (context) {
+              return IconButton(
+                onPressed: () => localeProvider.toggleLocale(context),
+                icon: const Icon(Icons.language),
+              );
+            },
+          ),
+        ],
         title: Text(
-          barItems[activeTab]["title"],
-          style: TextTheme.of(context).headlineMedium,
+          barItems[activeTab]["appbarTitle"],
         ),
-        centerTitle: true,
+        centerTitle: false,
       ),
-
-      // drawer: MyDrawer(onTap: (p0) => onTap(p0)),
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       body: getBarPage(),
       floatingActionButton: getBottomBar(),
@@ -128,15 +140,15 @@ class RootScreenState extends State<RootScreen> with TickerProviderStateMixin {
 
   Widget getBottomBar() {
     return Container(
-      height: 55,
+      height: 55.h,
       width: double.infinity,
-      margin: EdgeInsets.fromLTRB(25, 0, 25, 0),
+      margin: EdgeInsets.fromLTRB(25.w, 0, 25.w, 0),
       decoration: BoxDecoration(
-        color: Theme.of(context).cardColor,
+        color: Theme.of(context).scaffoldBackgroundColor,
         borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
-            color: AppColors.shadowColor.withAlpha(25),
+            color: Theme.of(context).dividerColor,
             blurRadius: 1,
             spreadRadius: 1,
             offset: Offset(0, 1),
@@ -169,5 +181,4 @@ class RootScreenState extends State<RootScreen> with TickerProviderStateMixin {
       activeTab = index;
     });
   }
-
 }
