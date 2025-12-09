@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:smart_midecal_transport_app/core/assets/app_assets.dart';
-import 'package:smart_midecal_transport_app/presentation/authentication/cubit/sign_in_cubit.dart';
+import 'package:smart_midecal_transport_app/presentation/authentication/ui/cubit/sign_in_cubit.dart';
 import 'package:smart_midecal_transport_app/presentation/authentication/ui/widgets/role_button.dart';
 
 class RoleSelector extends StatelessWidget {

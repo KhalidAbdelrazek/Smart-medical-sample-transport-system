@@ -6,8 +6,8 @@ import 'package:smart_midecal_transport_app/core/common/custom_button.dart';
 import 'package:smart_midecal_transport_app/core/common/custom_text_field.dart';
 import 'package:smart_midecal_transport_app/core/theme/color.dart';
 import 'package:smart_midecal_transport_app/core/utils/validators.dart';
-import 'package:smart_midecal_transport_app/presentation/authentication/cubit/sign_in_cubit.dart';
-import 'package:smart_midecal_transport_app/presentation/authentication/cubit/sign_in_state.dart';
+import 'package:smart_midecal_transport_app/presentation/authentication/ui/cubit/sign_in_cubit.dart';
+import 'package:smart_midecal_transport_app/presentation/authentication/ui/cubit/sign_in_state.dart';
 
 class SignInForm extends StatelessWidget {
   final SignInCubit cubit;
