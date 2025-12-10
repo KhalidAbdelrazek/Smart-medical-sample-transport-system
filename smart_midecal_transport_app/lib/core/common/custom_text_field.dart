@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 class CustomTextField extends StatelessWidget {
   final String label;
@@ -59,7 +60,7 @@ class CustomTextField extends StatelessWidget {
         hintText: label,
         hintStyle: TextStyle(
           color: labelColor,
-          fontSize: 14,
+          fontSize: 14.sp,
           fontWeight: FontWeight.w400,
         ),
         prefixIcon: prefixIcon != null
