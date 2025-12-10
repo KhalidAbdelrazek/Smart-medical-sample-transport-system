@@ -18,6 +18,7 @@ class CustomTextField extends StatelessWidget {
   final bool enabled;
   final int? maxLines;
   final int? maxLength;
+  final double? borderWidth;
 
   const CustomTextField({
     super.key,
@@ -37,7 +38,7 @@ class CustomTextField extends StatelessWidget {
     this.prefixIconColor,
     this.maxLength,
     this.suffixIconColor,
-    this.fillColor,
+    this.fillColor, this.borderWidth,
   });
 
   @override
@@ -61,39 +62,37 @@ class CustomTextField extends StatelessWidget {
           fontSize: 14,
           fontWeight: FontWeight.w400,
         ),
-        prefixIcon:
-            prefixIcon != null
-                ? Icon(prefixIcon, color: prefixIconColor)
-                : null,
-        suffixIcon:
-            suffixIcon != null
-                ? IconButton(
-                  icon: Icon(
-                    suffixIcon,
-                    color: suffixIconColor ?? Theme.of(context).primaryColor,
-                  ),
-                  onPressed: onSuffixPressed,
-                )
-                : null,
+        prefixIcon: prefixIcon != null
+            ? Icon(prefixIcon, color: prefixIconColor)
+            : null,
+        suffixIcon: suffixIcon != null
+            ? IconButton(
+                icon: Icon(
+                  suffixIcon,
+                  color: suffixIconColor ?? Theme.of(context).primaryColor,
+                ),
+                onPressed: onSuffixPressed,
+              )
+            : null,
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(16),
           borderSide: BorderSide(
             color: borderColor ?? Theme.of(context).primaryColor,
-            width: 2,
+            width: borderWidth ?? 1,
           ),
         ),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(16),
           borderSide: BorderSide(
             color: borderColor ?? Theme.of(context).primaryColor,
-            width: 2,
+            width: borderWidth ?? 1,
           ),
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(16),
           borderSide: BorderSide(
             color: borderColor ?? Theme.of(context).primaryColor,
-            width: 2,
+            width: borderWidth ?? 1,
           ),
         ),
         errorBorder: OutlineInputBorder(

@@ -10,7 +10,7 @@ abstract class AppColors {
   static const shadowColor = Colors.black87;
   static const textBoxColor = Colors.white;
   static const mainColor = Color(0xFF0F172A);
-  
+
   static const appbarLightColor = Color(0xffFFFFFF);
   static const appbarDarkColor = Color(0xff0F172A);
 
@@ -18,8 +18,11 @@ abstract class AppColors {
   static const buttonColor = Color(0xff1D4ED8);
 
   static const darker = Color(0xFF3E4249);
-  static const cardLightColor = Colors.white;
-  static const cardDarkColor = Color(0xff3a2c2c);
+  static const cardLightColor = Color(0xFFF8FAFC);
+  static const cardDarkColor = Color(0xff334155);
+  static const cardDarkStrokeColor = Color(0xFF334155);
+  static const cardLightStrokeColor = Color(0xFFE2E8F0);
+  
   static const appLightBgColor = Color(0xFFF7F7F7);
   static const drawerLightBgColor = Color(0xFFF7F7F7);
   static const drawerDarkBgColor = Color(0xff000001);
