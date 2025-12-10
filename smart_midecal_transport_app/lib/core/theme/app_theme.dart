@@ -120,6 +120,7 @@ class AppTheme {
     primaryColor: AppColors.primaryLight,
     cardColor: AppColors.cardLightColor,
     shadowColor: Colors.black,
+    highlightColor: AppColors.cardDarkStrokeColor,
     scaffoldBackgroundColor: AppColors.appLightBgColor,
     fontFamily: GoogleFonts.inter().fontFamily,
     drawerTheme: DrawerThemeData(backgroundColor: AppColors.drawerLightBgColor),
@@ -165,6 +166,7 @@ class AppTheme {
     brightness: Brightness.dark,
     primaryColor: AppColors.primaryDark,
     scaffoldBackgroundColor: AppColors.appDarkBgColor,
+    highlightColor: AppColors.cardLightStrokeColor,
     drawerTheme: DrawerThemeData(backgroundColor: AppColors.drawerDarkBgColor),
     fontFamily: GoogleFonts.inter().fontFamily,
     appBarTheme: AppBarTheme(
