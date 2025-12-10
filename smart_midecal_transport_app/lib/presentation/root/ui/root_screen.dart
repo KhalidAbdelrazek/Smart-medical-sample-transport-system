@@ -5,7 +5,6 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:smart_midecal_transport_app/core/assets/app_assets.dart';
 import 'package:smart_midecal_transport_app/core/provider/locale_provider.dart';
 import 'package:smart_midecal_transport_app/core/provider/theme_provider.dart';
-import 'package:smart_midecal_transport_app/core/theme/color.dart';
 import 'package:smart_midecal_transport_app/core/utils/constant.dart';
 import 'package:smart_midecal_transport_app/presentation/home/ui/home_tab.dart';
 import 'package:smart_midecal_transport_app/presentation/request%20sample/ui/request_sample_tab.dart';
