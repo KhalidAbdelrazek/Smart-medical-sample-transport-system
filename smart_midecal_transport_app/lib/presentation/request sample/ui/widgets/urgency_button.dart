@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:smart_midecal_transport_app/core/theme/color.dart';
@@ -51,11 +52,11 @@ class UrgencyButtons extends StatelessWidget {
 
     return Row(
       children: [
-        btn("Normal", "normal"),
+        btn("request_sample.normal".tr(), "normal"),
         SizedBox(width: 12.w),
-        btn("Urgent", "urgent"),
+        btn("request_sample.urgent".tr(), "urgent"),
         SizedBox(width: 12.w),
-        btn("Critical", "critical"),
+        btn("request_sample.critical".tr(), "critical"),
       ],
     );
   }
