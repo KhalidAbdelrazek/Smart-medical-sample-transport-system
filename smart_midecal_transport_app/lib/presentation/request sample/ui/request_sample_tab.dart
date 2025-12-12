@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:smart_midecal_transport_app/core/di/di.dart';
@@ -30,9 +31,10 @@ class _RequestSampleTabState extends State<RequestSampleTab> {
             children: [
               FormCard(requestBloodViewModel: requestBloodViewModel),
               SizedBox(height: 25.h),
-              Text("Recent Requests", style: theme.textTheme.displaySmall),
+              Text("request_sample.recent_requests".tr(), style: theme.textTheme.displaySmall),
               SizedBox(height: 12.h),
               RecentRequestsList(requestBloodViewModel: requestBloodViewModel),
+              SizedBox(height: 50.h,)
             ],
           ),
         ),

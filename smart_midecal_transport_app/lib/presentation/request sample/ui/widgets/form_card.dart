@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:smart_midecal_transport_app/core/theme/color.dart';
@@ -24,46 +25,58 @@ class _FormCardState extends State<FormCard> {
       decoration: BoxDecoration(
         color: theme.cardColor,
         borderRadius: BorderRadius.circular(20.r),
-        border: BoxBorder.all(
-          color: theme.highlightColor,
-          width: 0.5,
-        ),
+        border: BoxBorder.all(color: theme.highlightColor, width: 0.5),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          FormFields.label("Patient Name", theme),
+          // Patient Name
+          FormFields.label("request_sample.patient_name".tr(), theme),
           SizedBox(height: 6.h),
           FormFields.inputField(
             widget.requestBloodViewModel.patientController,
-            "Enter patient name",
+            "request_sample.enter_patient_name".tr(),
             theme,
           ),
           SizedBox(height: 16.h),
-          FormFields.label("Blood Type", theme),
+
+          // Blood Type
+          FormFields.label("request_sample.blood_type".tr(), theme),
           SizedBox(height: 6.h),
           FormFields.dropdown(widget.requestBloodViewModel, theme, setState),
           SizedBox(height: 16.h),
-          FormFields.label("Urgency Level", theme),
+
+          // Urgency Level
+          FormFields.label("request_sample.urgency_level".tr(), theme),
           SizedBox(height: 10.h),
           UrgencyButtons(
-              requestBloodViewModel: widget.requestBloodViewModel,
-              theme: theme,
-              isDark: isDark,
-              onChange: () => setState(() {})),
+            requestBloodViewModel: widget.requestBloodViewModel,
+            theme: theme,
+            isDark: isDark,
+            onChange: () => setState(() {}),
+          ),
           SizedBox(height: 16.h),
-          FormFields.label("Location", theme),
+
+          // Location
+          FormFields.label("request_sample.location".tr(), theme),
           SizedBox(height: 6.h),
           FormFields.inputField(
             widget.requestBloodViewModel.locationController,
-            "Enter location or room number",
+            "request_sample.enter_location".tr(),
             theme,
           ),
           SizedBox(height: 16.h),
-          FormFields.label("Additional Notes", theme),
+
+          // Additional Notes
+          FormFields.label("request_sample.additional_notes".tr(), theme),
           SizedBox(height: 6.h),
-          FormFields.notesField(widget.requestBloodViewModel.notesController, theme),
+          FormFields.notesField(
+            widget.requestBloodViewModel.notesController,
+            theme,
+          ),
           SizedBox(height: 20.h),
+
+          // Submit Button
           SizedBox(
             width: double.infinity,
             child: ElevatedButton(
@@ -76,7 +89,7 @@ class _FormCardState extends State<FormCard> {
               ),
               onPressed: () {},
               child: Text(
-                "Submit Request",
+                "request_sample.submit_request".tr(),
                 style: theme.textTheme.bodyLarge?.copyWith(
                   color: Colors.white,
                   fontWeight: FontWeight.bold,

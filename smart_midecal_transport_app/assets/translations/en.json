@@ -50,5 +50,30 @@
     "blood_sample_bags": "Blood Sample-Bags",
     "active_transports": "Active Transports",
     "settings": "Settings"
+  },
+
+
+  "request_sample": {
+    "patient_name": "Patient Name",
+    "enter_patient_name": "Enter patient name",
+    "blood_type": "Blood Type",
+    "select_blood_type": "Select blood type",
+    "urgency_level": "Urgency Level",
+    "normal": "Normal",
+    "urgent": "Urgent",
+    "critical": "Critical",
+    "location": "Location",
+    "enter_location": "Enter location or room number",
+    "additional_notes": "Additional Notes",
+    "additional_notes_hint": "Any additional information...",
+    "submit_request": "Submit Request",
+    "recent_requests": "Recent Requests",
+    "status_pending": "Pending",
+    "status_completed": "Completed",
+    "example_requests": {
+      "john_doe": "John Doe",
+      "jane_smith": "Jane Smith",
+      "bob_wilson": "Bob Wilson"
+    }
   }
 }
