@@ -58,5 +58,29 @@
     "email_invalid": "صيغة البريد الإلكتروني غير صحيحة",
     "password_required": "كلمة المرور مطلوبة",
     "short_password": "يجب أن تكون كلمة المرور 6 أحرف على الأقل"
+  },
+
+  "request_sample": {
+    "patient_name": "اسم المريض",
+    "enter_patient_name": "أدخل اسم المريض",
+    "blood_type": "فصيلة الدم",
+    "select_blood_type": "اختر فصيلة الدم",
+    "urgency_level": "مستوى الاستعجال",
+    "normal": "عادي",
+    "urgent": "عاجل",
+    "critical": "حرج",
+    "location": "المكان",
+    "enter_location": "أدخل الموقع أو رقم الغرفة",
+    "additional_notes": "ملاحظات إضافية",
+    "additional_notes_hint": "أي معلومات إضافية...",
+    "submit_request": "إرسال الطلب",
+    "recent_requests": "الطلبات الأخيرة",
+    "status_pending": "قيد الانتظار",
+    "status_completed": "مكتمل",
+    "example_requests": {
+      "john_doe": "جون دو",
+      "jane_smith": "جين سميث",
+      "bob_wilson": "بوب ويلسون"
+    }
   }
 }
