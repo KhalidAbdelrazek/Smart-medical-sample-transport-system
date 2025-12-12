@@ -2,6 +2,7 @@
   "main_character": {
     "robot_name": "MedBot"
   },
+
   "onboarding": {
     "back_button": "Back",
     "explore_button": "Explore Now",
@@ -17,6 +18,7 @@
     "onboarding_4_description": "Our system integrates ROS, IoT sensors, and embedded controllers to deliver a reliable and scalable hospital solution.",
     "onboarding_5_button": "Start Now"
   },
+
   "sign_in": {
     "app_title": "Smart Medical Transport",
     "subtitle": "Sign in to your account",
@@ -52,7 +54,6 @@
     "settings": "Settings"
   },
 
-
   "request_sample": {
     "patient_name": "Patient Name",
     "enter_patient_name": "Enter patient name",
@@ -75,5 +76,18 @@
       "jane_smith": "Jane Smith",
       "bob_wilson": "Bob Wilson"
     }
+  },
+
+  "transport": {
+    "all_status": "All Status",
+    "pending": "Pending",
+    "urgent": "Urgent",
+    "completed": "Completed",
+    "pickup": "Pickup",
+    "dropoff": "Dropoff",
+    "code": "Code",
+    "person": "Responsible Person",
+    "time": "Time",
+    "transport_id": "Transport {id}"
   }
 }

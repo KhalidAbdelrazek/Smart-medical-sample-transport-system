@@ -82,5 +82,18 @@
       "jane_smith": "جين سميث",
       "bob_wilson": "بوب ويلسون"
     }
+  },
+
+  "transport": {
+    "all_status": "كل الحالات",
+    "pending": "قيد الانتظار",
+    "urgent": "عاجل",
+    "completed": "مكتمل",
+    "pickup": "استلام",
+    "dropoff": "تسليم",
+    "code": "الكود",
+    "person": "الشخص المسؤول",
+    "time": "الوقت",
+    "transport_id": "عملية نقل {id}"
   }
 }

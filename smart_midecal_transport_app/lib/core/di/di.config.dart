@@ -15,6 +15,8 @@ import 'package:injectable/injectable.dart' as _i526;
 import '../../presentation/authentication/ui/cubit/sign_in_cubit.dart' as _i832;
 import '../../presentation/request%20sample/ui/cubit/request_blood_view_model.dart'
     as _i1043;
+import '../../presentation/transport/ui/cubit/transport_view_model.dart'
+    as _i128;
 import '../api%20manager/api_manager.dart' as _i949;
 
 extension GetItInjectableX on _i174.GetIt {
@@ -28,6 +30,7 @@ extension GetItInjectableX on _i174.GetIt {
     gh.factory<_i1043.RequestBloodViewModel>(
       () => _i1043.RequestBloodViewModel(),
     );
+    gh.factory<_i128.TransportViewModel>(() => _i128.TransportViewModel());
     gh.singleton<_i949.ApiManager>(() => _i949.ApiManager());
     return this;
   }
