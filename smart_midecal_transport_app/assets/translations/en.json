@@ -2,7 +2,6 @@
   "main_character": {
     "robot_name": "MedBot"
   },
-
   "onboarding": {
     "back_button": "Back",
     "explore_button": "Explore Now",
@@ -18,7 +17,6 @@
     "onboarding_4_description": "Our system integrates ROS, IoT sensors, and embedded controllers to deliver a reliable and scalable hospital solution.",
     "onboarding_5_button": "Start Now"
   },
-
   "sign_in": {
     "app_title": "Smart Medical Transport",
     "subtitle": "Sign in to your account",
@@ -32,28 +30,24 @@
       "employer": "Employer"
     }
   },
-
   "errors": {
     "email_required": "Email is required",
     "email_invalid": "Invalid email format",
     "password_required": "Password is required",
     "short_password": "Password must be at least 6 characters"
   },
-
   "bottomNavBar": {
     "home": "Home",
     "request_sample": "Request Sample",
     "transports": "Transports",
     "settings": "Settings"
   },
-
   "appbar": {
     "employee_dashboard": "Employee Dashboard",
     "blood_sample_bags": "Blood Sample-Bags",
     "active_transports": "Active Transports",
     "settings": "Settings"
   },
-
   "request_sample": {
     "patient_name": "Patient Name",
     "enter_patient_name": "Enter patient name",
@@ -77,7 +71,6 @@
       "bob_wilson": "Bob Wilson"
     }
   },
-
   "transport": {
     "all_status": "All Status",
     "pending": "Pending",
@@ -89,5 +82,20 @@
     "person": "Responsible Person",
     "time": "Time",
     "transport_id": "Transport {id}"
+  },
+  "profile": {
+    "employee_profile": "Employee Profile",
+    "name": "Name",
+    "employee_id": "Employee ID",
+    "department": "Department",
+    "role_permissions": "Role & Permissions",
+    "current_role": "Current Role",
+    "employee": "Employee",
+    "permissions_description": "Limited access to inventory, transport requests, and assigned tasks.",
+    "appearance": "Appearance",
+    "theme": "Theme",
+    "dark_mode": "Dark Mode",
+    "light_mode": "Light Mode",
+    "logout": "Logout"
   }
 }
