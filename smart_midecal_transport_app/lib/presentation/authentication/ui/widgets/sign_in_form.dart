@@ -4,6 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:smart_midecal_transport_app/core/common/custom_button.dart';
 import 'package:smart_midecal_transport_app/core/common/custom_text_field.dart';
+import 'package:smart_midecal_transport_app/core/routes/route_names.dart';
 import 'package:smart_midecal_transport_app/core/theme/color.dart';
 import 'package:smart_midecal_transport_app/core/utils/validators.dart';
 import 'package:smart_midecal_transport_app/presentation/authentication/ui/cubit/sign_in_cubit.dart';
@@ -67,12 +68,13 @@ class SignInForm extends StatelessWidget {
                   ),
                 ),
                 color: AppColors.buttonColor,
-                height: 36,
-                width: 295,
+                height: 36.h,
+                width: 295.w,
                 onPressed: () {
-                  if (cubit.formKey.currentState!.validate()) {
-                    cubit.signIn();
-                  }
+                  Navigator.pushReplacementNamed(context, RouteNames.root);
+                  // if (cubit.formKey.currentState!.validate()) {
+                  //   cubit.signIn();
+                  // }
                 },
               ),
             ],
