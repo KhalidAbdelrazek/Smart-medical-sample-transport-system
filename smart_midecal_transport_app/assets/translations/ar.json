@@ -39,6 +39,13 @@
     }
   },
 
+  "errors": {
+    "email_required": "البريد الإلكتروني مطلوب",
+    "email_invalid": "صيغة البريد الإلكتروني غير صحيحة",
+    "password_required": "كلمة المرور مطلوبة",
+    "short_password": "يجب أن تكون كلمة المرور 6 أحرف على الأقل"
+  },
+
   "bottomNavBar": {
     "home": "الرئيسية",
     "request_sample": "طلب عينة",
@@ -51,13 +58,6 @@
     "blood_sample_bags": "أكياس العينات الدموية",
     "active_transports": "عمليات النقل النشطة",
     "settings": "الإعدادات"
-  },
-
-  "errors": {
-    "email_required": "البريد الإلكتروني مطلوب",
-    "email_invalid": "صيغة البريد الإلكتروني غير صحيحة",
-    "password_required": "كلمة المرور مطلوبة",
-    "short_password": "يجب أن تكون كلمة المرور 6 أحرف على الأقل"
   },
 
   "request_sample": {
@@ -95,5 +95,24 @@
     "person": "الشخص المسؤول",
     "time": "الوقت",
     "transport_id": "عملية نقل {id}"
+  },
+
+  "profile": {
+    "employee_profile": "الملف الشخصي للموظف",
+    "name": "الاسم",
+    "employee_id": "رقم الموظف",
+    "department": "القسم",
+
+    "role_permissions": "الدور والصلاحيات",
+    "current_role": "الدور الحالي",
+    "employee": "موظف",
+    "permissions_description": "وصول محدود لإدارة المخزون وطلبات النقل والمهام المخصصة.",
+
+    "appearance": "المظهر",
+    "theme": "النمط",
+    "dark_mode": "الوضع الداكن",
+    "light_mode": "الوضع الفاتح",
+
+    "logout": "تسجيل الخروج"
   }
 }
