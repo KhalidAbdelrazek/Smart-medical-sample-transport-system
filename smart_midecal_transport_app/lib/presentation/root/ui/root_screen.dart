@@ -7,9 +7,9 @@ import 'package:smart_midecal_transport_app/core/provider/locale_provider.dart';
 import 'package:smart_midecal_transport_app/core/provider/theme_provider.dart';
 import 'package:smart_midecal_transport_app/core/utils/constant.dart';
 import 'package:smart_midecal_transport_app/presentation/home/ui/home_tab.dart';
+import 'package:smart_midecal_transport_app/presentation/profile/ui/profile_tab.dart';
 import 'package:smart_midecal_transport_app/presentation/request%20sample/ui/request_sample_tab.dart';
 import 'package:smart_midecal_transport_app/presentation/root/ui/widgets/bottombar_item.dart';
-import 'package:smart_midecal_transport_app/presentation/settings/ui/settings_tab.dart';
 import 'package:smart_midecal_transport_app/presentation/transport/ui/transport_tab.dart';
 
 class RootScreen extends StatefulWidget {
@@ -71,7 +71,7 @@ class RootScreenState extends State<RootScreen> with TickerProviderStateMixin {
     {
       "icon": AppAssets.settings,
       "active_icon": AppAssets.activeSettings,
-      "page": SettingsTab(),
+      "page": ProfileTab(),
       "title": "bottomNavBar.settings".tr(),
       "appbarTitle": "appbar.settings".tr(),
     },
