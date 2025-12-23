@@ -7,12 +7,14 @@ class ProfileItem extends StatelessWidget {
   final IconData icon;
   final String labelKey;
   final String value;
+  final bool isLast;
 
   const ProfileItem({
     super.key,
     required this.icon,
     required this.labelKey,
     required this.value,
+    this.isLast = false,
   });
 
   @override
@@ -20,32 +22,38 @@ class ProfileItem extends StatelessWidget {
     final theme = Theme.of(context);
 
     return Padding(
-      padding: EdgeInsets.only(bottom: 12.h),
+      padding: EdgeInsets.only(bottom: isLast ? 0 : 16.h),
       child: Row(
         children: [
           Container(
-            width: 40.w,
-            height: 40.w,
+            width: 48.w,
+            height: 48.w,
             decoration: BoxDecoration(
-              color: AppColors.secondary.withOpacity(0.25),
-              borderRadius: BorderRadius.circular(12.r),
+              color: theme.primaryColor.withOpacity(0.08),
+              borderRadius: BorderRadius.circular(14.r),
             ),
-            child: Icon(icon, size: 20.sp),
+            child: Icon(icon, size: 22.sp, color: theme.primaryColor),
           ),
-          SizedBox(width: 12.w),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                labelKey.tr(),
-                style: theme.textTheme.bodySmall,
-              ),
-              SizedBox(height: 2.h),
-              Text(
-                value,
-                style: theme.textTheme.bodyLarge,
-              ),
-            ],
+          SizedBox(width: 16.w),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  labelKey.tr(),
+                  style: theme.textTheme.labelMedium?.copyWith(
+                    color: AppColors.labelColor,
+                  ),
+                ),
+                SizedBox(height: 4.h),
+                Text(
+                  value,
+                  style: theme.textTheme.bodyLarge?.copyWith(
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ],
+            ),
           ),
         ],
       ),
