@@ -5,7 +5,8 @@ class SectionCard extends StatelessWidget {
   final String title;
   final Widget child;
 
-  const SectionCard({super.key, 
+  const SectionCard({
+    super.key, 
     required this.title,
     required this.child,
   });
@@ -13,31 +14,40 @@ class SectionCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
 
     return Container(
       width: double.infinity,
-      padding: EdgeInsets.all(16.w),
+      padding: EdgeInsets.all(20.w),
       decoration: BoxDecoration(
         color: theme.cardColor,
-        borderRadius: BorderRadius.circular(16.r),
-        border: BoxBorder.all(color: theme.highlightColor,width: 0.5),
+        borderRadius: BorderRadius.circular(20.r),
+        border: Border.all(
+          color: isDark ? Colors.white.withOpacity(0.05) : Colors.black.withOpacity(0.05),
+          width: 0.5,
+        ),
         boxShadow: [
           BoxShadow(
             color: theme.shadowColor.withOpacity(0.05),
-            blurRadius: 10,
-            offset: const Offset(0, 6),
+            blurRadius: 20,
+            offset: const Offset(0, 4),
           ),
         ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(title, style: theme.textTheme.titleMedium),
-          SizedBox(height: 12.h),
+          Text(
+            title, 
+            style: theme.textTheme.titleMedium?.copyWith(
+              fontWeight: FontWeight.bold,
+              color: theme.primaryColor,
+            ),
+          ),
+          SizedBox(height: 16.h),
           child,
         ],
       ),
     );
   }
 }
-
