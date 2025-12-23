@@ -96,13 +96,13 @@ class _BottomBarItemState extends State<BottomBarItem> with SingleTickerProvider
             ),
             const SizedBox(height: 4),
             // Optional: Add indicator dot or label if desired
-            Text(
-              widget.title,
-              style: TextStyle(
-                color: widget.isActive ? widget.activeColor : widget.color,
-                fontSize: 12,
-              ),
-            ),
+            // Text(
+            //   widget.title,
+            //   style: TextStyle(
+            //     color: widget.isActive ? widget.activeColor : widget.color,
+            //     fontSize: 12,
+            //   ),
+            // ),
           ],
         ),
       ),

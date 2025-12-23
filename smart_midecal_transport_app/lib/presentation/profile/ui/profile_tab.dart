@@ -195,7 +195,7 @@ class _ProfileTabState extends State<ProfileTab> with SingleTickerProviderStateM
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text('profile.theme'.tr(), style: theme.textTheme.bodyLarge?.copyWith(fontWeight: FontWeight.w500)),
-                         Text('Switch between light & dark', style: theme.textTheme.bodySmall?.copyWith(color: AppColors.labelColor)),
+                        //  Text('Switch between light & dark', style: theme.textTheme.bodySmall?.copyWith(color: AppColors.labelColor)),
                       ],
                     ),
                     const Spacer(),

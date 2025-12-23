@@ -114,10 +114,13 @@ class RootScreenState extends State<RootScreen> with TickerProviderStateMixin {
           barItems[activeTab]["appbarTitle"],
           style: theme.textTheme.headlineMedium,
         ),
+        centerTitle: false,
       ),
       backgroundColor: theme.scaffoldBackgroundColor,
       body: getBarPage(),
-      bottomNavigationBar: getBottomBar(),
+      floatingActionButton: getBottomBar(),
+      floatingActionButtonLocation: FloatingActionButtonLocation.miniCenterDocked,
+      // bottomNavigationBar: getBottomBar(),
     );
   }
 
@@ -140,6 +143,7 @@ class RootScreenState extends State<RootScreen> with TickerProviderStateMixin {
     
     return Container(
       margin: EdgeInsets.fromLTRB(20.w, 0, 20.w, 20.h),
+      height: 70.h,
       decoration: BoxDecoration(
         color: theme.cardColor.withOpacity(0.95), // Slight transparency
         borderRadius: BorderRadius.circular(24.r),
@@ -169,8 +173,8 @@ class RootScreenState extends State<RootScreen> with TickerProviderStateMixin {
                 activeTab == index
                     ? barItems[index]["active_icon"]
                     : barItems[index]["icon"],
+                
                 "",
-                title: barItems[index]["title"],
                 isActive: activeTab == index,
                 activeColor: theme.primaryColor,
                 color: theme.iconTheme.color?.withOpacity(0.5) ?? Colors.grey,
