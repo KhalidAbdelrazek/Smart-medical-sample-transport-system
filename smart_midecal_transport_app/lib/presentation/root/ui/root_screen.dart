@@ -41,7 +41,6 @@ class RootScreenState extends State<RootScreen> with TickerProviderStateMixin {
 
   @override
   void dispose() {
-    _controller.stop();
     _controller.dispose();
     super.dispose();
   }
@@ -78,6 +77,8 @@ class RootScreenState extends State<RootScreen> with TickerProviderStateMixin {
   ];
 
   void onPageChanged(int index) async {
+    if (activeTab == index) return;
+    
     _controller.reset();
     setState(() {
       activeTab = index;
@@ -89,40 +90,37 @@ class RootScreenState extends State<RootScreen> with TickerProviderStateMixin {
   Widget build(BuildContext context) {
     final themeProvider = context.watch<ThemeProvider>();
     final localeProvider = context.watch<LocaleProvider>();
+    final theme = Theme.of(context);
 
     return Scaffold(
+      extendBody: true, // Allows content to go behind bottom bar
       appBar: AppBar(
-        elevation: 6,
-        shadowColor: Colors.black.withOpacity(0.1),
+        scrolledUnderElevation: 2,
         actions: [
-          Builder(
-            builder: (context) {
-              return IconButton(
-                onPressed: () => themeProvider.toggleTheme(),
-                icon: Icon(
-                  themeProvider.isDark ? Icons.dark_mode : Icons.light_mode,
-                ),
-              );
-            },
+          IconButton(
+            onPressed: () => themeProvider.toggleTheme(),
+            icon: Icon(
+              themeProvider.isDark ? Icons.dark_mode : Icons.light_mode,
+              color: theme.iconTheme.color,
+            ),
           ),
-          Builder(
-            builder: (context) {
-              return IconButton(
-                onPressed: () => localeProvider.toggleLocale(context),
-                icon: const Icon(Icons.language),
-              );
-            },
+          IconButton(
+            onPressed: () => localeProvider.toggleLocale(context),
+            icon: Icon(Icons.language, color: theme.iconTheme.color),
           ),
+          SizedBox(width: 8.w),
         ],
         title: Text(
           barItems[activeTab]["appbarTitle"],
+          style: theme.textTheme.headlineMedium,
         ),
         centerTitle: false,
       ),
-      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+      backgroundColor: theme.scaffoldBackgroundColor,
       body: getBarPage(),
       floatingActionButton: getBottomBar(),
-      floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
+      floatingActionButtonLocation: FloatingActionButtonLocation.miniCenterDocked,
+      // bottomNavigationBar: getBottomBar(),
     );
   }
 
@@ -131,53 +129,63 @@ class RootScreenState extends State<RootScreen> with TickerProviderStateMixin {
       index: activeTab,
       children: List.generate(
         barItems.length,
-        (index) =>
-            FadeTransition(child: barItems[index]["page"], opacity: _animation),
-      ),
-    );
-  }
-
-  Widget getBottomBar() {
-    return Container(
-      height: 55.h,
-      width: double.infinity,
-      margin: EdgeInsets.fromLTRB(25.w, 0, 25.w, 0),
-      decoration: BoxDecoration(
-        color: Theme.of(context).scaffoldBackgroundColor,
-        borderRadius: BorderRadius.circular(20),
-        boxShadow: [
-          BoxShadow(
-            color: Theme.of(context).dividerColor,
-            blurRadius: 1,
-            spreadRadius: 1,
-            offset: Offset(0, 1),
-          ),
-        ],
-      ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceAround,
-        crossAxisAlignment: CrossAxisAlignment.end,
-        children: List.generate(
-          barItems.length,
-          (index) => BottomBarItem(
-            activeTab == index
-                ? barItems[index]["active_icon"]
-                : barItems[index]["icon"],
-            "",
-            isActive: activeTab == index,
-            activeColor: Theme.of(context).primaryColor,
-            onTap: () {
-              onPageChanged(index);
-            },
-          ),
+        (index) => FadeTransition(
+          opacity: _animation, 
+          child: barItems[index]["page"]
         ),
       ),
     );
   }
 
-  void onTap(int index) {
-    setState(() {
-      activeTab = index;
-    });
+  Widget getBottomBar() {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+    
+    return Container(
+      margin: EdgeInsets.fromLTRB(20.w, 0, 20.w, 20.h),
+      height: 70.h,
+      decoration: BoxDecoration(
+        color: theme.cardColor.withOpacity(0.95), // Slight transparency
+        borderRadius: BorderRadius.circular(24.r),
+        boxShadow: [
+          BoxShadow(
+            color: theme.shadowColor.withOpacity(0.15),
+            blurRadius: 20,
+            spreadRadius: 0,
+            offset: const Offset(0, 8),
+          ),
+        ],
+        border: Border.all(
+          color: isDark ? Colors.white.withOpacity(0.1) : Colors.white.withOpacity(0.5),
+          width: 0.5,
+        ),
+      ),
+      child: SafeArea(
+        top: false,
+        child: Padding(
+          padding: EdgeInsets.symmetric(vertical: 12.h, horizontal: 8.w),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceAround,
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: List.generate(
+              barItems.length,
+              (index) => BottomBarItem(
+                activeTab == index
+                    ? barItems[index]["active_icon"]
+                    : barItems[index]["icon"],
+                
+                "",
+                isActive: activeTab == index,
+                activeColor: theme.primaryColor,
+                color: theme.iconTheme.color?.withOpacity(0.5) ?? Colors.grey,
+                onTap: () {
+                  onPageChanged(index);
+                },
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
   }
 }

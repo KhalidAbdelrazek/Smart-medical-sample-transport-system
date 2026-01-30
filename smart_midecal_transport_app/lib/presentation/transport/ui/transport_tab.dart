@@ -89,7 +89,12 @@ class _TransportTabState extends State<TransportTab> {
                     return ListView.builder(
                       itemCount: data.length,
                       itemBuilder: (context, index) =>
-                          TransportCard(transport: data[index]),
+                          Column(
+                            children: [
+                              TransportCard(transport: data[index]),
+                              SizedBox(height: 12.h,)
+                            ],
+                          ),
                     );
                   },
                 ),

@@ -1,48 +1,72 @@
 import 'package:flutter/material.dart';
 
 abstract class AppColors {
-  static const primaryLight = Color(0xFF0F172A);
-  static const primaryDark = Color(0xFFF8FAFC);
-  static const secondary = Color(0xFFCBD5E1);
+  // Medical Blue Palette - Trustworthy, Calm, Professional
+  // Primary: Deep Blue (Trust, Stability)
+  static const primaryLight = Color(0xFF0F4C75); 
+  static const primaryDark = Color(0xFFBBE1FA);
 
-  static const appDarkBgColor = Color(0xFF0F172A);
-  static const appBarColor = Color(0xFF0F172A);
-  static const shadowColor = Colors.black87;
-  static const textBoxColor = Colors.white;
-  static const mainColor = Color(0xFF0F172A);
+  // Secondary: Soft Blue-Grey (Balance)
+  static const secondary = Color(0xFF3282B8);
 
-  static const appbarLightColor = Color(0xffFFFFFF);
-  static const appbarDarkColor = Color(0xff0F172A);
+  // Backgrounds: Clean White / Deep Dark Blue
+  static const appLightBgColor = Color(0xFFF8FAFC); // Very light grey-blue
+  static const appDarkBgColor = Color(0xFF1B262C); // Dark Blue-Grey
 
-  static const bottomBarColor = Color(0xff0F172A);
-  static const buttonColor = Color(0xff1D4ED8);
-
-  static const darker = Color(0xFF3E4249);
-  static const cardLightColor = Color(0xFFF8FAFC);
-  static const cardDarkColor = Color(0xff334155);
-  static const cardDarkStrokeColor = Color(0xFF334155);
-  static const cardLightStrokeColor = Color(0xFFE2E8F0);
+  static const appBarColor = Color(0xFF0F4C75);
   
-  static const appLightBgColor = Color(0xFFF7F7F7);
-  static const drawerLightBgColor = Color(0xFFF7F7F7);
-  static const drawerDarkBgColor = Color(0xff000001);
-  static const textColor = Color(0xFF333333);
-  static const labelColor = Color(0xFF8A8989);
-  static const actionColor = Color(0xFFe54140);
-  static const sendMessageLightColor = Color(0xffDEE2E6);
-  static const receiveMessageLightColor = Color(0x682CA8FF);
-  static const onlineColor = Color(0xFF43EE7D);
+  // Shadows & Elevation
+  static const shadowColor = Color(0x1A000000); // 10% Black
+  static const shadowDarkColor = Color(0x3D000000); // 24% Black
 
-  static const inActiveColor = Colors.grey;
+  // Text Colors
+  static const textColor = Color(0xFF1E293B); // Slate 800
+  static const labelColor = Color(0xFF64748B); // Slate 500
+  static const textDarkColor = Color(0xFFE2E8F0); // Slate 200
 
-  static const yellow = Color(0xFFffcb66);
-  static const green = Color(0xFFb2e1b5);
-  static const pink = Color(0xFFf5bde8);
-  static const purple = Color(0xFFd9bcff);
-  static const red = Color(0xFFff4b60);
-  static const orange = Color(0xFFFFC8A2);
-  static const sky = Color(0xFFABDEE6);
-  static const blue = Color(0xFF509BE4);
+  // Inputs
+  static const textBoxColor = Colors.white;
+  static const textBoxDarkColor = Color(0xFF2B3A46);
+
+  // Status Colors (Medical indicators)
+  static const success = Color(0xFF10B981); // Emerald Green
+  static const warning = Color(0xFFF59E0B); // Amber
+  static const error = Color(0xFFEF4444); // Red
+  static const info = Color(0xFF3B82F6); // Blue
+
+  // Legacy mappings (keeping for compatibility, but updating values where appropriate)
+  static const mainColor = primaryLight;
+  static const appbarLightColor = Colors.white;
+  static const appbarDarkColor = Color(0xFF1B262C);
+  
+  static const bottomBarColor = Colors.white; 
+  static const bottomBarDarkColor = Color(0xFF1B262C);
+  
+  static const buttonColor = primaryLight;
+  static const inActiveColor = Color(0xFF94A3B8);
+
+  static const cardLightColor = Colors.white;
+  static const cardDarkColor = Color(0xFF2B3A46);
+  static const cardDarkStrokeColor = Color(0xFF374151);
+  static const cardLightStrokeColor = Color(0xFFE2E8F0);
+
+  static const drawerLightBgColor = appLightBgColor;
+  static const drawerDarkBgColor = appDarkBgColor;
+  
+  static const actionColor = error;
+  static const sendMessageLightColor = secondary;
+  static const receiveMessageLightColor = primaryDark;
+  static const onlineColor = success;
+
+  // Chart/List Colors (Slightly muted for professional look)
+  static const green = Color(0xFFA7F3D0);
+  static const purple = Color(0xFFDDD6FE);
+  static const yellow = Color(0xFFFDE68A);
+  static const orange = Color(0xFFFED7AA);
+  static const sky = Color(0xFFBAE6FD);
+  static const pink = Color(0xFFFBCFE8);
+  static const red = Color(0xFFFECACA);
+  static const blue = Color(0xFFBFDBFE);
 
   static const listColors = [
     green,
