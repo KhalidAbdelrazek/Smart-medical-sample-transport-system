@@ -2,28 +2,21 @@
   "main_character": {
     "robot_name": "ميد بوت"
   },
-
   "onboarding": {
     "back_button": "رجوع",
     "explore_button": "استكشف الآن",
     "finish_button": "إنهاء",
     "next_button": "التالي",
-
     "onboarding_1_title": "ثورة في النقل الطبي",
     "onboarding_1_description": "استمتع بطريقة أذكى وأسرع وأكثر أمانًا لنقل العينات الطبية داخل أقسام المستشفى باستخدام نظامنا الروبوتي الذاتي.",
-
     "onboarding_2_title": "نقل آمن وبدون تلامس للعينات",
     "onboarding_2_description": "قلّل مخاطر العدوى وتجنب الأخطاء البشرية من خلال النقل الآلي والآمن للعينات الطبية.",
-
     "onboarding_3_title": "ملاحة ذكية وتتبع لحظي",
     "onboarding_3_description": "تتبع حالة الروبوت، موقعه، وتقدم عملية التوصيل فورًا عبر تطبيق الهاتف السهل الاستخدام.",
-
     "onboarding_4_title": "مدعوم بالروبوتات وإنترنت الأشياء والأنظمة المدمجة",
     "onboarding_4_description": "يجمع نظامنا بين ROS ومستشعرات IoT ووحدات التحكم المدمجة لتقديم حل موثوق وقابل للتطوير للمستشفيات.",
-
     "onboarding_5_button": "ابدأ الآن"
   },
-
   "sign_in": {
     "app_title": "النقل الطبي الذكي",
     "subtitle": "تسجيل الدخول إلى حسابك",
@@ -32,34 +25,77 @@
     "remember_me": "تذكرني",
     "forgot_password": "هل نسيت كلمة المرور؟",
     "sign_in_button": "تسجيل الدخول",
-
     "role": {
       "employee": "موظف",
       "employer": "صاحب العمل"
     }
   },
-
   "errors": {
     "email_required": "البريد الإلكتروني مطلوب",
     "email_invalid": "صيغة البريد الإلكتروني غير صحيحة",
     "password_required": "كلمة المرور مطلوبة",
     "short_password": "يجب أن تكون كلمة المرور 6 أحرف على الأقل"
   },
-
   "bottomNavBar": {
     "home": "الرئيسية",
     "request_sample": "طلب عينة",
     "transports": "النقل",
     "settings": "الإعدادات"
   },
-
   "appbar": {
     "employee_dashboard": "لوحة تحكم الموظف",
     "blood_sample_bags": "أكياس العينات الدموية",
     "active_transports": "عمليات النقل النشطة",
     "settings": "الإعدادات"
   },
-
+  "nav": {
+    "home": "الرئيسية",
+    "requests": "الطلبات",
+    "profile": "الملف الشخصي"
+  },
+  "home": {
+    "today_stats": "إحصائيات اليوم",
+    "blood_bags": "أكياس الدم",
+    "samples": "العينات",
+    "cars_dispatched": "السيارات المرسلة",
+    "pending": "قيد الانتظار",
+    "retry": "إعادة المحاولة"
+  },
+  "requests": {
+    "blood_bags": "أكياس الدم",
+    "blood_samples": "العينات",
+    "transport_car": "سيارة النقل",
+    "loaded": "محملة",
+    "dispatch": "إرسال",
+    "pending_requests": "الطلبات المعلقة",
+    "added_to_car": "تمت الإضافة للسيارة",
+    "in_car": "في السيارة",
+    "add_to_car": "إضافة للسيارة",
+    "remove_from_car": "إزالة من السيارة",
+    "bags_qty": "الكمية",
+    "samples_qty": "العينات",
+    "source": "المصدر",
+    "lab": "المختبر",
+    "operation_room": "غرفة العمليات",
+    "patient_id": "رقم المريض",
+    "no_pending": "لا توجد طلبات معلقة",
+    "retry": "إعادة المحاولة"
+  },
+  "profile": {
+    "employee_info": "معلومات الموظف",
+    "employee_id": "رقم الموظف",
+    "department": "القسم",
+    "role": "الدور",
+    "shift": "الوردية",
+    "today_stats": "إحصائيات اليوم",
+    "bags_processed": "أكياس الدم المعالجة",
+    "samples_processed": "العينات المعالجة",
+    "cars_dispatched": "السيارات المرسلة",
+    "settings": "الإعدادات",
+    "language": "اللغة",
+    "theme": "المظهر",
+    "retry": "إعادة المحاولة"
+  },
   "request_sample": {
     "patient_name": "اسم المريض",
     "enter_patient_name": "أدخل اسم المريض",
@@ -83,7 +119,6 @@
       "bob_wilson": "بوب ويلسون"
     }
   },
-
   "transport": {
     "all_status": "كل الحالات",
     "pending": "قيد الانتظار",
@@ -95,24 +130,5 @@
     "person": "الشخص المسؤول",
     "time": "الوقت",
     "transport_id": "عملية نقل {id}"
-  },
-
-  "profile": {
-    "employee_profile": "الملف الشخصي للموظف",
-    "name": "الاسم",
-    "employee_id": "رقم الموظف",
-    "department": "القسم",
-
-    "role_permissions": "الدور والصلاحيات",
-    "current_role": "الدور الحالي",
-    "employee": "موظف",
-    "permissions_description": "وصول محدود لإدارة المخزون وطلبات النقل والمهام المخصصة.",
-
-    "appearance": "المظهر",
-    "theme": "النمط",
-    "dark_mode": "الوضع الداكن",
-    "light_mode": "الوضع الفاتح",
-
-    "logout": "تسجيل الخروج"
   }
 }

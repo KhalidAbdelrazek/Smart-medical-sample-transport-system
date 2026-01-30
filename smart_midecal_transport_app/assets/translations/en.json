@@ -48,6 +48,54 @@
     "active_transports": "Active Transports",
     "settings": "Settings"
   },
+  "nav": {
+    "home": "Home",
+    "requests": "Requests",
+    "profile": "Profile"
+  },
+  "home": {
+    "today_stats": "Today's Statistics",
+    "blood_bags": "Blood Bags",
+    "samples": "Samples",
+    "cars_dispatched": "Cars Dispatched",
+    "pending": "Pending",
+    "retry": "Retry"
+  },
+  "requests": {
+    "blood_bags": "Blood Bags",
+    "blood_samples": "Samples",
+    "transport_car": "Transport Car",
+    "loaded": "loaded",
+    "dispatch": "Dispatch",
+    "pending_requests": "Pending Requests",
+    "added_to_car": "Added to Car",
+    "in_car": "In Car",
+    "add_to_car": "Add to Car",
+    "remove_from_car": "Remove from Car",
+    "bags_qty": "Quantity",
+    "samples_qty": "Samples",
+    "source": "Source",
+    "lab": "Lab",
+    "operation_room": "Operation Room",
+    "patient_id": "Patient ID",
+    "no_pending": "No pending requests",
+    "retry": "Retry"
+  },
+  "profile": {
+    "employee_info": "Employee Information",
+    "employee_id": "Employee ID",
+    "department": "Department",
+    "role": "Role",
+    "shift": "Shift",
+    "today_stats": "Today's Statistics",
+    "bags_processed": "Blood Bags Processed",
+    "samples_processed": "Samples Processed",
+    "cars_dispatched": "Cars Dispatched",
+    "settings": "Settings",
+    "language": "Language",
+    "theme": "Theme",
+    "retry": "Retry"
+  },
   "request_sample": {
     "patient_name": "Patient Name",
     "enter_patient_name": "Enter patient name",
@@ -82,20 +130,5 @@
     "person": "Responsible Person",
     "time": "Time",
     "transport_id": "Transport {id}"
-  },
-  "profile": {
-    "employee_profile": "Employee Profile",
-    "name": "Name",
-    "employee_id": "Employee ID",
-    "department": "Department",
-    "role_permissions": "Role & Permissions",
-    "current_role": "Current Role",
-    "employee": "Employee",
-    "permissions_description": "Limited access to inventory, transport requests, and assigned tasks.",
-    "appearance": "Appearance",
-    "theme": "Theme",
-    "dark_mode": "Dark Mode",
-    "light_mode": "Light Mode",
-    "logout": "Logout"
   }
 }
