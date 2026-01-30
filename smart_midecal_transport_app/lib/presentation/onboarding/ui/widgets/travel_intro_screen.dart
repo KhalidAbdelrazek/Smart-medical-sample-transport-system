@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:smart_midecal_transport_app/core/theme/app_theme.dart';
-
+import 'package:google_fonts/google_fonts.dart';
 
 class TravelIntroScreen extends StatelessWidget {
   final String? backgroundImage;
@@ -27,6 +26,9 @@ class TravelIntroScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
     return Scaffold(
       body: Stack(
         children: [
@@ -38,16 +40,42 @@ class TravelIntroScreen extends StatelessWidget {
                 fit: BoxFit.cover,
               ),
             ),
+            
+          /// Gradient Overlay for better text readability
+          if (backgroundImage != null)
+            SizedBox.expand(
+              child: Container(
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topCenter,
+                    end: Alignment.bottomCenter,
+                    colors: [
+                      Colors.transparent,
+                      Colors.black.withOpacity(0.3),
+                      Colors.black.withOpacity(0.7),
+                    ],
+                    stops: const [0.5, 0.7, 1.0],
+                  ),
+                ),
+              ),
+            ),
 
           /// Overlay content
           Align(
             alignment: Alignment.bottomCenter,
             child: Container(
               width: double.infinity,
-              padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 30.h),
+              padding: EdgeInsets.fromLTRB(24.w, 32.h, 24.w, 40.h),
               decoration: BoxDecoration(
-                color: color ?? Colors.black.withOpacity(0.85),
+                color: theme.scaffoldBackgroundColor,
                 borderRadius: BorderRadius.vertical(top: Radius.circular(32.r)),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.1),
+                    blurRadius: 20,
+                    offset: const Offset(0, -5),
+                  ),
+                ],
               ),
               child: Column(
                 mainAxisSize: MainAxisSize.min,
@@ -55,18 +83,24 @@ class TravelIntroScreen extends StatelessWidget {
                   if (title != null)
                     Text(
                       title!,
-                      style: AppTheme.appTextDarkTheme.bodyMedium,
+                      style: theme.textTheme.headlineMedium?.copyWith(
+                        fontWeight: FontWeight.bold,
+                        color: theme.primaryColor,
+                      ),
                       textAlign: TextAlign.center,
                     ),
                   if (description != null) ...[
-                    SizedBox(height: 12.h),
+                    SizedBox(height: 16.h),
                     Text(
                       description!,
-                      style:  Theme.of(context).textTheme.bodyMedium?.copyWith(color: Colors.grey),
+                      style: theme.textTheme.bodyMedium?.copyWith(
+                        color: theme.textTheme.bodySmall?.color,
+                        height: 1.5,
+                      ),
                       textAlign: TextAlign.center,
                     ),
                   ],
-                  SizedBox(height: 20.h),
+                  SizedBox(height: 32.h),
 
                   /// Buttons
                   Column(
@@ -77,36 +111,41 @@ class TravelIntroScreen extends StatelessWidget {
                           child: ElevatedButton(
                             onPressed: onNextPressed,
                             style: ElevatedButton.styleFrom(
-                              backgroundColor: Colors.amber,
+                              backgroundColor: theme.primaryColor,
+                              foregroundColor: Colors.white,
                               shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(14.r),
+                                borderRadius: BorderRadius.circular(16.r),
                               ),
-                              padding: EdgeInsets.symmetric(vertical: 14.h),
+                              padding: EdgeInsets.symmetric(vertical: 16.h),
+                              elevation: 0,
                             ),
                             child: Text(
                               nextText!,
-                              style: AppTheme.appTextDarkTheme.bodyMedium,
+                              style: GoogleFonts.inter(
+                                fontSize: 16.sp,
+                                fontWeight: FontWeight.w600,
+                              ),
                             ),
                           ),
                         ),
                       if (backText != null && nextText != null)
-                        SizedBox(height: 12.h),
+                        SizedBox(height: 16.h),
                       if (backText != null && onBackPressed != null)
                         SizedBox(
                           width: double.infinity,
-                          child: OutlinedButton(
+                          child: TextButton(
                             onPressed: onBackPressed,
-                            style: OutlinedButton.styleFrom(
-                              side: BorderSide(color: Colors.amber, width: 2),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(14.r),
-                              ),
-                              padding: EdgeInsets.symmetric(vertical: 14.h),
-                              backgroundColor: Colors.transparent,
+                            style: TextButton.styleFrom(
+                              padding: EdgeInsets.symmetric(vertical: 16.h),
+                              foregroundColor: theme.textTheme.bodyMedium?.color,
                             ),
                             child: Text(
                               backText!,
-                              style: AppTheme.appTextDarkTheme.bodyMedium,
+                              style: GoogleFonts.inter(
+                                fontSize: 16.sp,
+                                fontWeight: FontWeight.w500,
+                                color: theme.hintColor,
+                              ),
                             ),
                           ),
                         ),

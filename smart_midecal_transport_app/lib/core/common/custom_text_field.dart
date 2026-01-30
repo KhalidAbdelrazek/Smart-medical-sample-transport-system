@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:smart_midecal_transport_app/core/theme/color.dart';
 
 class CustomTextField extends StatelessWidget {
   final String label;
@@ -39,11 +40,15 @@ class CustomTextField extends StatelessWidget {
     this.prefixIconColor,
     this.maxLength,
     this.suffixIconColor,
-    this.fillColor, this.borderWidth,
+    this.fillColor,
+    this.borderWidth,
   });
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
     return TextFormField(
       enabled: enabled,
       controller: controller,
@@ -52,57 +57,58 @@ class CustomTextField extends StatelessWidget {
       validator: validator,
       maxLines: obscureText ? 1 : maxLines,
       maxLength: maxLength,
-      style: TextStyle(color: inputColor),
+      style: theme.textTheme.bodyMedium?.copyWith(
+        color: inputColor ?? (isDark ? Colors.white : AppColors.textColor),
+      ),
+      cursorColor: theme.primaryColor,
       decoration: InputDecoration(
-        fillColor: fillColor ?? Theme.of(context).scaffoldBackgroundColor,
+        fillColor: fillColor ?? theme.inputDecorationTheme.fillColor,
         filled: true,
-        contentPadding: EdgeInsets.all(20),
-        hintText: label,
+        contentPadding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 16.h),
+        labelText: label, // Using labelText for modern floating behavior
+        alignLabelWithHint: maxLines != null && maxLines! > 1,
+        labelStyle: TextStyle(
+          color: labelColor ?? AppColors.labelColor,
+          fontSize: 14.sp,
+          fontWeight: FontWeight.normal,
+        ),
+        floatingLabelStyle: TextStyle(
+          color: theme.primaryColor,
+          fontSize: 14.sp,
+          fontWeight: FontWeight.w600,
+        ),
         hintStyle: TextStyle(
-          color: labelColor,
+          color: (labelColor ?? AppColors.labelColor).withOpacity(0.5),
           fontSize: 14.sp,
           fontWeight: FontWeight.w400,
         ),
         prefixIcon: prefixIcon != null
-            ? Icon(prefixIcon, color: prefixIconColor)
+            ? Icon(
+                prefixIcon, 
+                color: prefixIconColor ?? theme.iconTheme.color?.withOpacity(0.7),
+                size: 20.sp,
+              )
             : null,
         suffixIcon: suffixIcon != null
             ? IconButton(
                 icon: Icon(
                   suffixIcon,
-                  color: suffixIconColor ?? Theme.of(context).primaryColor,
+                  color: suffixIconColor ?? theme.primaryColor,
+                  size: 20.sp,
                 ),
                 onPressed: onSuffixPressed,
               )
             : null,
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(16),
-          borderSide: BorderSide(
-            color: borderColor ?? Theme.of(context).primaryColor,
-            width: borderWidth ?? 1,
-          ),
-        ),
-        enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(16),
-          borderSide: BorderSide(
-            color: borderColor ?? Theme.of(context).primaryColor,
-            width: borderWidth ?? 1,
-          ),
-        ),
-        focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(16),
-          borderSide: BorderSide(
-            color: borderColor ?? Theme.of(context).primaryColor,
-            width: borderWidth ?? 1,
-          ),
-        ),
+        border: theme.inputDecorationTheme.border,
+        enabledBorder: theme.inputDecorationTheme.enabledBorder,
+        focusedBorder: theme.inputDecorationTheme.focusedBorder,
         errorBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(16),
-          borderSide: BorderSide(color: Colors.red, width: 2),
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide(color: AppColors.error, width: 1),
         ),
         focusedErrorBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(16),
-          borderSide: BorderSide(color: Colors.redAccent, width: 2),
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide(color: AppColors.error, width: 1.5),
         ),
       ),
     );
