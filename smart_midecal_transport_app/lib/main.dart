@@ -79,7 +79,7 @@ class MyApp extends StatelessWidget {
 
           // App navigation
           routes: Routes.routes,
-          initialRoute: SharedPrefService.instance.onBoardingViewed() ?? false ? RouteNames.root : RouteNames.onBoarding,
+          initialRoute: SharedPrefService.instance.onBoardingViewed() ?? false ? RouteNames.employerMainScreen : RouteNames.onBoarding,
         );
       },
     );
