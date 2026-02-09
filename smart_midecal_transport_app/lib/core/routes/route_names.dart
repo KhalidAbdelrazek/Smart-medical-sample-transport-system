@@ -3,5 +3,6 @@ class RouteNames{
   static const String onBoarding = 'onBoarding';
   static const String root = 'root';
   static const String storageScreen = 'storageScreen';
+  static const String employerMainScreen = 'employerMainScreen';
 
 }

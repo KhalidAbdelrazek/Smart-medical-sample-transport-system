@@ -16,7 +16,7 @@ class StatisticsCubit extends Cubit<StatisticsState> {
 
   /// Refresh data silently (no skeleton, keeps current data visible)
   Future<void> refresh() async {
-    await _fetchData();
+    await loadData();
   }
 
   Future<void> _fetchData() async {
