@@ -1,5 +1,6 @@
 /// Domain models for Requests Tab
 /// Blood bag and blood sample requests with car management
+library;
 
 /// Status of a request
 enum RequestStatus { pending, addedToCar }
