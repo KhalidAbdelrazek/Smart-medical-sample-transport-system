@@ -33,13 +33,13 @@ class EmployerProfileHeader extends StatelessWidget {
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
                 ),
-                boxShadow: [
-                  BoxShadow(
-                    color: AppColors.primaryLight.withValues(alpha: 0.3),
-                    blurRadius: 16,
-                    offset: const Offset(0, 8),
-                  ),
-                ],
+                // boxShadow: [
+                //   BoxShadow(
+                //     color: AppColors.primaryLight.withValues(alpha: 0.3),
+                //     blurRadius: 16,
+                //     offset: const Offset(0, 8),
+                //   ),
+                // ],
               ),
               child: Center(
                 child: Text(
