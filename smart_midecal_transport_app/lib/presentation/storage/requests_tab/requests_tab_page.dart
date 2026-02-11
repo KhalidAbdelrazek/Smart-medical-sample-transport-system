@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:easy_localization/easy_localization.dart';
+import 'package:smart_midecal_transport_app/core/di/di.dart';
 import 'package:smart_midecal_transport_app/core/theme/color.dart';
 
 import 'cubit/blood_bags_cubit.dart';
@@ -29,8 +30,8 @@ class _RequestsTabPageState extends State<RequestsTabPage>
   void initState() {
     super.initState();
     _tabController = TabController(length: 2, vsync: this);
-    _bloodBagsCubit = BloodBagsCubit()..loadRequests();
-    _bloodSamplesCubit = BloodSamplesCubit()..loadRequests();
+    _bloodBagsCubit = getIt<BloodBagsCubit>()..loadRequests();
+    _bloodSamplesCubit = getIt<BloodSamplesCubit>()..loadRequests();
   }
 
   @override

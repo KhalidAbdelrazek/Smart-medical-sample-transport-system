@@ -1,10 +1,12 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:injectable/injectable.dart';
 import 'employee_home_state.dart';
 
 /// Cubit for Employee Home Dashboard Tab
 /// - loadData(): Shows skeleton (initial load)
 /// - refresh(): Silent refresh (no skeleton)
 /// All analytics calculations happen here (ViewModel logic)
+@injectable
 class EmployeeHomeCubit extends Cubit<EmployeeHomeState> {
   EmployeeHomeCubit() : super(EmployeeHomeInitial());
 

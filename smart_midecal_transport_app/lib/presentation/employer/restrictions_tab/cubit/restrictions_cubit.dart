@@ -1,9 +1,11 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:injectable/injectable.dart';
 import 'restrictions_state.dart';
 
 /// Cubit for Restrictions Tab
 /// - All permission toggling logic handled here (ViewModel)
 /// - UI only dispatches events, never makes decisions
+@injectable
 class RestrictionsCubit extends Cubit<RestrictionsState> {
   RestrictionsCubit() : super(RestrictionsInitial());
 

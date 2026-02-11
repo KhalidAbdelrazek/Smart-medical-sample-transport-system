@@ -1,8 +1,10 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:injectable/injectable.dart';
 import '../domain/request_models.dart';
 import 'blood_samples_state.dart';
 
 /// Cubit for Blood Samples sub-tab
+@injectable
 class BloodSamplesCubit extends Cubit<BloodSamplesState> {
   BloodSamplesCubit() : super(BloodSamplesInitial());
 
