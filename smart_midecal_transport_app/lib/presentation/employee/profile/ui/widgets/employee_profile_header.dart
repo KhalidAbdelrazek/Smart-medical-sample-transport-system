@@ -16,9 +16,7 @@ class EmployeeProfileHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
     final initials = _getInitials(name);
-
     return Container(
       width: double.infinity,
       padding: EdgeInsets.symmetric(vertical: 28.h),
