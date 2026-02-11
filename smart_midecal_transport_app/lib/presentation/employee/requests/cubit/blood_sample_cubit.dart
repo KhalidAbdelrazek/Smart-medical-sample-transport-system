@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:injectable/injectable.dart';
 import 'blood_sample_state.dart';
 
 /// Cubit for Blood Sample Requests
 /// - loadData(): Shows skeleton (initial load)
 /// - refresh(): Silent refresh (no skeleton)
 /// - submitRequest(): Handles form submission
+@injectable
 class BloodSampleCubit extends Cubit<BloodSampleState> {
   BloodSampleCubit() : super(BloodSampleInitial());
 
