@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:smart_midecal_transport_app/core/theme/color.dart';
 
 /// Reusable form card container for request forms
 class RequestFormCard extends StatelessWidget {

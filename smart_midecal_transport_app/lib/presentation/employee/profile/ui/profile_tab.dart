@@ -4,11 +4,11 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:smart_midecal_transport_app/core/theme/color.dart';
 
-import '../../cubit/employee_profile_cubit.dart';
-import '../../cubit/employee_profile_state.dart';
-import '../widgets/employee_profile_header.dart';
-import '../widgets/employee_info_card.dart';
-import '../widgets/employee_settings_section.dart';
+import '../cubit/employee_profile_cubit.dart';
+import '../cubit/employee_profile_state.dart';
+import 'widgets/employee_profile_header.dart';
+import 'widgets/employee_info_card.dart';
+import 'widgets/employee_settings_section.dart';
 
 /// Employee Profile Tab Page
 /// Skeleton only shows on first load, not on pull-to-refresh

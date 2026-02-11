@@ -3,8 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:provider/provider.dart';
 import 'package:smart_midecal_transport_app/core/theme/color.dart';
-import 'package:smart_midecal_transport_app/core/theme/theme_provider.dart';
-import 'package:smart_midecal_transport_app/core/localization/locale_provider.dart';
+import 'package:smart_midecal_transport_app/core/provider/theme_provider.dart';
+import 'package:smart_midecal_transport_app/core/provider/locale_provider.dart';
 
 /// Employee settings section with language/theme toggles and logout
 /// Matches the EmployerSettingsSection pattern
