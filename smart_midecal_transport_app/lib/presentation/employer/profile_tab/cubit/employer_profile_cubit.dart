@@ -1,9 +1,11 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:injectable/injectable.dart';
 import 'employer_profile_state.dart';
 
 /// Cubit for Employer Profile Tab
 /// - loadData(): Shows skeleton (initial load)
 /// - refresh(): Silent refresh (no skeleton)
+@injectable
 class EmployerProfileCubit extends Cubit<EmployerProfileState> {
   EmployerProfileCubit() : super(EmployerProfileInitial());
 
