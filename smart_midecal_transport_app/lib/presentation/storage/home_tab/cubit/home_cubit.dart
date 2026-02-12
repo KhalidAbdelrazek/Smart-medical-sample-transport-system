@@ -1,9 +1,11 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:injectable/injectable.dart';
 import 'home_state.dart';
 
 /// Cubit for Home Tab
 /// - loadData(): Shows skeleton (initial load)
 /// - refresh(): Silent refresh (no skeleton)
+@injectable
 class HomeCubit extends Cubit<HomeState> {
   HomeCubit() : super(HomeInitial());
 
