@@ -5,11 +5,7 @@ class BloodBagInitial extends BloodBagState {}
 
 class BloodBagLoading extends BloodBagState {}
 
-class BloodBagLoaded extends BloodBagState {
-  final List<Map<String, dynamic>> recentRequests;
-
-  BloodBagLoaded({required this.recentRequests});
-}
+class BloodBagLoaded extends BloodBagState {}
 
 class BloodBagSubmitting extends BloodBagState {}
 

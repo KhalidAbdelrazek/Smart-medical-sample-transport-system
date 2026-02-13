@@ -9,7 +9,6 @@ import '../cubit/blood_sample_cubit.dart';
 import '../cubit/blood_sample_state.dart';
 import '../widgets/request_form_card.dart';
 import '../widgets/request_form_fields.dart';
-import '../widgets/request_list_card.dart';
 import '../widgets/loading_skeleton.dart';
 
 /// Blood Sample Request View
@@ -89,7 +88,7 @@ class _BloodSampleViewState extends State<BloodSampleView>
       );
     }
 
-    if (state is BloodSampleLoaded) {
+    if (state is BloodSampleLoaded || state is BloodSampleSubmitting) {
       return ListView(
         key: const ValueKey('loaded'),
         padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 16.h),
@@ -97,9 +96,9 @@ class _BloodSampleViewState extends State<BloodSampleView>
           // Request form
           RequestFormCard(
             children: [
-              // Patient name
+              // Patient Identifier
               RequestFormFields.label(
-                'employee.sample_patient_name'.tr(),
+                'employee.sample_patient_name'.tr(), // Or 'Patient Identifier'
                 theme,
               ),
               SizedBox(height: 8.h),
@@ -110,54 +109,18 @@ class _BloodSampleViewState extends State<BloodSampleView>
               ),
               SizedBox(height: 16.h),
 
-              // Blood type
-              RequestFormFields.label('employee.sample_blood_type'.tr(), theme),
+              // Room
+              RequestFormFields.label(
+                'employee.sample_room'.tr(),
+                theme,
+              ), // Need to ensure translation key or use default
               SizedBox(height: 8.h),
               RequestFormFields.dropdown(
-                selectedValue: _cubit.selectedBloodType,
-                items: _cubit.bloodTypes,
-                hint: 'employee.sample_select_blood'.tr(),
+                selectedValue: _cubit.selectedRoom,
+                items: _cubit.rooms,
+                hint: 'Select Room',
                 theme: theme,
-                onChanged: (v) => setState(() => _cubit.selectedBloodType = v),
-              ),
-              SizedBox(height: 16.h),
-
-              // Urgency
-              RequestFormFields.label('employee.sample_urgency'.tr(), theme),
-              SizedBox(height: 8.h),
-              RequestFormFields.urgencySelector(
-                selected: _cubit.urgency,
-                options: [
-                  {'value': 'normal', 'label': 'employee.sample_normal'.tr()},
-                  {'value': 'urgent', 'label': 'employee.sample_urgent'.tr()},
-                  {
-                    'value': 'critical',
-                    'label': 'employee.sample_critical'.tr(),
-                  },
-                ],
-                theme: theme,
-                onChanged: (v) => setState(() => _cubit.urgency = v),
-              ),
-              SizedBox(height: 16.h),
-
-              // Location
-              RequestFormFields.label('employee.sample_location'.tr(), theme),
-              SizedBox(height: 8.h),
-              RequestFormFields.inputField(
-                controller: _cubit.locationController,
-                hint: 'employee.sample_enter_location'.tr(),
-                theme: theme,
-              ),
-              SizedBox(height: 16.h),
-
-              // Notes
-              RequestFormFields.label('employee.sample_notes'.tr(), theme),
-              SizedBox(height: 8.h),
-              RequestFormFields.inputField(
-                controller: _cubit.notesController,
-                hint: 'employee.sample_notes_hint'.tr(),
-                theme: theme,
-                maxLines: 3,
+                onChanged: (v) => setState(() => _cubit.selectedRoom = v),
               ),
               SizedBox(height: 20.h),
 
@@ -173,41 +136,25 @@ class _BloodSampleViewState extends State<BloodSampleView>
                       borderRadius: BorderRadius.circular(14.r),
                     ),
                   ),
-                  onPressed: () => _cubit.submitRequest(),
-                  child: Text(
-                    'employee.sample_submit'.tr(),
-                    style: TextStyle(
-                      fontSize: 16.sp,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
+                  onPressed: state is BloodSampleSubmitting
+                      ? null
+                      : () {
+                          FocusScope.of(context).unfocus();
+                          _cubit.submitRequest();
+                        },
+                  child: state is BloodSampleSubmitting
+                      ? const CircularProgressIndicator(color: Colors.white)
+                      : Text(
+                          'employee.sample_submit'.tr(),
+                          style: TextStyle(
+                            fontSize: 16.sp,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
                 ),
               ),
             ],
           ),
-          SizedBox(height: 28.h),
-
-          // Recent requests header
-          Text(
-            'employee.sample_recent'.tr(),
-            style: theme.textTheme.titleMedium?.copyWith(
-              fontWeight: FontWeight.w600,
-            ),
-          ),
-          SizedBox(height: 12.h),
-
-          // Recent request cards
-          ...state.recentRequests.map(
-            (req) => RequestListCard(
-              title: req['name'] ?? '',
-              subtitle: 'Blood Type: ${req['blood'] ?? ''}',
-              time: req['time'] ?? '',
-              status: req['status'] ?? '',
-              statusPendingLabel: 'employee.status_pending'.tr(),
-              statusCompletedLabel: 'employee.status_completed'.tr(),
-            ),
-          ),
-          SizedBox(height: 32.h),
         ],
       );
     }

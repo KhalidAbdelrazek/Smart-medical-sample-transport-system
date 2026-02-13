@@ -12,89 +12,58 @@ class BloodSampleCubit extends Cubit<BloodSampleState> {
   BloodSampleCubit() : super(BloodSampleInitial());
 
   final TextEditingController patientController = TextEditingController();
-  final TextEditingController locationController = TextEditingController();
-  final TextEditingController notesController = TextEditingController();
 
-  String? selectedBloodType;
-  String urgency = 'normal';
+  String? selectedRoom;
 
-  final List<String> bloodTypes = [
-    'A+',
-    'A-',
-    'B+',
-    'B-',
-    'O+',
-    'O-',
-    'AB+',
-    'AB-',
-  ];
+  final List<String> rooms = ['Room A', 'Room B', 'Room C'];
 
-  /// Load recent requests with skeleton loading
+  /// Load initial data
   Future<void> loadData() async {
     emit(BloodSampleLoading());
-    await _fetchData();
+    await Future.delayed(const Duration(milliseconds: 500));
+    emit(BloodSampleLoaded());
   }
 
   /// Refresh data silently
   Future<void> refresh() async {
-    await _fetchData();
-  }
-
-  Future<void> _fetchData() async {
-    try {
-      await Future.delayed(const Duration(seconds: 2));
-
-      emit(BloodSampleLoaded(recentRequests: _generateDummyRequests()));
-    } catch (e) {
-      emit(BloodSampleError('Failed to load sample requests'));
-    }
+    emit(BloodSampleLoaded());
   }
 
   /// Submit a blood sample request
   Future<void> submitRequest() async {
+    final patient = patientController.text;
+
+    if (patient.isEmpty) {
+      emit(BloodSampleError('Please enter Patient Name or ID'));
+      emit(BloodSampleLoaded());
+      return;
+    }
+
+    if (selectedRoom == null) {
+      emit(BloodSampleError('Please select a room'));
+      emit(BloodSampleLoaded());
+      return;
+    }
+
     emit(BloodSampleSubmitting());
     try {
+      // Simulate API call
       await Future.delayed(const Duration(seconds: 1));
+
       // Clear form after submission
       patientController.clear();
-      locationController.clear();
-      notesController.clear();
-      selectedBloodType = null;
-      urgency = 'normal';
-      await _fetchData();
+      selectedRoom = null;
+
+      // Re-emit loaded state
+      emit(BloodSampleLoaded());
     } catch (e) {
       emit(BloodSampleError('Failed to submit request'));
     }
   }
 
-  List<Map<String, dynamic>> _generateDummyRequests() {
-    return [
-      {
-        'name': 'John Doe',
-        'blood': 'O+',
-        'time': '2 hours ago',
-        'status': 'pending',
-      },
-      {
-        'name': 'Jane Smith',
-        'blood': 'A-',
-        'time': '5 hours ago',
-        'status': 'completed',
-      },
-      {
-        'name': 'Bob Wilson',
-        'blood': 'B+',
-        'time': '1 day ago',
-        'status': 'completed',
-      },
-    ];
-  }
-
   @override
   Future<void> close() {
     patientController.dispose();
-    locationController.dispose();
-    notesController.dispose();
     return super.close();
   }
 }

@@ -65,8 +65,8 @@ class _EmployeeRequestsTabPageState extends State<EmployeeRequestsTabPage>
             ),
             padding: EdgeInsets.all(4.w),
             tabs: [
-              Tab(text: 'employee.tab_blood_samples'.tr()),
               Tab(text: 'employee.tab_blood_bags'.tr()),
+              Tab(text: 'employee.tab_blood_samples'.tr()),
             ],
           ),
         ),
@@ -75,7 +75,7 @@ class _EmployeeRequestsTabPageState extends State<EmployeeRequestsTabPage>
         Expanded(
           child: TabBarView(
             controller: _tabController,
-            children: const [BloodSampleView(), BloodBagView()],
+            children: const [BloodBagView(), BloodSampleView()],
           ),
         ),
       ],
