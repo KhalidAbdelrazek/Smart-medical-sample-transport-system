@@ -1,5 +1,5 @@
 """
-URL configuration for Medical_Robot project.
+URL configuration for main project.
 
 The `urlpatterns` list routes URLs to views. For more information please see:
     https://docs.djangoproject.com/en/5.2/topics/http/urls/
@@ -16,7 +16,10 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path
+from django.conf.urls import include
+from healthcare import views
 
 urlpatterns = [
     path('admin/', admin.site.urls),
+    path('', include('healthcare.urls')),
 ]
