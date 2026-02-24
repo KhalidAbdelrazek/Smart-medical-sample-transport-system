@@ -1,5 +1,5 @@
 # Byte-compiled / optimized / DLL files
-__pycache__/
+__pycache__/*
 *.py[cod]
 *$py.class
 wsgi.cpython-313.pyc
@@ -31,3 +31,6 @@ ENV/
 # OS generated files
 .DS_Store
 Thumbs.db
+
+
+migrations/*
