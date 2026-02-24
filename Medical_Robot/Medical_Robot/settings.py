@@ -36,7 +36,6 @@ TOPIC = "carts/+/status"
 
 # Application definition
 INSTALLED_APPS = [
-    'robot_app.apps.RobotAppConfig',  
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -46,8 +45,9 @@ INSTALLED_APPS = [
     'rest_framework',
     'rest_framework.authtoken',
     'corsheaders',
-    'api',
     'healthcare',
+    'robot_app',
+    'robot_app2',
 ]
 
 REST_FRAMEWORK = {

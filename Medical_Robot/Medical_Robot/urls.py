@@ -22,7 +22,8 @@ from healthcare import views
 from robot_app import views  # app name is robot_app
 
 urlpatterns = [
-    path('api/', include('api.urls')), # السطر ده بيربط مشروعك بملف الـ api
+    path('robot_app/', include('robot_app.urls')), # السطر ده بيربط مشروعك بملف الـ api
+    path('robot_app2/', include('robot_app2.urls')),
     path('', include('healthcare.urls')),
     path('admin/', admin.site.urls),
 
