@@ -14,16 +14,14 @@
 #     1. Import the include() function: from django.urls import include, path
 #     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 # """
-from robot_app import views  # app name is robot_app
 from django.contrib import admin
 from django.urls import path, include
 from django.conf.urls import include
 from healthcare import views
-from robot_app import views  # app name is robot_app
+from robot import views  # app name is robot
 
 urlpatterns = [
-    path('robot_app/', include('robot_app.urls')), # السطر ده بيربط مشروعك بملف الـ api
-    path('robot_app2/', include('robot_app2.urls')),
+    path('robot/', include('robot.urls')), # السطر ده بيربط مشروعك بملف الـ api
     path('', include('healthcare.urls')),
     path('admin/', admin.site.urls),
 

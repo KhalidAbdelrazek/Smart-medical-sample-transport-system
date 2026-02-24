@@ -46,8 +46,7 @@ INSTALLED_APPS = [
     'rest_framework.authtoken',
     'corsheaders',
     'healthcare',
-    'robot_app',
-    'robot_app2',
+    'robot',
 ]
 
 REST_FRAMEWORK = {
