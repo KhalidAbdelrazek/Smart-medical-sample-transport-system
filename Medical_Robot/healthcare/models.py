@@ -44,10 +44,9 @@ class Staff(models.Model):
 
   
 class SensorReading(models.Model):
-    STATE_CHOICES = [
-        ('ON', 'On'),
-        ('OFF', 'Off'),
-    ]
+    # STATE_CHOICES = [
+    #     ('C', 'C')
+    # ]
         
     cart = models.CharField(max_length=50, blank=True, null=True)
     
@@ -55,10 +54,15 @@ class SensorReading(models.Model):
     
     load = models.CharField(max_length=10, blank=True, null=True)
 
-    state = models.CharField(max_length=10, choices=STATE_CHOICES, default='OFF')
+    state = models.CharField(max_length=10)
 
     time = models.DateTimeField(auto_now_add=True)
-        
+
+    # if state != 'C':
+    #     print("The cart is not in the correct position")
+    # else:
+    #     print("The cart is in the correct position")
+
     # cutoff_date = timezone.now() - timedelta(hours=1)
     # deleted_count, _ = SensorReading.objects.filter(
     #     time__lt=cutoff_date
