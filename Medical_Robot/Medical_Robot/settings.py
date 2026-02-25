@@ -70,7 +70,7 @@ REST_FRAMEWORK = {
 }
 
 SPECTACULAR_SETTINGS = {
-    'TITLE': 'My Awesome Project API',
+    'TITLE': 'My Graduation Project API',
     'DESCRIPTION': 'Detailed API documentation for the frontend team.',
     'VERSION': '1.0.0',
     'SERVE_INCLUDE_SCHEMA': False,
