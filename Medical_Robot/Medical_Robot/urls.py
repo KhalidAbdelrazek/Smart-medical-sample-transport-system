@@ -1,8 +1,7 @@
 from django.contrib import admin
 from django.urls import path, include
-from django.conf.urls import include
-from healthcare import views
-from robot import views  # app name is robot
+from robot import views as robot_views
+from healthcare import views as healthcare_views
 
 from drf_spectacular.views import (
     SpectacularAPIView, 
@@ -26,30 +25,30 @@ urlpatterns = [
     path('admin/', admin.site.urls),
 
     # ------------------- Employee -------------------
-    path('employees/', views.EmployeeListCreateView.as_view(), name='employee-list-create'),
-    path('employees/<int:pk>/', views.EmployeeRetrieveUpdateDestroyView.as_view(), name='employee-detail'),
+    path('employees/', robot_views.EmployeeListGeneric.as_view(), name='employee-list-generic'),
+    path('employees/<uuid:pk>/', robot_views.EmployeeDetailGeneric.as_view(), name='employee-detail-generic'),
 
     # ------------------- EmployeeStatistics -------------------
-    path('stats/', views.EmployeeStatisticsListView.as_view(), name='stats-list'),
-    path('stats/<int:pk>/', views.EmployeeStatisticsDetailView.as_view(), name='stats-detail'),
+    path('stats/', robot_views.EmployeeStatisticsListGeneric.as_view(), name='stats-list-generic'),
+    path('stats/<uuid:pk>/', robot_views.EmployeeStatisticsDetailGeneric.as_view(), name='stats-detail-generic'),
 
     # ------------------- Patient -------------------
-    path('patients/', views.PatientListCreateView.as_view(), name='patient-list-create'),
-    path('patients/<int:pk>/', views.PatientRetrieveUpdateDestroyView.as_view(), name='patient-detail'),
+    path('patients/', robot_views.PatientListGeneric.as_view(), name='patient-list-generic'),
+    path('patients/<uuid:pk>/', robot_views.PatientDetailGeneric.as_view(), name='patient-detail-generic'),
 
     # ------------------- Vehicle -------------------
-    path('vehicles/', views.VehicleListCreateView.as_view(), name='vehicle-list-create'),
-    path('vehicles/<int:pk>/', views.VehicleRetrieveUpdateDestroyView.as_view(), name='vehicle-detail'),
+    path('vehicles/', robot_views.VehicleListGeneric.as_view(), name='vehicle-list-generic'),
+    path('vehicles/<uuid:pk>/', robot_views.VehicleDetailGeneric.as_view(), name='vehicle-detail-generic'),
 
     # ------------------- Request -------------------
-    path('requests/', views.RequestListCreateView.as_view(), name='request-list-create'),
-    path('requests/<int:pk>/', views.RequestRetrieveUpdateDestroyView.as_view(), name='request-detail'),
+    path('requests/', robot_views.RequestListGeneric.as_view(), name='request-list-generic'),
+    path('requests/<uuid:pk>/', robot_views.RequestDetailGeneric.as_view(), name='request-detail-generic'),
 
     # ------------------- Response -------------------
-    path('responses/', views.ResponseListCreateView.as_view(), name='response-list-create'),
-    path('responses/<int:pk>/', views.ResponseRetrieveUpdateDestroyView.as_view(), name='response-detail'),
+    path('responses/', robot_views.ResponseListGeneric.as_view(), name='response-list-generic'),
+    path('responses/<uuid:pk>/', robot_views.ResponseDetailGeneric.as_view(), name='response-detail-generic'),
 
     # ------------------- Dispatch -------------------
-    path('dispatches/', views.DispatchListCreateView.as_view(), name='dispatch-list-create'),
-    path('dispatches/<int:pk>/', views.DispatchRetrieveUpdateDestroyView.as_view(), name='dispatch-detail'),
+    path('dispatches/', robot_views.DispatchListGeneric.as_view(), name='dispatch-list-generic'),
+    path('dispatches/<uuid:pk>/', robot_views.DispatchDetailGeneric.as_view(), name='dispatch-detail-generic'),
 ]

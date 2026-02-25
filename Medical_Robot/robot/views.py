@@ -1,5 +1,6 @@
-from drf_spectacular.utils import extend_schema, OpenApiParameter, OpenApiTypes
 from rest_framework import generics
+from rest_framework.authentication import TokenAuthentication
+from rest_framework.permissions import IsAuthenticated
 from .models import Employee, EmployeeStatistics, Patient, Request, Response, Vehicle, Dispatch
 from .serializers import (
     EmployeeSerializer,
@@ -11,78 +12,107 @@ from .serializers import (
     DispatchSerializer
 )
 
+
 # ------------------- Employee -------------------
-class EmployeeListCreateView(generics.ListCreateAPIView):
+class EmployeeListGeneric(generics.ListCreateAPIView):
     queryset = Employee.objects.all()
     serializer_class = EmployeeSerializer
+    authentication_classes = [TokenAuthentication]
+    permission_classes = [IsAuthenticated]
 
 
-class EmployeeRetrieveUpdateDestroyView(generics.RetrieveUpdateDestroyAPIView):
+class EmployeeDetailGeneric(generics.RetrieveUpdateDestroyAPIView):
     queryset = Employee.objects.all()
     serializer_class = EmployeeSerializer
+    authentication_classes = [TokenAuthentication]
+    permission_classes = [IsAuthenticated]
 
 
 # ------------------- EmployeeStatistics -------------------
-class EmployeeStatisticsListView(generics.ListAPIView):
+class EmployeeStatisticsListGeneric(generics.ListAPIView):
     queryset = EmployeeStatistics.objects.all()
     serializer_class = EmployeeStatisticsSerializer
+    authentication_classes = [TokenAuthentication]
+    permission_classes = [IsAuthenticated]
 
 
-class EmployeeStatisticsDetailView(generics.RetrieveAPIView):
+class EmployeeStatisticsDetailGeneric(generics.RetrieveAPIView):
     queryset = EmployeeStatistics.objects.all()
     serializer_class = EmployeeStatisticsSerializer
+    authentication_classes = [TokenAuthentication]
+    permission_classes = [IsAuthenticated]
 
 
 # ------------------- Patient -------------------
-class PatientListCreateView(generics.ListCreateAPIView):
+class PatientListGeneric(generics.ListCreateAPIView):
     queryset = Patient.objects.all()
     serializer_class = PatientSerializer
+    authentication_classes = [TokenAuthentication]
+    permission_classes = [IsAuthenticated]
 
 
-class PatientRetrieveUpdateDestroyView(generics.RetrieveUpdateDestroyAPIView):
+class PatientDetailGeneric(generics.RetrieveUpdateDestroyAPIView):
     queryset = Patient.objects.all()
     serializer_class = PatientSerializer
+    authentication_classes = [TokenAuthentication]
+    permission_classes = [IsAuthenticated]
 
 
 # ------------------- Vehicle -------------------
-class VehicleListCreateView(generics.ListCreateAPIView):
+class VehicleListGeneric(generics.ListCreateAPIView):
     queryset = Vehicle.objects.all()
     serializer_class = VehicleSerializer
+    authentication_classes = [TokenAuthentication]
+    permission_classes = [IsAuthenticated]
 
 
-class VehicleRetrieveUpdateDestroyView(generics.RetrieveUpdateDestroyAPIView):
+class VehicleDetailGeneric(generics.RetrieveUpdateDestroyAPIView):
     queryset = Vehicle.objects.all()
     serializer_class = VehicleSerializer
+    authentication_classes = [TokenAuthentication]
+    permission_classes = [IsAuthenticated]
 
 
 # ------------------- Request -------------------
-class RequestListCreateView(generics.ListCreateAPIView):
+class RequestListGeneric(generics.ListCreateAPIView):
     queryset = Request.objects.all()
     serializer_class = RequestSerializer
+    authentication_classes = [TokenAuthentication]
+    permission_classes = [IsAuthenticated]
 
 
-class RequestRetrieveUpdateDestroyView(generics.RetrieveUpdateDestroyAPIView):
+class RequestDetailGeneric(generics.RetrieveUpdateDestroyAPIView):
     queryset = Request.objects.all()
     serializer_class = RequestSerializer
+    authentication_classes = [TokenAuthentication]
+    permission_classes = [IsAuthenticated]
 
 
 # ------------------- Response -------------------
-class ResponseListCreateView(generics.ListCreateAPIView):
+class ResponseListGeneric(generics.ListCreateAPIView):
     queryset = Response.objects.all()
     serializer_class = ResponseSerializer
+    authentication_classes = [TokenAuthentication]
+    permission_classes = [IsAuthenticated]
 
 
-class ResponseRetrieveUpdateDestroyView(generics.RetrieveUpdateDestroyAPIView):
+class ResponseDetailGeneric(generics.RetrieveUpdateDestroyAPIView):
     queryset = Response.objects.all()
     serializer_class = ResponseSerializer
+    authentication_classes = [TokenAuthentication]
+    permission_classes = [IsAuthenticated]
 
 
 # ------------------- Dispatch -------------------
-class DispatchListCreateView(generics.ListCreateAPIView):
+class DispatchListGeneric(generics.ListCreateAPIView):
     queryset = Dispatch.objects.all()
     serializer_class = DispatchSerializer
+    authentication_classes = [TokenAuthentication]
+    permission_classes = [IsAuthenticated]
 
 
-class DispatchRetrieveUpdateDestroyView(generics.RetrieveUpdateDestroyAPIView):
+class DispatchDetailGeneric(generics.RetrieveUpdateDestroyAPIView):
     queryset = Dispatch.objects.all()
     serializer_class = DispatchSerializer
+    authentication_classes = [TokenAuthentication]
+    permission_classes = [IsAuthenticated]
