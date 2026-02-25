@@ -23,12 +23,12 @@ class Employee(models.Model):
         ('night', 'Night'),
     ]
 
-    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    employee_id = models.CharField(max_length=20, unique=True)
-    name = models.CharField(max_length=100)
-    department = models.CharField(max_length=20, choices=DEPARTMENT_CHOICES)
-    shift = models.CharField(max_length=20, choices=SHIFT_CHOICES)
-    birth_date = models.DateField()
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False, help_text="Unique UUID for the employee.")
+    employee_id = models.CharField(max_length=20, unique=True, help_text="Official hospital employee identification number.")
+    name = models.CharField(max_length=100, help_text="Full name of the employee.")
+    department = models.CharField(max_length=20, choices=DEPARTMENT_CHOICES, help_text="The department the employee works in.")
+    shift = models.CharField(max_length=20, choices=SHIFT_CHOICES, help_text="The working shift of the employee.")
+    birth_date = models.DateField(help_text="The employee's date of birth.")
 
     created_at = models.DateTimeField(default=timezone.now)
     updated_at = models.DateTimeField(default=timezone.now)
@@ -59,13 +59,13 @@ class EmployeeStatistics(models.Model):
 
 
 class Patient(models.Model):
-    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    name = models.CharField(max_length=100)
-    phone = models.CharField(max_length=15)
-    email = models.EmailField()
-    address = models.TextField()
-    birth_date = models.DateField()
-    blood_type = models.CharField(max_length=5, choices=BLOOD_TYPES)
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False, help_text="Unique UUID for the patient.")
+    name = models.CharField(max_length=100, help_text="Full name of the patient.")
+    phone = models.CharField(max_length=15, help_text="Primary contact phone number.")
+    email = models.EmailField(help_text="Patient's email address.")
+    address = models.TextField(help_text="Full residential address.")
+    birth_date = models.DateField(help_text="The patient's date of birth.")
+    blood_type = models.CharField(max_length=5, choices=BLOOD_TYPES, help_text="The patient's blood type (e.g., A+, O-).")
 
     created_at = models.DateTimeField(default=timezone.now)
     updated_at = models.DateTimeField(default=timezone.now)
@@ -87,12 +87,12 @@ class Request(models.Model):
         ('blood_bag', 'Blood Bag'),
     ]
 
-    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    request_type = models.CharField(max_length=20, choices=REQUEST_TYPES)
-    blood_type = models.CharField(max_length=5, choices=BLOOD_TYPES)
-    room_number = models.CharField(max_length=20)
-    patient = models.ForeignKey(Patient, on_delete=models.CASCADE, null=True, blank=True)
-    created_by = models.ForeignKey(Employee, on_delete=models.CASCADE)
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False, help_text="Unique UUID for the transport request.")
+    request_type = models.CharField(max_length=20, choices=REQUEST_TYPES, help_text="Type of transport requested (e.g., blood sample, blood bag).")
+    blood_type = models.CharField(max_length=5, choices=BLOOD_TYPES, help_text="Blood type corresponding to the request.")
+    room_number = models.CharField(max_length=20, help_text="The room number where the items are located or need to be delivered.")
+    patient = models.ForeignKey(Patient, on_delete=models.CASCADE, null=True, blank=True, help_text="The patient associated with this request.")
+    created_by = models.ForeignKey(Employee, on_delete=models.CASCADE, help_text="The employee who initiated this request.")
     created_at = models.DateTimeField(default=timezone.now)
     updated_at = models.DateTimeField(default=timezone.now)
 
@@ -104,10 +104,10 @@ class Request(models.Model):
 
 
 class Vehicle(models.Model):
-    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    name = models.CharField(max_length=100)
-    capacity = models.IntegerField(default=5)
-    current_load = models.IntegerField(default=0)
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False, help_text="Unique UUID for the vehicle/robot.")
+    name = models.CharField(max_length=100, help_text="Name or identifier of the vehicle.")
+    capacity = models.IntegerField(default=5, help_text="Maximum number of requests the vehicle can handle at once.")
+    current_load = models.IntegerField(default=0, help_text="The current number of active requests assigned to this vehicle.")
 
     created_at = models.DateTimeField(default=timezone.now)
     updated_at = models.DateTimeField(default=timezone.now)
@@ -121,14 +121,15 @@ class Vehicle(models.Model):
 
 
 class Response(models.Model):
-    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    request = models.OneToOneField(Request, on_delete=models.CASCADE)
-    vehicle = models.ForeignKey(Vehicle, on_delete=models.CASCADE)
-    handled_by = models.ForeignKey(Employee, on_delete=models.CASCADE)
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False, help_text="Unique UUID for the response.")
+    request = models.OneToOneField(Request, on_delete=models.CASCADE, help_text="The request this response is fulfilling.")
+    vehicle = models.ForeignKey(Vehicle, on_delete=models.CASCADE, help_text="The transport vehicle assigned to fulfill the request.")
+    handled_by = models.ForeignKey(Employee, on_delete=models.CASCADE, help_text="The employee responsible for handling this response.")
     status = models.CharField(
         max_length=20,
         choices=[('in_car', 'In Car'), ('dispatched', 'Dispatched'), ('completed', 'Completed')],
-        default='in_car'
+        default='in_car',
+        help_text="Current fulfillment status of the request."
     )
     created_at = models.DateTimeField(default=timezone.now)
     updated_at = models.DateTimeField(default=timezone.now)
@@ -167,9 +168,9 @@ class Response(models.Model):
 
 
 class Dispatch(models.Model):
-    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    vehicle = models.ForeignKey(Vehicle, on_delete=models.CASCADE)
-    dispatched_by = models.ForeignKey(Employee, on_delete=models.CASCADE)
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False, help_text="Unique UUID for the dispatch event.")
+    vehicle = models.ForeignKey(Vehicle, on_delete=models.CASCADE, help_text="The vehicle being dispatched.")
+    dispatched_by = models.ForeignKey(Employee, on_delete=models.CASCADE, help_text="The employee who orchestrated the dispatch.")
     dispatched_at = models.DateTimeField(default=timezone.now)
     updated_at = models.DateTimeField(default=timezone.now)
 
