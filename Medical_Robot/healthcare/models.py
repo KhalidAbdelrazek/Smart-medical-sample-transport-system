@@ -6,6 +6,7 @@ from datetime import timedelta
 
   
 class SensorReading(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False, help_text="Unique UUID for the sensor reading.")
     # STATE_CHOICES = [
     #     ('C', 'C')
     # ]
