@@ -4,9 +4,9 @@ from .models import *
 
 admin.site.register(Patient)
 admin.site.register(Vehicle)
-admin.site.register(Request)
-admin.site.register(Response)
-admin.site.register(Dispatch)
+admin.site.register(TransportRequest)
+admin.site.register(TransportFulfillment)
+admin.site.register(VehicleDispatch)
 admin.site.register(Employee)
 admin.site.register(EmployeeStatistics)
 

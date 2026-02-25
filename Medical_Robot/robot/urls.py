@@ -18,15 +18,15 @@ urlpatterns = [
     path('vehicles/', views.VehicleListGeneric.as_view(), name='vehicle-list'),
     path('vehicles/<uuid:pk>/', views.VehicleDetailGeneric.as_view(), name='vehicle-detail'),
     
-    # Request URLs
-    path('requests/', views.RequestListGeneric.as_view(), name='request-list'),
-    path('requests/<uuid:pk>/', views.RequestDetailGeneric.as_view(), name='request-detail'),
+    # TransportRequest URLs
+    path('transport-requests/', views.TransportRequestListGeneric.as_view(), name='transport-request-list'),
+    path('transport-requests/<uuid:pk>/', views.TransportRequestDetailGeneric.as_view(), name='transport-request-detail'),
     
-    # Response URLs
-    path('responses/', views.ResponseListGeneric.as_view(), name='response-list'),
-    path('responses/<uuid:pk>/', views.ResponseDetailGeneric.as_view(), name='response-detail'),
+    # TransportFulfillment URLs
+    path('transport-fulfillments/', views.TransportFulfillmentListGeneric.as_view(), name='transport-fulfillment-list'),
+    path('transport-fulfillments/<uuid:pk>/', views.TransportFulfillmentDetailGeneric.as_view(), name='transport-fulfillment-detail'),
     
-    # Dispatch URLs
-    path('dispatches/', views.DispatchListGeneric.as_view(), name='dispatch-list'),
-    path('dispatches/<uuid:pk>/', views.DispatchDetailGeneric.as_view(), name='dispatch-detail'),
+    # VehicleDispatch URLs
+    path('vehicle-dispatches/', views.VehicleDispatchListGeneric.as_view(), name='vehicle-dispatch-list'),
+    path('vehicle-dispatches/<uuid:pk>/', views.VehicleDispatchDetailGeneric.as_view(), name='vehicle-dispatch-detail'),
 ]

@@ -2,7 +2,7 @@ from rest_framework import serializers
 from django.core.exceptions import ValidationError
 from drf_spectacular.utils import extend_schema_field
 from drf_spectacular.types import OpenApiTypes
-from .models import Employee, EmployeeStatistics, Patient, Request, Response, Vehicle, Dispatch
+from .models import Employee, EmployeeStatistics, Patient, TransportRequest, TransportFulfillment, Vehicle, VehicleDispatch
 
 
 class EmployeeSerializer(serializers.ModelSerializer):
@@ -50,30 +50,30 @@ class VehicleSerializer(serializers.ModelSerializer):
         return obj.is_available
 
 
-class RequestSerializer(serializers.ModelSerializer):
+class TransportRequestSerializer(serializers.ModelSerializer):
     class Meta:
-        model = Request
+        model = TransportRequest
         fields = ['id', 'request_type', 'blood_type', 'room_number', 'patient', 'created_by', 'created_at', 'updated_at']
 
 
 
-class ResponseSerializer(serializers.ModelSerializer):
-    request_details = RequestSerializer(source='request', read_only=True)
+class TransportFulfillmentSerializer(serializers.ModelSerializer):
+    request_details = TransportRequestSerializer(source='request', read_only=True)
     vehicle_name = serializers.CharField(source='vehicle.name', read_only=True)
 
     class Meta:
-        model = Response
+        model = TransportFulfillment
         fields = ['id', 'request', 'vehicle', 'vehicle_name', 'handled_by', 'status', 'request_details', 'created_at', 'updated_at']
         read_only_fields = ('status',)
 
     def validate(self, attrs):
         vehicle = attrs.get('vehicle')
         if vehicle and vehicle.current_load >= vehicle.capacity:
-            raise serializers.ValidationError("🚗 The vehicle is full! Cannot add a new Response.")
+            raise serializers.ValidationError("🚗 The vehicle is full! Cannot add a new TransportFulfillment.")
         return attrs
 
 
-class DispatchSerializer(serializers.ModelSerializer):
+class VehicleDispatchSerializer(serializers.ModelSerializer):
     class Meta:
-        model = Dispatch
+        model = VehicleDispatch
         fields = ['id', 'vehicle', 'dispatched_by', 'dispatched_at', 'updated_at']

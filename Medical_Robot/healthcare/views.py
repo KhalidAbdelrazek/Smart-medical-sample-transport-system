@@ -25,7 +25,7 @@ from .models import SensorReading
     summary="Control Device MQTT"
 )
 @api_view(['GET'])
-def control_device(request):
+def mqtt_control_view(request):
     cart = request.GET.get('cart')
     state = request.GET.get('state') # "C" for making the dispatch order
 
