@@ -81,7 +81,7 @@ class Patient(models.Model):
         return self.name
 
 
-class Request(models.Model):
+class TransportRequest(models.Model):
     REQUEST_TYPES = [
         ('sample', 'Blood Sample'),
         ('blood_bag', 'Blood Bag'),
@@ -120,11 +120,11 @@ class Vehicle(models.Model):
         return self.name
 
 
-class Response(models.Model):
-    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False, help_text="Unique UUID for the response.")
-    request = models.OneToOneField(Request, on_delete=models.CASCADE, help_text="The request this response is fulfilling.")
+class TransportFulfillment(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False, help_text="Unique UUID for the transport fulfillment.")
+    request = models.OneToOneField(TransportRequest, on_delete=models.CASCADE, help_text="The request this fulfillment is satisfying.")
     vehicle = models.ForeignKey(Vehicle, on_delete=models.CASCADE, help_text="The transport vehicle assigned to fulfill the request.")
-    handled_by = models.ForeignKey(Employee, on_delete=models.CASCADE, help_text="The employee responsible for handling this response.")
+    handled_by = models.ForeignKey(Employee, on_delete=models.CASCADE, help_text="The employee responsible for handling this fulfillment.")
     status = models.CharField(
         max_length=20,
         choices=[('in_car', 'In Car'), ('dispatched', 'Dispatched'), ('completed', 'Completed')],
@@ -140,7 +140,7 @@ class Response(models.Model):
         if is_new:
             # لو العربية ممتلئة، اعرض رسالة ودية
             if self.vehicle.current_load >= self.vehicle.capacity:
-                raise ValidationError("The vehicle is full! Cannot add a new Response.")
+                raise ValidationError("The vehicle is full! Cannot add a new TransportFulfillment.")
 
             # زود الحمولة
             self.vehicle.current_load += 1
@@ -164,10 +164,10 @@ class Response(models.Model):
             stats.save()
 
     def __str__(self):
-        return f"Response for {self.request}"
+        return f"TransportFulfillment for {self.request}"
 
 
-class Dispatch(models.Model):
+class VehicleDispatch(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False, help_text="Unique UUID for the dispatch event.")
     vehicle = models.ForeignKey(Vehicle, on_delete=models.CASCADE, help_text="The vehicle being dispatched.")
     dispatched_by = models.ForeignKey(Employee, on_delete=models.CASCADE, help_text="The employee who orchestrated the dispatch.")
@@ -181,11 +181,11 @@ class Dispatch(models.Model):
 
         if is_new:
             # كل الـ Responses اللي بالعربية لسة in_car
-            responses_in_vehicle = Response.objects.filter(vehicle=self.vehicle, status='in_car')
+            fulfillments_in_vehicle = TransportFulfillment.objects.filter(vehicle=self.vehicle, status='in_car')
 
             # حساب عدد العينات والأكياس
-            samples_count = responses_in_vehicle.filter(request__request_type='sample').count()
-            bags_count = responses_in_vehicle.filter(request__request_type='blood_bag').count()
+            samples_count = fulfillments_in_vehicle.filter(request__request_type='sample').count()
+            bags_count = fulfillments_in_vehicle.filter(request__request_type='blood_bag').count()
 
             # تحديث إحصائيات الموظف اللي عمل Dispatch
             stats, _ = EmployeeStatistics.objects.get_or_create(employee=self.dispatched_by)
@@ -195,7 +195,7 @@ class Dispatch(models.Model):
             stats.save()
 
             # تحديث حالة كل الـ Responses في العربية
-            responses_in_vehicle.update(status='dispatched')
+            fulfillments_in_vehicle.update(status='dispatched')
 
             # تصفير الحمولة بعد الـ Dispatch
             self.vehicle.current_load = 0

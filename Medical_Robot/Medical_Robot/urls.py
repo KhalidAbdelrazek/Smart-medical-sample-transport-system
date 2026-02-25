@@ -40,15 +40,15 @@ urlpatterns = [
     path('vehicles/', robot_views.VehicleListGeneric.as_view(), name='vehicle-list-generic'),
     path('vehicles/<uuid:pk>/', robot_views.VehicleDetailGeneric.as_view(), name='vehicle-detail-generic'),
 
-    # ------------------- Request -------------------
-    path('requests/', robot_views.RequestListGeneric.as_view(), name='request-list-generic'),
-    path('requests/<uuid:pk>/', robot_views.RequestDetailGeneric.as_view(), name='request-detail-generic'),
+    # ------------------- TransportRequest -------------------
+    path('transport-requests/', robot_views.TransportRequestListGeneric.as_view(), name='transport-request-list-generic'),
+    path('transport-requests/<uuid:pk>/', robot_views.TransportRequestDetailGeneric.as_view(), name='transport-request-detail-generic'),
 
-    # ------------------- Response -------------------
-    path('responses/', robot_views.ResponseListGeneric.as_view(), name='response-list-generic'),
-    path('responses/<uuid:pk>/', robot_views.ResponseDetailGeneric.as_view(), name='response-detail-generic'),
+    # ------------------- TransportFulfillment -------------------
+    path('transport-fulfillments/', robot_views.TransportFulfillmentListGeneric.as_view(), name='transport-fulfillment-list-generic'),
+    path('transport-fulfillments/<uuid:pk>/', robot_views.TransportFulfillmentDetailGeneric.as_view(), name='transport-fulfillment-detail-generic'),
 
-    # ------------------- Dispatch -------------------
-    path('dispatches/', robot_views.DispatchListGeneric.as_view(), name='dispatch-list-generic'),
-    path('dispatches/<uuid:pk>/', robot_views.DispatchDetailGeneric.as_view(), name='dispatch-detail-generic'),
+    # ------------------- VehicleDispatch -------------------
+    path('vehicle-dispatches/', robot_views.VehicleDispatchListGeneric.as_view(), name='vehicle-dispatch-list-generic'),
+    path('vehicle-dispatches/<uuid:pk>/', robot_views.VehicleDispatchDetailGeneric.as_view(), name='vehicle-dispatch-detail-generic'),
 ]

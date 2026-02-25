@@ -9,5 +9,5 @@ router = DefaultRouter()
 
 urlpatterns = [
     path('auth/token/', obtain_auth_token, name='token'),
-    path('readings/', views.control_device),
+    path('mqtt-control/', views.mqtt_control_view),
 ]
