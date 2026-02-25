@@ -9,14 +9,5 @@ router = DefaultRouter()
 
 urlpatterns = [
     path('auth/token/', obtain_auth_token, name='token'),
-    path('patient/', views.PatientListGeneric.as_view()),
-    path('patient/<str:pk>/', views.PatientDetailGeneric.as_view()),
-    path('staff/', views.StaffListGeneric.as_view()),
-    path('staff/<str:pk>/', views.StaffDetailGeneric.as_view()),
-    path('viewsets/', include(router.urls)),
-    
-    
     path('readings/', views.control_device),
-    
-    
 ]
