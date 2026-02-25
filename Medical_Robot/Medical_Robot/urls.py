@@ -1,26 +1,26 @@
-# """
-# URL configuration for clinic_management project.
-
-# The `urlpatterns` list routes URLs to views. For more information please see:
-#     https://docs.djangoproject.com/en/6.0/topics/http/urls/
-# Examples:
-# Function views
-#     1. Add an import:  from my_app import views
-#     2. Add a URL to urlpatterns:  path('', views.home, name='home')
-# Class-based views
-#     1. Add an import:  from other_app.views import Home
-#     2. Add a URL to urlpatterns:  path('', Home.as_view(), name='home')
-# Including another URLconf
-#     1. Import the include() function: from django.urls import include, path
-#     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
-# """
 from django.contrib import admin
 from django.urls import path, include
 from django.conf.urls import include
 from healthcare import views
 from robot import views  # app name is robot
 
+from drf_spectacular.views import (
+    SpectacularAPIView, 
+    SpectacularRedocView, 
+    SpectacularSwaggerView
+)
+
 urlpatterns = [
+
+    # 1. The raw schema file (YAML/JSON) - Frontend can use this to auto-generate code!
+    path('api/schema/', SpectacularAPIView.as_view(), name='schema'),
+
+    # 2. Swagger UI (Interactive interface for testing endpoints)
+    path('api/docs/swagger/', SpectacularSwaggerView.as_view(url_name='schema'), name='swagger-ui'),
+
+    # 3. Redoc (Clean, linear documentation layout)
+    path('api/docs/redoc/', SpectacularRedocView.as_view(url_name='schema'), name='redoc'),
+    
     path('robot/', include('robot.urls')), # السطر ده بيربط مشروعك بملف الـ api
     path('', include('healthcare.urls')),
     path('admin/', admin.site.urls),
