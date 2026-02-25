@@ -8,7 +8,7 @@ class EmployeeSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Employee
-        fields = '__all__'
+        fields = ['id', 'employee_id', 'name', 'department', 'shift', 'birth_date', 'age', 'created_at', 'updated_at']
 
 
 class EmployeeStatisticsSerializer(serializers.ModelSerializer):
@@ -16,7 +16,7 @@ class EmployeeStatisticsSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = EmployeeStatistics
-        fields = '__all__'
+        fields = ['id', 'employee', 'employee_name', 'processed_samples', 'processed_bags', 'dispatched_cars', 'created_at', 'updated_at']
         read_only_fields = ('processed_samples', 'processed_bags', 'dispatched_cars')
 
 
@@ -25,7 +25,7 @@ class PatientSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Patient
-        fields = '__all__'
+        fields = ['id', 'name', 'phone', 'email', 'address', 'birth_date', 'blood_type', 'age', 'created_at', 'updated_at']
 
 
 class VehicleSerializer(serializers.ModelSerializer):
@@ -33,24 +33,24 @@ class VehicleSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Vehicle
-        fields = '__all__'
+        fields = ['id', 'name', 'capacity', 'current_load', 'is_available', 'created_at', 'updated_at']
 
 
 class RequestSerializer(serializers.ModelSerializer):
     class Meta:
         model = Request
-        fields = '__all__'
+        fields = ['id', 'request_type', 'blood_type', 'room_number', 'patient', 'created_by', 'created_at', 'updated_at']
 
 
 
 class ResponseSerializer(serializers.ModelSerializer):
     request_details = RequestSerializer(source='request', read_only=True)
-    vehicle_name = serializers.CharField(source='vehicle.name', read_only=True)  # هنا اسم العربية
+    vehicle_name = serializers.CharField(source='vehicle.name', read_only=True)
 
     class Meta:
         model = Response
-        fields = ['id', 'request', 'vehicle', 'vehicle_name', 'handled_by', 'request_details']
-        read_only_fields = ('status',)  # منع المستخدم من تعديل status
+        fields = ['id', 'request', 'vehicle', 'vehicle_name', 'handled_by', 'status', 'request_details', 'created_at', 'updated_at']
+        read_only_fields = ('status',)
 
     def validate(self, attrs):
         vehicle = attrs.get('vehicle')
@@ -62,4 +62,4 @@ class ResponseSerializer(serializers.ModelSerializer):
 class DispatchSerializer(serializers.ModelSerializer):
     class Meta:
         model = Dispatch
-        fields = '__all__'
+        fields = ['id', 'vehicle', 'dispatched_by', 'dispatched_at', 'updated_at']
