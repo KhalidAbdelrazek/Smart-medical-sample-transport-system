@@ -1,18 +1,9 @@
-"""
-accounts/views.py
-
-API views for authentication and user profile.
-
-Endpoints:
-    POST /api/auth/login/         — Doctor + Storage Employee login
-    POST /api/auth/admin/login/   — Admin-only login
-    GET  /api/auth/profile/       — Get current user profile
-"""
 from drf_spectacular.utils import extend_schema, OpenApiExample
 from rest_framework import status
 from rest_framework.permissions import IsAuthenticated
-from rest_framework.response import Response
 from rest_framework.views import APIView
+from common.utils.response import unified_response
+from .models import User
 
 from .serializers import LoginSerializer, AdminLoginSerializer, ProfileSerializer
 from .services import authenticate_staff, authenticate_admin
@@ -22,9 +13,9 @@ class LoginView(APIView):
     """
     POST /api/auth/login/
     For Doctors and Storage Employees only.
-    Returns JWT access and refresh tokens.
+    Returns JWT access and refresh tokens along with user profile.
     """
-    permission_classes = []  # Public endpoint — no auth required to log in
+    permission_classes = []
 
     @extend_schema(
         tags=['Auth'],
@@ -32,8 +23,13 @@ class LoginView(APIView):
         description='Returns JWT tokens for Doctors and Storage Employees.',
         request=LoginSerializer,
         responses={200: {'type': 'object', 'properties': {
-            'access': {'type': 'string'},
-            'refresh': {'type': 'string'},
+            'success': {'type': 'boolean'},
+            'message': {'type': 'string'},
+            'data': {'type': 'object', 'properties': {
+                'access': {'type': 'string'},
+                'refresh': {'type': 'string'},
+                'user': {'type': 'object'}
+            }},
         }}},
         examples=[
             OpenApiExample('Doctor Login', value={
@@ -45,11 +41,22 @@ class LoginView(APIView):
     def post(self, request):
         serializer = LoginSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
+        email = serializer.validated_data['email']
         tokens = authenticate_staff(
-            email=serializer.validated_data['email'],
+            email=email,
             password=serializer.validated_data['password'],
         )
-        return Response(tokens, status=status.HTTP_200_OK)
+        
+        # Include user profile info
+        user = User.objects.get(email=email)
+        tokens['user'] = ProfileSerializer(user).data
+        
+        return unified_response(
+            success=True,
+            message="Login successful",
+            data=tokens,
+            status=status.HTTP_200_OK
+        )
 
 
 class AdminLoginView(APIView):
@@ -58,7 +65,7 @@ class AdminLoginView(APIView):
     For Admin users only.
     Returns JWT access and refresh tokens.
     """
-    permission_classes = []  # Public endpoint
+    permission_classes = []
 
     @extend_schema(
         tags=['Auth'],
@@ -66,8 +73,9 @@ class AdminLoginView(APIView):
         description='Returns JWT tokens for Admin users only.',
         request=AdminLoginSerializer,
         responses={200: {'type': 'object', 'properties': {
-            'access': {'type': 'string'},
-            'refresh': {'type': 'string'},
+            'success': {'type': 'boolean'},
+            'message': {'type': 'string'},
+            'data': {'type': 'object'},
         }}},
         examples=[
             OpenApiExample('Admin Login', value={
@@ -79,27 +87,41 @@ class AdminLoginView(APIView):
     def post(self, request):
         serializer = AdminLoginSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
+        email = serializer.validated_data['email']
         tokens = authenticate_admin(
-            email=serializer.validated_data['email'],
+            email=email,
             password=serializer.validated_data['password'],
         )
-        return Response(tokens, status=status.HTTP_200_OK)
+        
+        user = User.objects.get(email=email)
+        tokens['user'] = ProfileSerializer(user).data
+
+        return unified_response(
+            success=True,
+            message="Admin login successful",
+            data=tokens,
+            status=status.HTTP_200_OK
+        )
 
 
 class ProfileView(APIView):
     """
     GET /api/auth/profile/
     Returns the profile of the currently authenticated user.
-    Response format matches Flutter app expectations.
     """
     permission_classes = [IsAuthenticated]
 
     @extend_schema(
         tags=['Auth'],
         summary='Get Current User Profile',
-        description='Returns profile info: id, name, role, department, shift, employee_id.',
+        description='Returns profile info: id, name, email, role, department, shift, employee_id.',
         responses={200: ProfileSerializer},
     )
     def get(self, request):
         serializer = ProfileSerializer(request.user)
-        return Response(serializer.data, status=status.HTTP_200_OK)
+        return unified_response(
+            success=True,
+            message="Profile fetched successfully",
+            data=serializer.data,
+            status=status.HTTP_200_OK
+        )

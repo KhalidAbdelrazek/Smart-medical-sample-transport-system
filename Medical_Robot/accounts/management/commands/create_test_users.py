@@ -1,16 +1,6 @@
-"""
-accounts/management/commands/create_test_users.py
-
-Management command to seed initial test users for the BioRoute system.
-
-Usage:
-    python manage.py create_test_users
-"""
 from django.core.management.base import BaseCommand
 from accounts.models import User
 
-
-# Test users to create — edit here to add more
 TEST_USERS = [
     {
         'email': 'storage1@bioroute.com',
@@ -56,20 +46,16 @@ TEST_USERS = [
 
 DEFAULT_PASSWORD = 'AaAa112233_'
 
-
 class Command(BaseCommand):
-    help = 'Create initial test users: 2 storage employees, 2 doctors, 1 admin'
+    help = 'Create initial test users'
 
     def handle(self, *args, **kwargs):
-        self.stdout.write(self.style.HTTP_INFO('Creating test users...'))
-
+        self.stdout.write('Creating test users...')
         for user_data in TEST_USERS:
             email = user_data['email']
-
             if User.objects.filter(email=email).exists():
-                self.stdout.write(self.style.WARNING(f'  SKIP: {email} already exists'))
+                self.stdout.write(f'SKIP: {email} already exists')
                 continue
-
             User.objects.create_user(
                 email=email,
                 password=DEFAULT_PASSWORD,
@@ -80,7 +66,5 @@ class Command(BaseCommand):
                 employee_id=user_data['employee_id'],
                 is_staff=(user_data['role'] == 'ADMIN'),
             )
-            self.stdout.write(self.style.SUCCESS(f'  CREATED: {email} [{user_data["role"]}]'))
-
-        self.stdout.write(self.style.SUCCESS('\nDone! All test users created.'))
-        self.stdout.write(f'Password for all users: {DEFAULT_PASSWORD}')
+            self.stdout.write(f'CREATED: {email} [{user_data["role"]}]')
+        self.stdout.write('Done!')

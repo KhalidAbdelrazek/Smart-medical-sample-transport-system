@@ -25,7 +25,7 @@ class TransportRequestSerializer(serializers.ModelSerializer):
 
 class AddToCarSerializer(serializers.Serializer):
     """Body for adding a sample to a car."""
-    sample_id = serializers.UUIDField()
+    sample_code = serializers.CharField()
     car_id = serializers.IntegerField()
 
 

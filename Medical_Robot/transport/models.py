@@ -1,7 +1,7 @@
 """
 transport/models.py
 
-TransportRequest model — links BloodSample, Doctor, and Car together.
+TransportRequest model - links BloodSample, Doctor, and Car together.
 """
 import uuid
 from django.conf import settings
@@ -13,9 +13,9 @@ class TransportRequest(models.Model):
     Represents a Doctor's request to transport a blood sample to their room.
 
     Lifecycle:
-        Doctor requests sample → PENDING
-        Storage employee adds to car → LOADED
-        Car dispatched → DISPATCHED
+        Doctor requests sample -> PENDING
+        Storage employee adds to car -> LOADED
+        Car dispatched -> DISPATCHED
     """
 
     STATUS_CHOICES = [

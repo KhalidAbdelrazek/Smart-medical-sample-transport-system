@@ -10,7 +10,7 @@ from django.db import models
 class BloodSample(models.Model):
     """
     Represents a blood sample stored in the hospital storage unit.
-    Tracks the sample through its lifecycle: storage → requested → dispatched.
+    Tracks the sample through its lifecycle: storage -> requested -> dispatched.
     """
 
     BLOOD_TYPE_CHOICES = [
@@ -35,6 +35,14 @@ class BloodSample(models.Model):
         default=True,
         help_text="True = sample is physically in storage; False = out for delivery"
     )
+    sample_code = models.CharField(
+        max_length=20, 
+        db_index=True, 
+        null=True,
+        blank=True,
+        editable=False,
+        help_text="Human-readable code, e.g., PT-0001"
+    )
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -44,4 +52,22 @@ class BloodSample(models.Model):
         ordering = ['-created_at']
 
     def __str__(self):
-        return f"Sample {self.id} | {self.patient_name} | {self.blood_type} | {self.status}"
+        return f"{self.sample_code} | {self.patient_name} | {self.blood_type}"
+
+    def save(self, *args, **kwargs):
+        if not self.sample_code:
+            # Generate sequential sample code: PT-0001, PT-0002, etc.
+            last_sample = BloodSample.objects.order_by('-created_at').first()
+            if last_sample and last_sample.sample_code:
+                try:
+                    # Extract number from code like 'PT-0005'
+                    last_number = int(last_sample.sample_code.split('-')[1])
+                    new_number = last_number + 1
+                except (IndexError, ValueError):
+                    new_number = 1
+            else:
+                new_number = 1
+            
+            self.sample_code = f"PT-{new_number:04d}"
+        
+        super().save(*args, **kwargs)
