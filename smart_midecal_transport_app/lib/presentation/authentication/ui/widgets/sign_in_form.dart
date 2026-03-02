@@ -4,19 +4,18 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:smart_midecal_transport_app/core/common/custom_button.dart';
 import 'package:smart_midecal_transport_app/core/common/custom_text_field.dart';
-import 'package:smart_midecal_transport_app/core/routes/route_names.dart';
 import 'package:smart_midecal_transport_app/core/theme/color.dart';
 import 'package:smart_midecal_transport_app/core/utils/validators.dart';
-import 'package:smart_midecal_transport_app/presentation/authentication/ui/cubit/sign_in_cubit.dart';
-import 'package:smart_midecal_transport_app/presentation/authentication/ui/cubit/sign_in_state.dart';
+import 'package:smart_midecal_transport_app/presentation/authentication/ui/cubit/employee_login_view_model.dart';
+import 'package:smart_midecal_transport_app/presentation/authentication/ui/cubit/employee_login_state.dart';
 
 class SignInForm extends StatelessWidget {
-  final SignInCubit cubit;
+  final EmployeeLoginViewModel cubit;
   const SignInForm({super.key, required this.cubit});
 
   @override
   Widget build(BuildContext context) {
-    return BlocBuilder<SignInCubit, SignInState>(
+    return BlocBuilder<EmployeeLoginViewModel, EmployeeLoginState>(
       bloc: cubit,
       builder: (context, state) {
         return Form(
@@ -71,10 +70,7 @@ class SignInForm extends StatelessWidget {
                 height: 36.h,
                 width: 295.w,
                 onPressed: () {
-                  Navigator.pushReplacementNamed(context, RouteNames.root);
-                  // if (cubit.formKey.currentState!.validate()) {
-                  //   cubit.signIn();
-                  // }
+                  cubit.signIn();
                 },
               ),
             ],
