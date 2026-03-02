@@ -9,7 +9,7 @@ from django.db import models
 class Car(models.Model):
     """
     Represents a transport car (robot cart) in the system.
-    Status lifecycle: IDLE → LOADING → DISPATCHED → IDLE (after delivery)
+    Status lifecycle: IDLE -> LOADING -> DISPATCHED -> IDLE (after delivery)
     """
 
     STATUS_CHOICES = [

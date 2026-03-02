@@ -1,25 +1,19 @@
-"""
-samples/services.py
-
-Business logic for blood sample operations.
-Separated from views for clean architecture and easy maintenance.
-"""
 from rest_framework.exceptions import NotFound, ValidationError
 
 
-def get_sample_by_id(sample_id):
+def get_sample_by_code(sample_code):
     """
-    Fetch a BloodSample by its UUID.
+    Fetch a BloodSample by its human-readable code.
     Raises NotFound if the sample doesn't exist.
     """
     from .models import BloodSample
     try:
-        return BloodSample.objects.get(id=sample_id)
+        return BloodSample.objects.get(sample_code=sample_code)
     except BloodSample.DoesNotExist:
-        raise NotFound(f"No blood sample found with ID: {sample_id}")
+        raise NotFound(f"No blood sample found with code: {sample_code}")
 
 
-def request_sample(sample_id, room_number, doctor):
+def request_sample(sample_code, room_number, doctor):
     """
     Doctor requests a blood sample to be delivered to a room.
 
@@ -28,16 +22,11 @@ def request_sample(sample_id, room_number, doctor):
     - Sample status must NOT be OUT_FOR_DELIVERY
     - Creates a TransportRequest with status=PENDING
     - Updates sample status to REQUESTED
-
-    Returns the created TransportRequest.
     """
     from .models import BloodSample
     from transport.models import TransportRequest
 
-    try:
-        sample = BloodSample.objects.get(id=sample_id)
-    except BloodSample.DoesNotExist:
-        raise NotFound(f"No blood sample found with ID: {sample_id}")
+    sample = get_sample_by_code(sample_code)
 
     # Business rule: sample must be physically in storage
     if not sample.is_in_storage or sample.status == 'OUT_FOR_DELIVERY':

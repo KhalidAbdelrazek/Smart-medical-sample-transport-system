@@ -73,10 +73,11 @@ REST_FRAMEWORK = {
     'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
     'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
     'PAGE_SIZE': 10,
+    'EXCEPTION_HANDLER': 'common.exceptions.custom_exception_handler',
 }
 
 SPECTACULAR_SETTINGS = {
-    'TITLE': 'BioRoute — Smart Medical Blood Sample Transport API',
+    'TITLE': 'BioRoute - Smart Medical Blood Sample Transport API',
     'DESCRIPTION': (
         'REST API for the BioRoute Smart Medical Sample Transport System. '
         'Includes authentication, blood sample tracking, and automated car dispatch.'

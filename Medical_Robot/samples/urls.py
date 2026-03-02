@@ -1,10 +1,17 @@
-"""
-samples/urls.py
-"""
 from django.urls import path
-from .views import BloodSampleDetailView, RequestSampleView
+from .views import (
+    BloodSampleDetailView,
+    RequestSampleView,
+    BloodSampleSearchView,
+)
 
 urlpatterns = [
+    # GET /api/samples/search/?q=
+    path('search/', BloodSampleSearchView.as_view(), name='sample-search'),
+    
+    # POST /api/samples/request/
     path('request/', RequestSampleView.as_view(), name='sample-request'),
-    path('<uuid:pk>/', BloodSampleDetailView.as_view(), name='sample-detail'),
+    
+    # GET /api/samples/{sample_code}/
+    path('<str:sample_code>/', BloodSampleDetailView.as_view(), name='sample-detail'),
 ]
