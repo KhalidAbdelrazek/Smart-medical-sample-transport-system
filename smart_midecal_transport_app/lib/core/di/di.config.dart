@@ -12,7 +12,20 @@
 import 'package:get_it/get_it.dart' as _i174;
 import 'package:injectable/injectable.dart' as _i526;
 
-import '../../presentation/authentication/ui/cubit/sign_in_cubit.dart' as _i832;
+import '../../presentation/authentication/Data/Data%20Sources/remote/auth_remote_ds.dart'
+    as _i727;
+import '../../presentation/authentication/Data/Data%20Sources/remote/impl/auth_remote_ds_impl.dart'
+    as _i1029;
+import '../../presentation/authentication/Data/Repository/auth_repository_impl.dart'
+    as _i659;
+import '../../presentation/authentication/Domain/Repository/auth_repository.dart'
+    as _i471;
+import '../../presentation/authentication/Domain/Use%20Case/employee_use_case.dart'
+    as _i702;
+import '../../presentation/authentication/ui/cubit/admin_login_view_model.dart'
+    as _i964;
+import '../../presentation/authentication/ui/cubit/employee_login_view_model.dart'
+    as _i600;
 import '../../presentation/employee/home/cubit/employee_home_cubit.dart'
     as _i289;
 import '../../presentation/employee/profile/cubit/employee_profile_cubit.dart'
@@ -43,7 +56,6 @@ extension GetItInjectableX on _i174.GetIt {
     _i526.EnvironmentFilter? environmentFilter,
   }) {
     final gh = _i526.GetItHelper(this, environment, environmentFilter);
-    gh.factory<_i832.SignInCubit>(() => _i832.SignInCubit());
     gh.factory<_i289.EmployeeHomeCubit>(() => _i289.EmployeeHomeCubit());
     gh.factory<_i354.EmployeeProfileCubit>(() => _i354.EmployeeProfileCubit());
     gh.factory<_i424.BloodBagCubit>(() => _i424.BloodBagCubit());
@@ -56,6 +68,23 @@ extension GetItInjectableX on _i174.GetIt {
     gh.factory<_i599.BloodBagsCubit>(() => _i599.BloodBagsCubit());
     gh.factory<_i186.BloodSamplesCubit>(() => _i186.BloodSamplesCubit());
     gh.singleton<_i949.ApiManager>(() => _i949.ApiManager());
+    gh.factory<_i727.AuthRemoteDataSource>(
+      () => _i1029.AuthRemoteDataSourceImpl(apiManager: gh<_i949.ApiManager>()),
+    );
+    gh.factory<_i471.AuthRepository>(
+      () => _i659.AuthRepositoryImpl(
+        authRemoteDataSource: gh<_i727.AuthRemoteDataSource>(),
+      ),
+    );
+    gh.factory<_i964.AdminLoginViewModel>(
+      () => _i964.AdminLoginViewModel(gh<_i471.AuthRepository>()),
+    );
+    gh.factory<_i600.EmployeeLoginViewModel>(
+      () => _i600.EmployeeLoginViewModel(gh<_i471.AuthRepository>()),
+    );
+    gh.factory<_i702.EmployeeUseCase>(
+      () => _i702.EmployeeUseCase(authRepository: gh<_i471.AuthRepository>()),
+    );
     return this;
   }
 }
