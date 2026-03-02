@@ -8,20 +8,21 @@ import 'package:smart_midecal_transport_app/core/common/dialog_utils.dart';
 import 'package:smart_midecal_transport_app/core/di/di.dart';
 import 'package:smart_midecal_transport_app/core/provider/locale_provider.dart';
 import 'package:smart_midecal_transport_app/core/provider/theme_provider.dart';
-import 'package:smart_midecal_transport_app/presentation/authentication/ui/cubit/sign_in_cubit.dart';
-import 'package:smart_midecal_transport_app/presentation/authentication/ui/cubit/sign_in_state.dart';
-import 'package:smart_midecal_transport_app/presentation/authentication/ui/widgets/role_selector.dart';
+import 'package:smart_midecal_transport_app/core/routes/route_names.dart';
+import 'package:smart_midecal_transport_app/presentation/authentication/ui/cubit/employee_login_view_model.dart';
+import 'package:smart_midecal_transport_app/presentation/authentication/ui/cubit/employee_login_state.dart';
 import 'package:smart_midecal_transport_app/presentation/authentication/ui/widgets/sign_in_form.dart';
 
-class SignInScreen extends StatefulWidget {
-  const SignInScreen({super.key});
+class EmployeeLoginScreen extends StatefulWidget {
+  const EmployeeLoginScreen({super.key});
 
   @override
-  State<SignInScreen> createState() => _SignInScreenState();
+  State<EmployeeLoginScreen> createState() => _EmployeeLoginScreenState();
 }
 
-class _SignInScreenState extends State<SignInScreen> with SingleTickerProviderStateMixin {
-  final signInCubit = getIt<SignInCubit>();
+class _EmployeeLoginScreenState extends State<EmployeeLoginScreen>
+    with SingleTickerProviderStateMixin {
+  final employeeLoginViewModel = getIt<EmployeeLoginViewModel>();
   late AnimationController _animationController;
   late Animation<double> _fadeAnimation;
   late Animation<Offset> _slideAnimation;
@@ -33,19 +34,19 @@ class _SignInScreenState extends State<SignInScreen> with SingleTickerProviderSt
       vsync: this,
       duration: const Duration(milliseconds: 800),
     );
-    
+
     _fadeAnimation = CurvedAnimation(
       parent: _animationController,
       curve: Curves.easeIn,
     );
 
-    _slideAnimation = Tween<Offset>(
-      begin: const Offset(0, 0.1),
-      end: Offset.zero,
-    ).animate(CurvedAnimation(
-      parent: _animationController,
-      curve: Curves.easeOutCubic,
-    ));
+    _slideAnimation =
+        Tween<Offset>(begin: const Offset(0, 0.1), end: Offset.zero).animate(
+          CurvedAnimation(
+            parent: _animationController,
+            curve: Curves.easeOutCubic,
+          ),
+        );
 
     _animationController.forward();
   }
@@ -63,13 +64,17 @@ class _SignInScreenState extends State<SignInScreen> with SingleTickerProviderSt
     final theme = Theme.of(context);
 
     return BlocProvider(
-      create: (_) => signInCubit,
-      child: BlocListener<SignInCubit, SignInState>(
+      create: (_) => employeeLoginViewModel,
+      child: BlocListener<EmployeeLoginViewModel, EmployeeLoginState>(
         listener: (context, state) {
-          if (state is SignInLoading) {
+          if (state is EmployeeLoginLoading) {
             DialogUtils.showLoading(context: context);
-          } else if (state is SignInSuccess) {
+          } else if (state is EmployeeLoginSuccess) {
             DialogUtils.hideLoading(context);
+            Navigator.pushReplacementNamed(context, RouteNames.root);
+          } else if (state is EmployeeLoginError) {
+            DialogUtils.hideLoading(context);
+            DialogUtils.showMessage(context: context, message: state.message);
           }
         },
         child: Scaffold(
@@ -99,8 +104,12 @@ class _SignInScreenState extends State<SignInScreen> with SingleTickerProviderSt
                               ),
                             ),
                             IconButton(
-                              onPressed: () => localeProvider.toggleLocale(context),
-                              icon: Icon(Icons.language, color: theme.iconTheme.color),
+                              onPressed: () =>
+                                  localeProvider.toggleLocale(context),
+                              icon: Icon(
+                                Icons.language,
+                                color: theme.iconTheme.color,
+                              ),
                             ),
                           ],
                         ),
@@ -123,15 +132,20 @@ class _SignInScreenState extends State<SignInScreen> with SingleTickerProviderSt
                       Text(
                         "sign_in.subtitle".tr(),
                         style: theme.textTheme.bodyMedium?.copyWith(
-                          color: theme.textTheme.bodyMedium?.color?.withOpacity(0.7),
+                          color: theme.textTheme.bodyMedium?.color?.withOpacity(
+                            0.7,
+                          ),
                         ),
                         textAlign: TextAlign.center,
                       ),
                       SizedBox(height: 40.h),
-                      
+
                       // Modern Card Container
                       Container(
-                        padding: EdgeInsets.symmetric(horizontal: 24.w, vertical: 32.h),
+                        padding: EdgeInsets.symmetric(
+                          horizontal: 24.w,
+                          vertical: 32.h,
+                        ),
                         decoration: BoxDecoration(
                           color: theme.cardColor,
                           borderRadius: BorderRadius.circular(24.r),
@@ -145,14 +159,20 @@ class _SignInScreenState extends State<SignInScreen> with SingleTickerProviderSt
                         ),
                         child: Column(
                           children: [
-                            RoleSelector(cubit: signInCubit),
-                            SizedBox(height: 32.h),
-                            SignInForm(cubit: signInCubit),
+                            // Sign In Form for Employee
+                            SignInForm(cubit: employeeLoginViewModel),
                           ],
                         ),
                       ),
-                      
+
                       SizedBox(height: 20.h),
+                      TextButton(
+                        onPressed: () => Navigator.pushReplacementNamed(
+                          context,
+                          RouteNames.adminLogin,
+                        ),
+                        child: const Text("Switch to Admin Login"),
+                      ),
                     ],
                   ),
                 ),
