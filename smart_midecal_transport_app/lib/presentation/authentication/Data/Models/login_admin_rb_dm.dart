@@ -6,7 +6,7 @@ class LoginAdminRequestBodyDm extends LoginAdminRequestBodyEntity {
   @override
   Map<String, dynamic> toJson() {
     final map = <String, dynamic>{};
-    map['id'] = email; // Map entity email field to id key in JSON
+    map['email'] = email;
     map['password'] = password;
     return map;
   }

@@ -20,8 +20,6 @@ import '../../presentation/authentication/Data/Repository/auth_repository_impl.d
     as _i659;
 import '../../presentation/authentication/Domain/Repository/auth_repository.dart'
     as _i471;
-import '../../presentation/authentication/Domain/Use%20Case/employee_use_case.dart'
-    as _i702;
 import '../../presentation/authentication/ui/cubit/admin_login_view_model.dart'
     as _i964;
 import '../../presentation/authentication/ui/cubit/employee_login_view_model.dart'
@@ -81,9 +79,6 @@ extension GetItInjectableX on _i174.GetIt {
     );
     gh.factory<_i600.EmployeeLoginViewModel>(
       () => _i600.EmployeeLoginViewModel(gh<_i471.AuthRepository>()),
-    );
-    gh.factory<_i702.EmployeeUseCase>(
-      () => _i702.EmployeeUseCase(authRepository: gh<_i471.AuthRepository>()),
     );
     return this;
   }
