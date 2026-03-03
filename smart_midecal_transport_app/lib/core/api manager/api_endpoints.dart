@@ -3,6 +3,8 @@ import 'package:smart_midecal_transport_app/core/api%20manager/api_constants.dar
 abstract class ApiEndPoints {
   static const employeeLogin = '${ApiConstants.baseUrl}api/auth/login/';
   static const adminLogin = '${ApiConstants.baseUrl}api/auth/admin/login/';
+  static const getSampleById = '${ApiConstants.baseUrl}api/samples/';
+  static const requestSample = '${ApiConstants.baseUrl}api/samples/request/';
 
   // todo : chatbot =>
   // static const chatbot = '${ApiConstants.chatbotUrl}/chat';
