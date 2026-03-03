@@ -15,8 +15,8 @@ class AdminLoginViewModel extends Cubit<AdminLoginState> {
   bool obscurePassword = true;
 
   final formKey = GlobalKey<FormState>();
-  final idController = TextEditingController(); // ID as requested for admin
-  final passwordController = TextEditingController();
+  final idController = TextEditingController(text: "admin@bioroute.com");
+  final passwordController = TextEditingController(text: "AaAa112233_");
 
   void togglePasswordVisibility() {
     obscurePassword = !obscurePassword;
