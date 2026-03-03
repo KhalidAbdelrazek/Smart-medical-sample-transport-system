@@ -1,9 +1,5 @@
 # Byte-compiled / optimized / DLL files
-
 __pycache__/*
-*.pyc
-*.pyo
-*.pyd
 *.py[cod]
 *$py.class
 wsgi.cpython-313.pyc
