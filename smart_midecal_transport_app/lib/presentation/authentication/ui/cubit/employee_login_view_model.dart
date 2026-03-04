@@ -17,7 +17,7 @@ class EmployeeLoginViewModel extends Cubit<EmployeeLoginState> {
   bool isEmployee = true;
 
   final formKey = GlobalKey<FormState>();
-  final emailController = TextEditingController(text: "doctor1@bioroute.com");
+  final emailController = TextEditingController(text: "storage1@bioroute.com");
   final passwordController = TextEditingController(text: "AaAa112233_");
 
   void togglePasswordVisibility() {
@@ -55,7 +55,7 @@ class EmployeeLoginViewModel extends Cubit<EmployeeLoginState> {
           response.access!,
           response.refresh!,
         );
-        emit(EmployeeLoginSuccess());
+        emit(EmployeeLoginSuccess(response.user!.role!));
       } else {
         emit(EmployeeLoginError(response.message ?? "Login failed"));
       }

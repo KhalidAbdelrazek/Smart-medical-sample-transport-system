@@ -19,7 +19,10 @@ class EmployeeLoginParamsChanged extends EmployeeLoginState {
 
 class EmployeeLoginLoading extends EmployeeLoginState {}
 
-class EmployeeLoginSuccess extends EmployeeLoginState {}
+class EmployeeLoginSuccess extends EmployeeLoginState {
+  final String role;
+  EmployeeLoginSuccess(this.role);
+}
 
 class EmployeeLoginError extends EmployeeLoginState {
   final String message;
