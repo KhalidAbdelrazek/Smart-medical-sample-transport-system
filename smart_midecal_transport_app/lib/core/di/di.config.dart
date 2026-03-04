@@ -28,10 +28,16 @@ import '../../presentation/employee/home/cubit/employee_home_cubit.dart'
     as _i289;
 import '../../presentation/employee/profile/cubit/employee_profile_cubit.dart'
     as _i354;
-import '../../presentation/employee/requests/cubit/blood_bag_cubit.dart'
-    as _i424;
-import '../../presentation/employee/requests/cubit/blood_sample_cubit.dart'
-    as _i339;
+import '../../presentation/employee/requests/Data/data%20source/requests_data_source.dart'
+    as _i588;
+import '../../presentation/employee/requests/Data/data%20source/requests_data_source_impl.dart'
+    as _i128;
+import '../../presentation/employee/requests/Data/repository/requests_repository_impl.dart'
+    as _i1020;
+import '../../presentation/employee/requests/domain/repository/requests_repository.dart'
+    as _i960;
+import '../../presentation/employee/requests/ui/cubit/blood_sample_cubit.dart'
+    as _i497;
 import '../../presentation/employer/profile_tab/cubit/employer_profile_cubit.dart'
     as _i732;
 import '../../presentation/employer/restrictions_tab/cubit/restrictions_cubit.dart'
@@ -56,8 +62,6 @@ extension GetItInjectableX on _i174.GetIt {
     final gh = _i526.GetItHelper(this, environment, environmentFilter);
     gh.factory<_i289.EmployeeHomeCubit>(() => _i289.EmployeeHomeCubit());
     gh.factory<_i354.EmployeeProfileCubit>(() => _i354.EmployeeProfileCubit());
-    gh.factory<_i424.BloodBagCubit>(() => _i424.BloodBagCubit());
-    gh.factory<_i339.BloodSampleCubit>(() => _i339.BloodSampleCubit());
     gh.factory<_i732.EmployerProfileCubit>(() => _i732.EmployerProfileCubit());
     gh.factory<_i963.RestrictionsCubit>(() => _i963.RestrictionsCubit());
     gh.factory<_i327.StatisticsCubit>(() => _i327.StatisticsCubit());
@@ -74,11 +78,24 @@ extension GetItInjectableX on _i174.GetIt {
         authRemoteDataSource: gh<_i727.AuthRemoteDataSource>(),
       ),
     );
+    gh.factory<_i588.RequestsDataSource>(
+      () => _i128.RequestsDataSourceImpl(apiManager: gh<_i949.ApiManager>()),
+    );
     gh.factory<_i964.AdminLoginViewModel>(
       () => _i964.AdminLoginViewModel(gh<_i471.AuthRepository>()),
     );
     gh.factory<_i600.EmployeeLoginViewModel>(
       () => _i600.EmployeeLoginViewModel(gh<_i471.AuthRepository>()),
+    );
+    gh.factory<_i960.RequestsRepository>(
+      () => _i1020.RequestsRepositoryImpl(
+        requestsDataSource: gh<_i588.RequestsDataSource>(),
+      ),
+    );
+    gh.factory<_i497.BloodSampleCubit>(
+      () => _i497.BloodSampleCubit(
+        requestsRepository: gh<_i960.RequestsRepository>(),
+      ),
     );
     return this;
   }

@@ -44,20 +44,20 @@ class AdminSignInForm extends StatelessWidget {
                 validator: AppValidators.validatePassword,
               ),
               SizedBox(height: 10.h),
-              Row(
-                children: [
-                  Checkbox(
-                    value: cubit.rememberMe,
-                    onChanged: (_) => cubit.toggleRememberMe(),
-                  ),
-                  Text("sign_in.remember_me".tr()),
-                  const Spacer(),
-                  TextButton(
-                    onPressed: () {}, // handle forgot password
-                    child: Text("sign_in.forgot_password".tr()),
-                  ),
-                ],
-              ),
+              // Row(
+              //   children: [
+              //     Checkbox(
+              //       value: cubit.rememberMe,
+              //       onChanged: (_) => cubit.toggleRememberMe(),
+              //     ),
+              //     Text("sign_in.remember_me".tr()),
+              //     const Spacer(),
+              //     TextButton(
+              //       onPressed: () {}, // handle forgot password
+              //       child: Text("sign_in.forgot_password".tr()),
+              //     ),
+              //   ],
+              // ),
               SizedBox(height: 20.h),
               CustomButton(
                 body: Text(
