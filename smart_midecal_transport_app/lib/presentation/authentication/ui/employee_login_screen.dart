@@ -71,7 +71,16 @@ class _EmployeeLoginScreenState extends State<EmployeeLoginScreen>
             DialogUtils.showLoading(context: context);
           } else if (state is EmployeeLoginSuccess) {
             DialogUtils.hideLoading(context);
-            Navigator.pushReplacementNamed(context, RouteNames.root);
+            if (state.role == "STORAGE_EMPLOYEE") {
+              Navigator.pushReplacementNamed(context, RouteNames.storageScreen);
+            } else if (state.role == "DOCTOR") {
+              Navigator.pushReplacementNamed(context, RouteNames.root);
+            } else {
+              DialogUtils.showMessage(
+                context: context,
+                message: "Something went wrong, Please try again later",
+              );
+            }
           } else if (state is EmployeeLoginError) {
             DialogUtils.hideLoading(context);
             DialogUtils.showMessage(context: context, message: state.message);
