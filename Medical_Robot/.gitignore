@@ -1,21 +1,9 @@
 # Byte-compiled / optimized / DLL files
 **/__pycache__/
 __pycache__/*
-*.py[cod]
-*$py.class
-wsgi.cpython-313.pyc
-urls.cpython-313.pyc
-settings.cpython-313.pyc
-asgi.cpython-313.pyc
-manage.cpython-313.pyc
-views.cpython-313.pyc
-serializers.cpython-313.pyc
-models.cpython-313.pyc
-admin.cpython-313.pyc
-apps.cpython-313.pyc
+*.pyc
 # Local environment files
 .env
-db.sqlite3
 /static/
 /media/
 
