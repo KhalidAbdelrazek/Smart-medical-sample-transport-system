@@ -13,6 +13,7 @@ from .serializers import (
     SampleRequestSerializer,
     SamplePreviewSerializer,
     CreateBloodSampleSerializer,
+    BulkSampleRequestSerializer,
 )
 from .services import get_sample_by_code, request_sample
 import re
@@ -52,7 +53,6 @@ class BloodSampleSearchView(APIView):
         samples = BloodSample.objects.filter(
             Q(sample_code__icontains=query)
             | Q(patient_name__icontains=query)
-            | Q(patient_id__icontains=query)
         )
 
         serializer = BloodSampleSerializer(samples, many=True)
@@ -139,7 +139,6 @@ class BloodSampleDetailView(APIView):
                 BloodSample.objects.filter(
                     Q(sample_code__icontains=value)
                     | Q(patient_name__icontains=value)
-                    | Q(patient_id__icontains=value)
                 )
                 .annotate(
                     priority=Case(
@@ -206,6 +205,101 @@ class RequestSampleView(APIView):
         )
 
 
+class BulkRequestSampleView(APIView):
+    """
+    POST /api/samples/request-bulk/
+    Doctor requests multiple blood samples for the same room in a single API call.
+    """
+
+    permission_classes = [IsAuthenticated, IsDoctor]
+
+    @extend_schema(
+        tags=["Samples"],
+        summary="Request Multiple Blood Samples",
+        description="Doctor sends multiple sample codes for delivery to the same room.",
+        request=BulkSampleRequestSerializer,
+        responses={201: TransportRequestSerializer(many=True)},
+        examples=[
+            OpenApiExample(
+                "Bulk Sample Request",
+                value={
+                    "sample_codes": ["PT-0001", "PT-0002", "PT-0003"],
+                    "room_number": "305",
+                },
+                request_only=True,
+            ),
+        ],
+    )
+    def post(self, request):
+        serializer = BulkSampleRequestSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        sample_codes = serializer.validated_data["sample_codes"]
+        room_number = serializer.validated_data["room_number"]
+
+        # Track results
+        successful_requests = []
+        failed_requests = []
+
+        for sample_code in sample_codes:
+            try:
+                transport_request = request_sample(
+                    sample_code=sample_code,
+                    room_number=room_number,
+                    doctor=request.user,
+                )
+                response_data = TransportRequestSerializer(transport_request).data
+                successful_requests.append(response_data)
+            except BloodSample.DoesNotExist:
+                failed_requests.append(
+                    {
+                        "sample_code": sample_code,
+                        "error": f"Sample {sample_code} not found",
+                    }
+                )
+            except Exception as e:
+                failed_requests.append({"sample_code": sample_code, "error": str(e)})
+
+        # Determine response status
+        if not successful_requests:
+            # All failed
+            return unified_response(
+                success=False,
+                message=f"Failed to request {len(failed_requests)} samples",
+                data={
+                    "successful": successful_requests,
+                    "failed": failed_requests,
+                    "summary": {
+                        "total": len(sample_codes),
+                        "success": len(successful_requests),
+                        "failed": len(failed_requests),
+                    },
+                },
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        else:
+            # Partial or full success
+            http_status = (
+                status.HTTP_201_CREATED
+                if not failed_requests
+                else status.HTTP_207_MULTI_STATUS
+            )
+            return unified_response(
+                success=True,
+                message=f"Requested {len(successful_requests)} samples. {len(failed_requests)} failed.",
+                data={
+                    "successful": successful_requests,
+                    "failed": failed_requests,
+                    "summary": {
+                        "total": len(sample_codes),
+                        "success": len(successful_requests),
+                        "failed": len(failed_requests),
+                    },
+                },
+                status=http_status,
+            )
+
+
 class CreateBloodSampleView(APIView):
     """
     POST /api/samples/create/
@@ -225,17 +319,7 @@ class CreateBloodSampleView(APIView):
                 "Valid Sample",
                 value={
                     "patient_name": "John Doe",
-                    "patient_id": "PT-0001",  # Correct format
                     "blood_type": "O+",
-                },
-                request_only=True,
-            ),
-            OpenApiExample(
-                "Invalid Sample",
-                value={
-                    "patient_name": "Jane Doe",
-                    "patient_id": "P12345",  # Wrong format - will fail
-                    "blood_type": "A+",
                 },
                 request_only=True,
             ),
@@ -248,7 +332,6 @@ class CreateBloodSampleView(APIView):
         # Create the sample
         sample = BloodSample.objects.create(
             patient_name=serializer.validated_data["patient_name"],
-            patient_id=serializer.validated_data["patient_id"],
             blood_type=serializer.validated_data["blood_type"],
             status="IN_STORAGE",
             is_in_storage=True,

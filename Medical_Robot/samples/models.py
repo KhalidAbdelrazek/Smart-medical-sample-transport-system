@@ -28,13 +28,6 @@ class BloodSample(models.Model):
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     patient_name = models.CharField(max_length=200)
-    patient_id = models.CharField(max_length=100, help_text="Hospital patient ID number")
-    blood_type = models.CharField(max_length=5, choices=BLOOD_TYPE_CHOICES)
-    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='IN_STORAGE')
-    is_in_storage = models.BooleanField(
-        default=True,
-        help_text="True = sample is physically in storage; False = out for delivery"
-    )
     sample_code = models.CharField(
         max_length=20, 
         db_index=True, 
@@ -42,6 +35,12 @@ class BloodSample(models.Model):
         blank=True,
         editable=False,
         help_text="Human-readable code, e.g., PT-0001"
+    )
+    blood_type = models.CharField(max_length=5, choices=BLOOD_TYPE_CHOICES)
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='IN_STORAGE')
+    is_in_storage = models.BooleanField(
+        default=True,
+        help_text="True = sample is physically in storage; False = out for delivery"
     )
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)

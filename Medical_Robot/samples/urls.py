@@ -4,6 +4,7 @@ from .views import (
     RequestSampleView,
     BloodSampleSearchView,
     CreateBloodSampleView,
+    BulkRequestSampleView,
 )
 
 urlpatterns = [
@@ -15,6 +16,9 @@ urlpatterns = [
     
     # POST /api/samples/request/
     path('request/', RequestSampleView.as_view(), name='sample-request'),
+
+    # POST /api/samples/request-bulk/
+    path('request-bulk/', BulkRequestSampleView.as_view(), name='sample-request-bulk'),
     
     # GET /api/samples/{sample_code}/
     path('<str:sample_code>/', BloodSampleDetailView.as_view(), name='sample-detail'),
