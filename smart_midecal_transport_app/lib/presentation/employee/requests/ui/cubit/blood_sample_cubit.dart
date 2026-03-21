@@ -1,27 +1,32 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:injectable/injectable.dart';
+import 'package:smart_midecal_transport_app/core/error/failures.dart';
 import 'package:smart_midecal_transport_app/presentation/employee/requests/domain/entities/samples_response_entity.dart';
 import 'package:smart_midecal_transport_app/presentation/employee/requests/domain/repository/requests_repository.dart';
 import 'blood_sample_state.dart';
 
-/// Cubit for Blood Sample Requests
+/// Cubit for Blood Sample Requests – supports bulk submissions.
 @injectable
 class BloodSampleCubit extends Cubit<BloodSampleState> {
   final RequestsRepository requestsRepository;
 
   BloodSampleCubit({required this.requestsRepository})
-    : super(BloodSampleInitial());
+      : super(BloodSampleInitial());
 
+  // ── Controllers & transient state ─────────────────────────────
   final TextEditingController searchController = TextEditingController();
 
-  SampleEntity? selectedSample;
-  String? selectedRoom;
   List<SampleEntity> searchResults = [];
 
-  final List<String> rooms = ['Room A', 'Room B', 'Room C'];
+  /// Codes of all samples the user has ticked.
+  List<String> selectedSampleCodes = [];
 
-  /// Search samples by ID or exact code
+  String? selectedRoom;
+
+  // ── Search ────────────────────────────────────────────────────
+
+  /// Search samples by patient ID / code.
   void searchSamples(String query) async {
     if (query.isEmpty) {
       searchResults = [];
@@ -46,35 +51,51 @@ class BloodSampleCubit extends Cubit<BloodSampleState> {
     );
   }
 
-  /// Select a sample from the dropdown
-  void selectSample(SampleEntity sample) {
-    selectedSample = sample;
-    searchResults = []; // Clear search results after selection
-    searchController.text = sample.patientName!; // Update text field
+  // ── Selection ─────────────────────────────────────────────────
+
+  /// Toggle a sample code in/out of the selection list.
+  void toggleSampleSelection(SampleEntity sample) {
+    final code = sample.sampleCode!;
+    if (selectedSampleCodes.contains(code)) {
+      selectedSampleCodes = List.from(selectedSampleCodes)..remove(code);
+    } else {
+      selectedSampleCodes = List.from(selectedSampleCodes)..add(code);
+    }
     _emitLoaded();
   }
 
-  /// Select a room
+  /// Returns true if the given sample code is currently selected.
+  bool isSelected(String sampleCode) =>
+      selectedSampleCodes.contains(sampleCode);
+
+  /// Deselect all samples.
+  void clearSelections() {
+    selectedSampleCodes = [];
+    _emitLoaded();
+  }
+
+  // ── Room ──────────────────────────────────────────────────────
+
   void selectRoom(String room) {
     selectedRoom = room;
     _emitLoaded();
   }
 
-  /// Load initial data
+  // ── Initial load ──────────────────────────────────────────────
+
   Future<void> loadData() async {
     emit(BloodSampleLoading());
-    // In a real app, this might fetch some initial state or just emit loaded
     await Future.delayed(const Duration(milliseconds: 100));
     _emitLoaded();
   }
 
-  /// Submit a blood sample request
+  // ── Submit (Bulk) ─────────────────────────────────────────────
+
+  /// Submit a bulk blood sample request.
+  /// Validates that at least one sample is selected and a room is chosen.
   Future<void> submitRequest() async {
-    print(
-      "Submitting request for sample: ${selectedSample?.id}, room: $selectedRoom",
-    );
-    if (selectedSample == null) {
-      emit(BloodSampleError('Please search and select a patient sample'));
+    if (selectedSampleCodes.isEmpty) {
+      emit(BloodSampleError('Please select at least one patient sample'));
       _emitLoaded();
       return;
     }
@@ -87,34 +108,53 @@ class BloodSampleCubit extends Cubit<BloodSampleState> {
 
     emit(BloodSampleSubmitting());
 
-    final result = await requestsRepository.requestSample(
-      selectedSample!.sampleCode!,
+    final result = await requestsRepository.requestBulkSamples(
+      selectedSampleCodes,
       selectedRoom!,
     );
 
     result.fold(
       (failure) {
+        // ── Case A: Token expired ────────────────────────────────
+        if (failure is TokenExpiredFailure) {
+          emit(BloodSampleTokenExpired());
+          return;
+        }
+        // ── Case C: Network / server error ───────────────────────
         emit(BloodSampleError(failure.errorMessage));
         _emitLoaded();
       },
-      (success) {
-        // Clear form after submission
-        searchController.clear();
-        selectedSample = null;
-        selectedRoom = null;
-        searchResults = [];
+      (response) {
+        final data = response.data;
+        final successCount = data?.successful.length ?? 0;
+        final failureCount = data?.failed.length ?? 0;
 
-        emit(BloodSampleSuccess());
+        // Clear form after API call (regardless of partial failure)
+        searchController.clear();
+        searchResults = [];
+        selectedSampleCodes = [];
+        selectedRoom = null;
+
+        // ── Case B: Emit result (full or partial success) ─────────
+        emit(
+          BloodSampleBulkResult(
+            successCount: successCount,
+            failureCount: failureCount,
+            failures: data?.failed ?? [],
+          ),
+        );
         _emitLoaded();
       },
     );
   }
 
+  // ── Helpers ───────────────────────────────────────────────────
+
   void _emitLoaded() {
     emit(
       BloodSampleLoaded(
         searchResults: searchResults,
-        selectedSample: selectedSample,
+        selectedSampleCodes: List.from(selectedSampleCodes),
         selectedRoom: selectedRoom,
       ),
     );
