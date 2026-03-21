@@ -5,6 +5,10 @@ abstract class ApiEndPoints {
   static const adminLogin = '${ApiConstants.baseUrl}api/auth/admin/login/';
   static const getSampleById = '${ApiConstants.baseUrl}api/samples/';
   static const requestSample = '${ApiConstants.baseUrl}api/samples/request/';
+  static const getRequests = '${ApiConstants.baseUrl}api/transport/requests/';
+  static const addToCar = '${ApiConstants.baseUrl}/api/transport/add-to-car/';
+  static const dispatchCar =
+      '${ApiConstants.baseUrl}/api/transport/dispatch-car/';
 
   // todo : chatbot =>
   // static const chatbot = '${ApiConstants.chatbotUrl}/chat';

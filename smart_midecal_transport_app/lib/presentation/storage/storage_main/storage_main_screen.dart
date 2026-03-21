@@ -3,7 +3,7 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:smart_midecal_transport_app/core/theme/color.dart';
 
 import '../home_tab/home_tab_page.dart';
-import '../requests_tab/requests_tab_page.dart';
+import '../requests_tab/ui/requests_tab_page.dart';
 import '../profile_tab/profile_tab_page.dart';
 
 /// Main screen with bottom navigation for storage employee
