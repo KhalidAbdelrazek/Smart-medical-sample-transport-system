@@ -258,7 +258,7 @@ class BulkRequestSampleView(APIView):
                     }
                 )
             except Exception as e:
-                failed_requests.append({"sample_code": sample_code, "error": str(e)})
+                failed_requests.append({"sample_code": sample_code, "error": str(e.args)})
 
         # Determine response status
         if not successful_requests:
