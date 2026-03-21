@@ -45,7 +45,7 @@ import '../../presentation/employer/restrictions_tab/cubit/restrictions_cubit.da
 import '../../presentation/employer/statistics_tab/cubit/statistics_cubit.dart'
     as _i327;
 import '../../presentation/storage/home_tab/cubit/home_cubit.dart' as _i385;
-import '../../presentation/storage/profile_tab/cubit/profile_cubit.dart'
+import '../../presentation/storage/profile_tab/ui/cubit/profile_cubit.dart'
     as _i349;
 import '../../presentation/storage/requests_tab/data/data%20source/requests_data_source.dart'
     as _i800;
