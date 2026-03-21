@@ -10,3 +10,8 @@ class ServerError extends Failures {
 class NetworkError extends Failures {
   NetworkError({required super.errorMessage});
 }
+
+class TokenExpiredFailure extends Failures {
+  TokenExpiredFailure()
+      : super(errorMessage: 'Session expired. Please log in again.');
+}
