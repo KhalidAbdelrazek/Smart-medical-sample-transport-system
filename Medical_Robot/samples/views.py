@@ -1,3 +1,4 @@
+from accounts.permissions import IsStorageEmployee
 from django.db.models import Q
 from drf_spectacular.utils import extend_schema, OpenApiExample, OpenApiParameter
 from rest_framework import status
@@ -211,7 +212,7 @@ class CreateBloodSampleView(APIView):
     Create a new blood sample record in the database.
     """
 
-    permission_classes = [IsAuthenticated, IsDoctor]
+    permission_classes = [IsAuthenticated, IsStorageEmployee]
 
     @extend_schema(
         tags=["Samples"],
