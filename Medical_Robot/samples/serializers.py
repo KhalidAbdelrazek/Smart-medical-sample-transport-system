@@ -12,7 +12,6 @@ class BloodSampleSerializer(serializers.ModelSerializer):
             "id",
             "sample_code",
             "patient_name",
-            "patient_id",
             "blood_type",
             "status",
             "is_in_storage",
@@ -47,14 +46,32 @@ class SampleRequestSerializer(serializers.Serializer):
     room_number = serializers.CharField(max_length=50)
 
 
+class BulkSampleRequestSerializer(serializers.Serializer):
+    """Serialize bulk sample requests with single room number"""
+
+    sample_codes = serializers.ListField(
+        child=serializers.CharField(max_length=20), required=True
+    )
+    room_number = serializers.CharField(max_length=10, required=True)
+
+    def validate_sample_codes(self, value):
+        if not value:
+            raise serializers.ValidationError("At least one sample code is required")
+        if len(value) > 50:  # Add a reasonable limit to prevent abuse
+            raise serializers.ValidationError(
+                "Cannot request more than 50 samples at once"
+            )
+        return value
+
+
 class CreateBloodSampleSerializer(serializers.ModelSerializer):
     """Serializer for creating new blood samples."""
 
     class Meta:
         model = BloodSample
-        fields = ["patient_name", "patient_id", "blood_type"]
+        fields = ["patient_name", "sample_code", "blood_type"]
 
-    def validate_patient_id(self, value):
+    def validate_sample_code(self, value):
         """
         Validate that patient_id follows PT-XXXX format (where X are digits).
         Example: PT-0001, PT-1234, etc.
@@ -68,8 +85,8 @@ class CreateBloodSampleSerializer(serializers.ModelSerializer):
 
         value = value.upper()  # Normalize to uppercase
 
-        # Optional: Add validation to ensure patient_id is unique
-        if BloodSample.objects.filter(patient_id=value).exists():
+        # Optional: Add validation to ensure sample_code is unique
+        if BloodSample.objects.filter(sample_code=value).exists():
             raise serializers.ValidationError(
                 f"A blood sample for patient {value} already exists."
             )
