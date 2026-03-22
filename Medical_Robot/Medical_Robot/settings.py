@@ -36,7 +36,6 @@ TOPIC = "carts/+/status"
 
 # Application definition
 INSTALLED_APPS = [
-    'robot_app.apps.RobotAppConfig',  
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -44,22 +43,60 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'rest_framework',
+    'rest_framework_simplejwt',
+    'drf_spectacular',
     'rest_framework.authtoken',
     'corsheaders',
-    'api',
+    # Existing MQTT app — DO NOT MODIFY
     'healthcare',
+    # New BioRoute apps
+    'accounts',
+    'samples',
+    'cars',
+    'transport',
 ]
+
+# Custom user model — replaces Django's default User
+AUTH_USER_MODEL = 'accounts.User'
 
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': [
+        # JWT for new apps (accounts, samples, transport, cars)
+        'rest_framework_simplejwt.authentication.JWTAuthentication',
+        # Token auth kept for backward compatibility with healthcare/MQTT endpoints
         'rest_framework.authentication.TokenAuthentication',
     ],
     'DEFAULT_PERMISSION_CLASSES': [
         'rest_framework.permissions.IsAuthenticated',
     ],
+    # drf-spectacular schema generator
+    'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
     'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
-    'PAGE_SIZE': 2,
+    'PAGE_SIZE': 10,
+    'EXCEPTION_HANDLER': 'common.exceptions.custom_exception_handler',
 }
+
+SPECTACULAR_SETTINGS = {
+    'TITLE': 'BioRoute - Smart Medical Blood Sample Transport API',
+    'DESCRIPTION': (
+        'REST API for the BioRoute Smart Medical Sample Transport System. '
+        'Includes authentication, blood sample tracking, and automated car dispatch.'
+    ),
+    'VERSION': '1.0.0',
+    'SERVE_INCLUDE_SCHEMA': False,
+    'COMPONENT_SPLIT_REQUEST': True,
+}
+
+# SimpleJWT configuration
+from datetime import timedelta
+SIMPLE_JWT = {
+    'ACCESS_TOKEN_LIFETIME': timedelta(hours=12),
+    'REFRESH_TOKEN_LIFETIME': timedelta(days=7),
+    'AUTH_HEADER_TYPES': ('Bearer',),
+}
+
+
+
 
 MIDDLEWARE = [
     'corsheaders.middleware.CorsMiddleware',

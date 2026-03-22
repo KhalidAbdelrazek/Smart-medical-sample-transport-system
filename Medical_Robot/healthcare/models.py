@@ -4,61 +4,28 @@ from django.utils import timezone
 from datetime import timedelta
 # Create your models here.
 
-class Patient(models.Model):
-    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    name = models.CharField(max_length=100)
-    age = models.IntegerField()
-    gender = models.CharField(max_length=10)
-    description = models.TextField(max_length=500, null=True, blank=True)
-    phone = models.CharField(max_length=15)
-    email = models.EmailField()
-    password = models.CharField(max_length=100)
-    city = models.CharField(max_length=50)
-    address = models.CharField(max_length=100)
-    zip_code = models.CharField(max_length=10)
-    
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
-    
-    def __str__(self):
-        return self.name
-
-
-class Staff(models.Model):
-    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    name = models.CharField(max_length=100)
-    age = models.IntegerField()
-    gender = models.CharField(max_length=10)
-    role = models.CharField(max_length=50)
-    phone = models.CharField(max_length=15)
-    city = models.CharField(max_length=50)
-    address = models.CharField(max_length=100)
-    zip_code = models.CharField(max_length=10)
-    email = models.EmailField()
-    password = models.CharField(max_length=100)
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
-    
-    def __str__(self):
-        return self.name
-
   
 class SensorReading(models.Model):
-    STATE_CHOICES = [
-        ('ON', 'On'),
-        ('OFF', 'Off'),
-    ]
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False, help_text="Unique UUID for the sensor reading.")
+    # STATE_CHOICES = [
+    #     ('C', 'C')
+    # ]
         
-    cart = models.CharField(max_length=50, blank=True, null=True)
+    cart = models.CharField(max_length=50, blank=True, null=True, help_text="Identifier for the robot cart.")
     
-    position = models.CharField(max_length=10, blank=True, null=True)
+    position = models.CharField(max_length=10, blank=True, null=True, help_text="Current physical position of the cart.")
     
-    load = models.CharField(max_length=10, blank=True, null=True)
+    load = models.CharField(max_length=10, blank=True, null=True, help_text="Current load status or weight.")
 
-    state = models.CharField(max_length=10, choices=STATE_CHOICES, default='OFF')
+    state = models.CharField(max_length=10, help_text="The current operational state of the cart (e.g., 'C' for complete/call).")
 
     time = models.DateTimeField(auto_now_add=True)
-        
+
+    # if state != 'C':
+    #     print("The cart is not in the correct position")
+    # else:
+    #     print("The cart is in the correct position")
+
     # cutoff_date = timezone.now() - timedelta(hours=1)
     # deleted_count, _ = SensorReading.objects.filter(
     #     time__lt=cutoff_date
