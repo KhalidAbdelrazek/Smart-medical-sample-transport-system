@@ -4,33 +4,34 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:smart_midecal_transport_app/core/di/di.dart';
 import 'package:smart_midecal_transport_app/core/theme/color.dart';
+import 'package:smart_midecal_transport_app/core/routes/route_names.dart';
 
-import 'cubit/employer_profile_cubit.dart';
-import 'cubit/employer_profile_state.dart';
-import 'widgets/employer_profile_header.dart';
-import 'widgets/employer_info_card.dart';
-import 'widgets/employer_settings_section.dart';
+import 'cubit/profile_cubit.dart';
+import 'cubit/profile_state.dart';
+import 'widgets/profile_header.dart';
+import 'widgets/info_card.dart';
+import 'widgets/settings_section.dart';
 
-/// Employer Profile Tab Page
+/// Profile Tab Page - Cached with AutomaticKeepAliveClientMixin
 /// Skeleton only shows on first load, not on pull-to-refresh
-class EmployerProfileTabPage extends StatefulWidget {
-  const EmployerProfileTabPage({super.key});
+class ProfileTabPage extends StatefulWidget {
+  const ProfileTabPage({super.key});
 
   @override
-  State<EmployerProfileTabPage> createState() => _EmployerProfileTabPageState();
+  State<ProfileTabPage> createState() => _ProfileTabPageState();
 }
 
-class _EmployerProfileTabPageState extends State<EmployerProfileTabPage>
+class _ProfileTabPageState extends State<ProfileTabPage>
     with AutomaticKeepAliveClientMixin {
-  late EmployerProfileCubit _cubit;
+  late ProfileCubit _cubit;
 
   @override
-  bool get wantKeepAlive => true;
+  bool get wantKeepAlive => true; // Keep this tab alive
 
   @override
   void initState() {
     super.initState();
-    _cubit = getIt<EmployerProfileCubit>()..loadData();
+    _cubit = getIt<ProfileCubit>()..loadData();
   }
 
   @override
@@ -41,38 +42,50 @@ class _EmployerProfileTabPageState extends State<EmployerProfileTabPage>
 
   @override
   Widget build(BuildContext context) {
-    super.build(context);
+    super.build(context); // Required for AutomaticKeepAliveClientMixin
     final theme = Theme.of(context);
 
     return BlocProvider.value(
       value: _cubit,
-      child: BlocBuilder<EmployerProfileCubit, EmployerProfileState>(
-        builder: (context, state) {
-          return RefreshIndicator(
-            onRefresh: () => context.read<EmployerProfileCubit>().refresh(),
-            child: AnimatedSwitcher(
-              duration: const Duration(milliseconds: 300),
-              child: _buildContent(context, state, theme),
-            ),
-          );
+      child: BlocListener<ProfileCubit, ProfileState>(
+        listener: (context, state) {
+          if (state is ProfileLoggedOut ||
+              (state is ProfileError && state.isTokenExpired)) {
+            Navigator.pushNamedAndRemoveUntil(
+              context,
+              RouteNames.register,
+              (route) => false,
+            );
+          }
         },
+        child: BlocBuilder<ProfileCubit, ProfileState>(
+          builder: (context, state) {
+            return RefreshIndicator(
+              onRefresh: () => context.read<ProfileCubit>().refresh(),
+              child: AnimatedSwitcher(
+                duration: const Duration(milliseconds: 300),
+                child: _buildContent(context, state, theme),
+              ),
+            );
+          },
+        ),
       ),
     );
   }
 
   Widget _buildContent(
     BuildContext context,
-    EmployerProfileState state,
+    ProfileState state,
     ThemeData theme,
   ) {
-    if (state is EmployerProfileLoading || state is EmployerProfileInitial) {
+    if (state is ProfileLoading || state is ProfileInitial) {
       return IgnorePointer(
         key: const ValueKey('loading'),
         child: _buildLoadingSkeleton(theme),
       );
     }
 
-    if (state is EmployerProfileError) {
+    if (state is ProfileError) {
       return Center(
         key: const ValueKey('error'),
         child: Column(
@@ -83,62 +96,82 @@ class _EmployerProfileTabPageState extends State<EmployerProfileTabPage>
             Text(state.message, style: theme.textTheme.bodyLarge),
             SizedBox(height: 16.h),
             ElevatedButton(
-              onPressed: () => context.read<EmployerProfileCubit>().loadData(),
-              child: Text('employer.retry'.tr()),
+              onPressed: () => context.read<ProfileCubit>().loadData(),
+              child: Text('profile.retry'.tr()),
             ),
           ],
         ),
       );
     }
 
-    if (state is EmployerProfileLoaded) {
+    if (state is ProfileLoaded) {
       return ListView(
         key: const ValueKey('loaded'),
         padding: EdgeInsets.all(16.w),
         children: [
           // Profile header
           Center(
-            child: EmployerProfileHeader(
-              name: state.employerName,
-              role: state.mainRole,
+            child: ProfileHeader(
+              name: state.userProfile.data?.name ?? '-',
+              role: state.userProfile.data?.role ?? '-',
             ),
           ),
           SizedBox(height: 24.h),
 
-          // Employer Info Card
-          EmployerInfoCard(
-            title: 'employer.employer_info'.tr(),
+          // Employee Info Card
+          InfoCard(
+            title: 'profile.employee_info'.tr(),
             items: [
-              EmployerInfoItem(
+              InfoItem(
                 icon: Icons.badge_rounded,
                 color: AppColors.primaryLight,
-                label: 'employer.employer_id'.tr(),
-                value: state.employerId,
+                label: 'profile.employee_id'.tr(),
+                value: state.userProfile.data?.employeeId ?? '-',
               ),
-              EmployerInfoItem(
+              InfoItem(
                 icon: Icons.business_rounded,
                 color: AppColors.info,
-                label: 'employer.department'.tr(),
-                value: state.department,
+                label: 'profile.department'.tr(),
+                value: state.userProfile.data?.department ?? '-',
               ),
-              EmployerInfoItem(
-                icon: Icons.email_rounded,
-                color: AppColors.secondary,
-                label: 'employer.email'.tr(),
-                value: state.email,
-              ),
-              EmployerInfoItem(
-                icon: Icons.calendar_today_rounded,
+              InfoItem(
+                icon: Icons.schedule_rounded,
                 color: AppColors.success,
-                label: 'employer.join_date'.tr(),
-                value: state.joinDate,
+                label: 'profile.shift'.tr(),
+                value: state.userProfile.data?.shift ?? '-',
+              ),
+            ],
+          ),
+          SizedBox(height: 16.h),
+
+          // Today's Stats Card
+          InfoCard(
+            title: 'profile.today_stats'.tr(),
+            items: [
+              InfoItem(
+                icon: Icons.bloodtype_rounded,
+                color: AppColors.error,
+                label: 'profile.bags_processed'.tr(),
+                value: '0',
+              ),
+              InfoItem(
+                icon: Icons.science_rounded,
+                color: AppColors.info,
+                label: 'profile.samples_processed'.tr(),
+                value: '0',
+              ),
+              InfoItem(
+                icon: Icons.local_shipping_rounded,
+                color: AppColors.success,
+                label: 'profile.cars_dispatched'.tr(),
+                value: '0',
               ),
             ],
           ),
           SizedBox(height: 16.h),
 
           // Settings Section
-          const EmployerSettingsSection(),
+          const SettingsSection(),
           SizedBox(height: 32.h),
         ],
       );
@@ -153,13 +186,15 @@ class _EmployerProfileTabPageState extends State<EmployerProfileTabPage>
     return ListView(
       padding: EdgeInsets.all(16.w),
       children: [
-        Center(child: _shimmerCircle(100.w, isDark)),
+        Center(child: _shimmerCircle(90.w, isDark)),
         SizedBox(height: 16.h),
         Center(child: _shimmerBox(150.w, 24.h, isDark)),
         SizedBox(height: 8.h),
         Center(child: _shimmerBox(100.w, 30.h, isDark)),
         SizedBox(height: 24.h),
-        _shimmerBox(double.infinity, 200.h, isDark),
+        _shimmerBox(double.infinity, 180.h, isDark),
+        SizedBox(height: 16.h),
+        _shimmerBox(double.infinity, 180.h, isDark),
         SizedBox(height: 16.h),
         _shimmerBox(double.infinity, 120.h, isDark),
       ],
