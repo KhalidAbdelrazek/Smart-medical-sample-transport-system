@@ -5,6 +5,7 @@ import 'package:injectable/injectable.dart';
 import 'package:smart_midecal_transport_app/core/api%20manager/api_endpoints.dart';
 import 'package:smart_midecal_transport_app/core/api%20manager/api_manager.dart';
 import 'package:smart_midecal_transport_app/core/error/failures.dart';
+import 'package:smart_midecal_transport_app/core/utils/shared_pref_services.dart';
 import 'package:smart_midecal_transport_app/presentation/storage/profile_tab/Data/Data%20Sources/profile_ds.dart';
 import 'package:smart_midecal_transport_app/presentation/storage/profile_tab/Data/Models/get_profle_dm.dart';
 
@@ -19,14 +20,19 @@ class ProfileDataSourceImpl implements ProfileDataSource {
         .checkConnectivity();
 
     try {
+      final String? token = SharedPrefService.instance.getAccessToken();
       if (!connectivityResult.contains(ConnectivityResult.none)) {
-        var response = await apiManager.postData(
+        var response = await apiManager.getData(
           path: ApiEndPoints.getProfile,
           options: Options(
-            headers: {"Content-Type": "application/json"},
+            headers: {
+              "Content-Type": "application/json",
+              "Authorization": "Bearer $token",
+            },
             validateStatus: (status) => true,
           ),
         );
+        print("response.data: ${response.data}");
 
         // Map the entire response (success, message, data, errors)
         GetProfileDm getProfileDm = GetProfileDm.fromJson(response.data);

@@ -6,6 +6,7 @@ import 'package:smart_midecal_transport_app/core/theme/color.dart';
 import 'package:smart_midecal_transport_app/presentation/employee/home/ui/home_tab.dart';
 import 'package:smart_midecal_transport_app/presentation/employee/requests/ui/employee_requests_tab_page.dart';
 import 'package:smart_midecal_transport_app/presentation/employee/profile/ui/profile_tab.dart';
+import 'package:smart_midecal_transport_app/presentation/storage/profile_tab/ui/profile_tab_page.dart';
 
 /// Employee root screen with 3-tab navigation (Home, Requests, Profile)
 /// Uses NavigationBar + IndexedStack matching employer/storage patterns
@@ -44,7 +45,7 @@ class RootScreenState extends State<RootScreen> {
         children: const [
           EmployeeHomeTabPage(),
           EmployeeRequestsTabPage(),
-          EmployeeProfileTabPage(),
+          ProfileTabPage(),
         ],
       ),
       bottomNavigationBar: NavigationBar(
