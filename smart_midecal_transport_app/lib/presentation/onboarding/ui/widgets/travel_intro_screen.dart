@@ -35,12 +35,9 @@ class TravelIntroScreen extends StatelessWidget {
           /// Background image
           if (backgroundImage != null)
             SizedBox.expand(
-              child: Image.asset(
-                backgroundImage!,
-                fit: BoxFit.cover,
-              ),
+              child: Image.asset(backgroundImage!, fit: BoxFit.cover),
             ),
-            
+
           /// Gradient Overlay for better text readability
           if (backgroundImage != null)
             SizedBox.expand(
@@ -137,7 +134,8 @@ class TravelIntroScreen extends StatelessWidget {
                             onPressed: onBackPressed,
                             style: TextButton.styleFrom(
                               padding: EdgeInsets.symmetric(vertical: 16.h),
-                              foregroundColor: theme.textTheme.bodyMedium?.color,
+                              foregroundColor:
+                                  theme.textTheme.bodyMedium?.color,
                             ),
                             child: Text(
                               backText!,
@@ -150,7 +148,7 @@ class TravelIntroScreen extends StatelessWidget {
                           ),
                         ),
                     ],
-                  )
+                  ),
                 ],
               ),
             ),

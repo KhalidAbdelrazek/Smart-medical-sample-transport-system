@@ -75,6 +75,7 @@ class RequestsDataSourceImpl implements RequestsDataSource {
         AddToCarResponseDm addToCarResponseDm = AddToCarResponseDm.fromJson(
           response.data,
         );
+        print(response.data.toString());
         if (response.statusCode! >= 200 && response.statusCode! < 300) {
           return Right(addToCarResponseDm);
         }
