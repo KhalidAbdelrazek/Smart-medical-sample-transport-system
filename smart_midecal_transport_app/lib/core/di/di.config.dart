@@ -26,8 +26,8 @@ import '../../presentation/authentication/ui/cubit/employee_login_view_model.dar
     as _i600;
 import '../../presentation/employee/home/cubit/employee_home_cubit.dart'
     as _i289;
-import '../../presentation/employee/profile/cubit/employee_profile_cubit.dart'
-    as _i354;
+// import '../../presentation/employee/profile/cubit/employee_profile_cubit.dart'
+//     as _i354;
 import '../../presentation/employee/requests/Data/data%20source/requests_data_source.dart'
     as _i588;
 import '../../presentation/employee/requests/Data/data%20source/requests_data_source_impl.dart'
@@ -38,8 +38,8 @@ import '../../presentation/employee/requests/domain/repository/requests_reposito
     as _i960;
 import '../../presentation/employee/requests/ui/cubit/blood_sample_cubit.dart'
     as _i497;
-import '../../presentation/employer/profile_tab/cubit/employer_profile_cubit.dart'
-    as _i732;
+// import '../../presentation/employer/profile_tab/cubit/employer_profile_cubit.dart'
+//     as _i732;
 import '../../presentation/employer/restrictions_tab/cubit/restrictions_cubit.dart'
     as _i963;
 import '../../presentation/employer/statistics_tab/cubit/statistics_cubit.dart'
@@ -75,8 +75,8 @@ extension GetItInjectableX on _i174.GetIt {
   }) {
     final gh = _i526.GetItHelper(this, environment, environmentFilter);
     gh.factory<_i289.EmployeeHomeCubit>(() => _i289.EmployeeHomeCubit());
-    gh.factory<_i354.EmployeeProfileCubit>(() => _i354.EmployeeProfileCubit());
-    gh.factory<_i732.EmployerProfileCubit>(() => _i732.EmployerProfileCubit());
+    // gh.factory<_i354.EmployeeProfileCubit>(() => _i354.EmployeeProfileCubit());
+    // gh.factory<_i732.EmployerProfileCubit>(() => _i732.EmployerProfileCubit());
     gh.factory<_i963.RestrictionsCubit>(() => _i963.RestrictionsCubit());
     gh.factory<_i327.StatisticsCubit>(() => _i327.StatisticsCubit());
     gh.factory<_i385.HomeCubit>(() => _i385.HomeCubit());
