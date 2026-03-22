@@ -1,3 +1,5 @@
+import 'package:smart_midecal_transport_app/presentation/storage/profile_tab/Domain/Entity/get_profle_entity.dart';
+
 /// States for Profile Tab
 abstract class ProfileState {}
 
@@ -6,28 +8,16 @@ class ProfileInitial extends ProfileState {}
 class ProfileLoading extends ProfileState {}
 
 class ProfileLoaded extends ProfileState {
-  final String employeeName;
-  final String employeeId;
-  final String department;
-  final String role;
-  final String shift;
-  final int todayBagsProcessed;
-  final int todaySamplesProcessed;
-  final int todayCarsDispatched;
+  final GetProfileEntity userProfile;
 
-  ProfileLoaded({
-    required this.employeeName,
-    required this.employeeId,
-    required this.department,
-    required this.role,
-    required this.shift,
-    required this.todayBagsProcessed,
-    required this.todaySamplesProcessed,
-    required this.todayCarsDispatched,
-  });
+  ProfileLoaded({required this.userProfile});
 }
+
+class ProfileLoggedOut extends ProfileState {}
 
 class ProfileError extends ProfileState {
   final String message;
-  ProfileError(this.message);
+  final bool isTokenExpired;
+
+  ProfileError(this.message, {this.isTokenExpired = false});
 }

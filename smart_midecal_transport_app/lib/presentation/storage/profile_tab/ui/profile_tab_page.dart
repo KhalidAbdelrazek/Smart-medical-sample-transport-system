@@ -4,6 +4,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:smart_midecal_transport_app/core/di/di.dart';
 import 'package:smart_midecal_transport_app/core/theme/color.dart';
+import 'package:smart_midecal_transport_app/core/routes/route_names.dart';
 
 import 'cubit/profile_cubit.dart';
 import 'cubit/profile_state.dart';
@@ -46,16 +47,28 @@ class _ProfileTabPageState extends State<ProfileTabPage>
 
     return BlocProvider.value(
       value: _cubit,
-      child: BlocBuilder<ProfileCubit, ProfileState>(
-        builder: (context, state) {
-          return RefreshIndicator(
-            onRefresh: () => context.read<ProfileCubit>().refresh(),
-            child: AnimatedSwitcher(
-              duration: const Duration(milliseconds: 300),
-              child: _buildContent(context, state, theme),
-            ),
-          );
+      child: BlocListener<ProfileCubit, ProfileState>(
+        listener: (context, state) {
+          if (state is ProfileLoggedOut ||
+              (state is ProfileError && state.isTokenExpired)) {
+            Navigator.pushNamedAndRemoveUntil(
+              context,
+              RouteNames.register,
+              (route) => false,
+            );
+          }
         },
+        child: BlocBuilder<ProfileCubit, ProfileState>(
+          builder: (context, state) {
+            return RefreshIndicator(
+              onRefresh: () => context.read<ProfileCubit>().refresh(),
+              child: AnimatedSwitcher(
+                duration: const Duration(milliseconds: 300),
+                child: _buildContent(context, state, theme),
+              ),
+            );
+          },
+        ),
       ),
     );
   }
@@ -98,7 +111,10 @@ class _ProfileTabPageState extends State<ProfileTabPage>
         children: [
           // Profile header
           Center(
-            child: ProfileHeader(name: state.employeeName, role: state.role),
+            child: ProfileHeader(
+              name: state.userProfile.data?.name ?? '-',
+              role: state.userProfile.data?.role ?? '-',
+            ),
           ),
           SizedBox(height: 24.h),
 
@@ -110,19 +126,19 @@ class _ProfileTabPageState extends State<ProfileTabPage>
                 icon: Icons.badge_rounded,
                 color: AppColors.primaryLight,
                 label: 'profile.employee_id'.tr(),
-                value: state.employeeId,
+                value: state.userProfile.data?.employeeId ?? '-',
               ),
               InfoItem(
                 icon: Icons.business_rounded,
                 color: AppColors.info,
                 label: 'profile.department'.tr(),
-                value: state.department,
+                value: state.userProfile.data?.department ?? '-',
               ),
               InfoItem(
                 icon: Icons.schedule_rounded,
                 color: AppColors.success,
                 label: 'profile.shift'.tr(),
-                value: state.shift,
+                value: state.userProfile.data?.shift ?? '-',
               ),
             ],
           ),
@@ -136,19 +152,19 @@ class _ProfileTabPageState extends State<ProfileTabPage>
                 icon: Icons.bloodtype_rounded,
                 color: AppColors.error,
                 label: 'profile.bags_processed'.tr(),
-                value: state.todayBagsProcessed.toString(),
+                value: '0',
               ),
               InfoItem(
                 icon: Icons.science_rounded,
                 color: AppColors.info,
                 label: 'profile.samples_processed'.tr(),
-                value: state.todaySamplesProcessed.toString(),
+                value: '0',
               ),
               InfoItem(
                 icon: Icons.local_shipping_rounded,
                 color: AppColors.success,
                 label: 'profile.cars_dispatched'.tr(),
-                value: state.todayCarsDispatched.toString(),
+                value: '0',
               ),
             ],
           ),

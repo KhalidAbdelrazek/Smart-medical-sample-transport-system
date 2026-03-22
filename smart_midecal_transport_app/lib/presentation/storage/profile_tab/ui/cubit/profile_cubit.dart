@@ -1,36 +1,45 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:injectable/injectable.dart';
+import 'package:smart_midecal_transport_app/core/utils/shared_pref_services.dart';
+import 'package:smart_midecal_transport_app/presentation/storage/profile_tab/Domain/Repository/profile_repository.dart';
 import 'profile_state.dart';
 
 /// Cubit for Profile Tab
 @injectable
 class ProfileCubit extends Cubit<ProfileState> {
-  ProfileCubit() : super(ProfileInitial());
+  final ProfileRepository _profileRepository;
+
+  ProfileCubit(this._profileRepository) : super(ProfileInitial());
 
   /// Load profile data
   Future<void> loadData() async {
     emit(ProfileLoading());
-    try {
-      await Future.delayed(const Duration(seconds: 2));
-      emit(
-        ProfileLoaded(
-          employeeName: 'Ahmed Hassan',
-          employeeId: 'EMP-2847',
-          department: 'Blood Storage',
-          role: 'Storage Specialist',
-          shift: 'Morning (7:00 - 15:00)',
-          todayBagsProcessed: 12,
-          todaySamplesProcessed: 8,
-          todayCarsDispatched: 4,
-        ),
-      );
-    } catch (e) {
-      emit(ProfileError('Failed to load profile'));
-    }
+
+    final result = await _profileRepository.getProfile();
+
+    result.fold(
+      (failure) {
+        final errorMsg = failure.errorMessage;
+        final bool isTokenExpired = errorMsg.toLowerCase().contains('session expired') || 
+            errorMsg.toLowerCase().contains('token_not_valid') ||
+            errorMsg.toLowerCase().contains('motherfucker');
+            
+        emit(ProfileError(errorMsg, isTokenExpired: isTokenExpired));
+      },
+      (profile) {
+        emit(ProfileLoaded(userProfile: profile));
+      },
+    );
   }
 
   /// Refresh profile (pull-to-refresh)
   Future<void> refresh() async {
     await loadData();
+  }
+
+  /// Logout
+  Future<void> logout() async {
+    await SharedPrefService.instance.clearTokens();
+    emit(ProfileLoggedOut());
   }
 }

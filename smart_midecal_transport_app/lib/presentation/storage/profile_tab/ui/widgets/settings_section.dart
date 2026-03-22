@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:provider/provider.dart';
 import 'package:smart_midecal_transport_app/core/theme/color.dart';
 import 'package:smart_midecal_transport_app/core/provider/theme_provider.dart';
 import 'package:smart_midecal_transport_app/core/provider/locale_provider.dart';
+import '../cubit/profile_cubit.dart';
 
 /// Settings section widget with functional language and theme switches
 class SettingsSection extends StatelessWidget {
@@ -64,6 +66,21 @@ class SettingsSection extends StatelessWidget {
             trailing: _ThemeSwitch(
               isDark: isDark,
               onChanged: () => themeProvider.toggleTheme(),
+            ),
+          ),
+          SizedBox(height: 12.h),
+
+          // Logout
+          InkWell(
+            onTap: () {
+              context.read<ProfileCubit>().logout();
+            },
+            borderRadius: BorderRadius.circular(12.r),
+            child: _SettingsTile(
+              icon: Icons.logout_rounded,
+              iconColor: AppColors.error,
+              label: 'profile.logout'.tr(),
+              trailing: Icon(Icons.arrow_forward_ios_rounded, size: 16.sp, color: AppColors.labelColor),
             ),
           ),
         ],

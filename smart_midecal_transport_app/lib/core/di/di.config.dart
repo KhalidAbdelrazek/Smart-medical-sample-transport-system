@@ -45,18 +45,26 @@ import '../../presentation/employer/restrictions_tab/cubit/restrictions_cubit.da
 import '../../presentation/employer/statistics_tab/cubit/statistics_cubit.dart'
     as _i327;
 import '../../presentation/storage/home_tab/cubit/home_cubit.dart' as _i385;
+import '../../presentation/storage/profile_tab/Data/Data%20Sources/impl/profile_ds_impl.dart'
+    as _i892;
+import '../../presentation/storage/profile_tab/Data/Data%20Sources/profile_ds.dart'
+    as _i582;
+import '../../presentation/storage/profile_tab/Data/Repository/profile_repository_impl.dart'
+    as _i597;
+import '../../presentation/storage/profile_tab/Domain/Repository/profile_repository.dart'
+    as _i247;
 import '../../presentation/storage/profile_tab/ui/cubit/profile_cubit.dart'
-    as _i349;
+    as _i50;
 import '../../presentation/storage/requests_tab/data/data%20source/requests_data_source.dart'
-    as _i800;
+    as _i212;
 import '../../presentation/storage/requests_tab/data/data%20source/requests_data_source_impl.dart'
-    as _i801;
+    as _i542;
 import '../../presentation/storage/requests_tab/data/repository/requests_repository_impl.dart'
-    as _i802;
+    as _i908;
 import '../../presentation/storage/requests_tab/domain/repository/requests_repository.dart'
-    as _i803;
+    as _i459;
 import '../../presentation/storage/requests_tab/ui/cubit/blood_samples_cubit.dart'
-    as _i186;
+    as _i6;
 import '../api%20manager/api_manager.dart' as _i949;
 
 extension GetItInjectableX on _i174.GetIt {
@@ -72,21 +80,20 @@ extension GetItInjectableX on _i174.GetIt {
     gh.factory<_i963.RestrictionsCubit>(() => _i963.RestrictionsCubit());
     gh.factory<_i327.StatisticsCubit>(() => _i327.StatisticsCubit());
     gh.factory<_i385.HomeCubit>(() => _i385.HomeCubit());
-    gh.factory<_i349.ProfileCubit>(() => _i349.ProfileCubit());
-    gh.factory<_i800.RequestsDataSource>(
-      () => _i801.RequestsDataSourceImpl(apiManager: gh<_i949.ApiManager>()),
-    );
-    gh.factory<_i803.RequestsRepository>(
-      () => _i802.RequestsRepositoryImpl(
-        requestsDataSource: gh<_i800.RequestsDataSource>(),
-      ),
-    );
-    gh.factory<_i186.BloodSamplesCubit>(
-      () => _i186.BloodSamplesCubit(gh<_i803.RequestsRepository>()),
-    );
     gh.singleton<_i949.ApiManager>(() => _i949.ApiManager());
     gh.factory<_i727.AuthRemoteDataSource>(
       () => _i1029.AuthRemoteDataSourceImpl(apiManager: gh<_i949.ApiManager>()),
+    );
+    gh.factory<_i582.ProfileDataSource>(
+      () => _i892.ProfileDataSourceImpl(apiManager: gh<_i949.ApiManager>()),
+    );
+    gh.factory<_i212.RequestsDataSource>(
+      () => _i542.RequestsDataSourceImpl(apiManager: gh<_i949.ApiManager>()),
+    );
+    gh.factory<_i459.RequestsRepository>(
+      () => _i908.RequestsRepositoryImpl(
+        requestsDataSource: gh<_i212.RequestsDataSource>(),
+      ),
     );
     gh.factory<_i471.AuthRepository>(
       () => _i659.AuthRepositoryImpl(
@@ -95,6 +102,14 @@ extension GetItInjectableX on _i174.GetIt {
     );
     gh.factory<_i588.RequestsDataSource>(
       () => _i128.RequestsDataSourceImpl(apiManager: gh<_i949.ApiManager>()),
+    );
+    gh.factory<_i247.ProfileRepository>(
+      () => _i597.ProfileRepositoryImpl(
+        profileDataSource: gh<_i582.ProfileDataSource>(),
+      ),
+    );
+    gh.factory<_i50.ProfileCubit>(
+      () => _i50.ProfileCubit(gh<_i247.ProfileRepository>()),
     );
     gh.factory<_i964.AdminLoginViewModel>(
       () => _i964.AdminLoginViewModel(gh<_i471.AuthRepository>()),
@@ -106,6 +121,9 @@ extension GetItInjectableX on _i174.GetIt {
       () => _i1020.RequestsRepositoryImpl(
         requestsDataSource: gh<_i588.RequestsDataSource>(),
       ),
+    );
+    gh.factory<_i6.BloodSamplesCubit>(
+      () => _i6.BloodSamplesCubit(gh<_i459.RequestsRepository>()),
     );
     gh.factory<_i497.BloodSampleCubit>(
       () => _i497.BloodSampleCubit(
