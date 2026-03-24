@@ -13,6 +13,12 @@ abstract class ApiEndPoints {
   static const dispatchCar =
       '${ApiConstants.baseUrl}/api/transport/dispatch-car/';
 
+  // ── My Requests (Employee / Doctor) ──────────────────────────────────────
+  static const getMyTransportRequests =
+      '${ApiConstants.baseUrl}api/transport/my-requests/';
+  static String cancelTransportRequest(String id) =>
+      '${ApiConstants.baseUrl}api/transport/requests/$id/cancel/';
+
   // todo : chatbot =>
   // static const chatbot = '${ApiConstants.chatbotUrl}/chat';
 
