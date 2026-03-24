@@ -1,4 +1,3 @@
-
 import 'package:smart_midecal_transport_app/presentation/storage/requests_tab/domain/models/get_requests_response_entity.dart';
 
 class GetRequestsResponseDm extends GetRequestsResponseEntity {
@@ -18,7 +17,7 @@ class GetRequestsResponseDm extends GetRequestsResponseEntity {
       data: (json['data'] as List?)
           ?.map((e) => TransportRequestDm.fromJson(e))
           .toList(),
-      errors: json['errors'], // 🔥 now dynamic
+      errors: json['errors'],
     );
   }
 }
@@ -42,9 +41,25 @@ class TransportRequestDm extends TransportRequestEntity {
       sample: json['sample'] != null ? SampleDm.fromJson(json['sample']) : null,
       requestedByName: json['requested_by_name'],
       roomNumber: json['room_number'],
-      assignedCar: json['assigned_car'],
+      // FIXED: Now correctly parsing the nested Map
+      assignedCar: json['assigned_car'] != null
+          ? AssignedCarDm.fromJson(json['assigned_car'])
+          : null,
       status: json['status'],
       createdAt: json['created_at'],
+    );
+  }
+}
+
+class AssignedCarDm extends AssignedCarEntity {
+  AssignedCarDm({super.id, super.carNumber, super.status});
+
+  factory AssignedCarDm.fromJson(Map<String, dynamic>? json) {
+    if (json == null) return AssignedCarDm();
+    return AssignedCarDm(
+      id: json['id'],
+      carNumber: json['car_number'],
+      status: json['status'],
     );
   }
 }

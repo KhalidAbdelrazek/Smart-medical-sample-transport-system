@@ -23,7 +23,7 @@ _StatusConfig _statusConfig(String? status) {
       return _StatusConfig(
         color: AppColors.warning,
         icon: Icons.hourglass_empty_rounded,
-        label: 'requests.status_pending'.tr(),
+        label: status ?? 'Unknown',
       );
     case 'APPROVED':
     case 'OUT_FOR_DELIVERY':
@@ -31,14 +31,14 @@ _StatusConfig _statusConfig(String? status) {
       return _StatusConfig(
         color: AppColors.success,
         icon: Icons.check_circle_rounded,
-        label: 'requests.status_approved'.tr(),
+        label: status ?? 'Unknown',
       );
     case 'REJECTED':
     case 'CANCELLED':
       return _StatusConfig(
         color: AppColors.error,
         icon: Icons.cancel_rounded,
-        label: 'requests.status_rejected'.tr(),
+        label: status ?? 'Unknown',
       );
     default:
       return _StatusConfig(

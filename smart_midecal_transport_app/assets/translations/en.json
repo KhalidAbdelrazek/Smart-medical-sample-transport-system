@@ -228,5 +228,30 @@
     "settings": "Settings",
     "language": "Language",
     "theme": "Theme"
+  },
+  "my_requests": {
+    "title": "My Requests",
+    "nav_label": "My Requests",
+    "no_requests": "No requests found",
+    "no_requests_subtitle": "You haven't created any transport requests yet",
+    "cancel": "Cancel",
+    "cancel_confirm_title": "Cancel Request",
+    "cancel_confirm_body": "Are you sure you want to cancel this request? This action cannot be undone.",
+    "cancel_confirm_yes": "Yes, Cancel",
+    "cancel_confirm_no": "Keep Request",
+    "cancelled_success": "Request cancelled successfully",
+    "error_title": "Something went wrong",
+    "session_expired": "Session expired. Please log in again.",
+    "retry": "Retry",
+    "status_pending": "Pending",
+    "status_in_transit": "In Transit",
+    "status_delivered": "Delivered",
+    "status_cancelled": "Cancelled",
+    "sample_code": "Sample",
+    "patient": "Patient",
+    "blood_type": "Blood Type",
+    "room": "Room",
+    "created": "Created",
+    "assigned_car": "Car"
   }
 }
