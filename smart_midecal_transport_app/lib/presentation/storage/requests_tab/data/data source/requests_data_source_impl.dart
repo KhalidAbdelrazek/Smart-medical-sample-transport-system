@@ -34,6 +34,7 @@ class RequestsDataSourceImpl implements RequestsDataSource {
             validateStatus: (status) => true,
           ),
         );
+        print(response.data.toString());
         GetRequestsResponseDm samplesResponseDm =
             GetRequestsResponseDm.fromJson(response.data);
         if (response.statusCode! >= 200 && response.statusCode! < 300) {
@@ -63,7 +64,7 @@ class RequestsDataSourceImpl implements RequestsDataSource {
       if (!connectivityResult.contains(ConnectivityResult.none)) {
         var response = await apiManager.postData(
           path: ApiEndPoints.addToCar,
-          data: {"sample_code": sampleCode, "car_id": 2},
+          data: {"sample_code": sampleCode, "car_id": 3},
           options: Options(
             headers: {
               "Content-Type": "application/json",
@@ -101,7 +102,7 @@ class RequestsDataSourceImpl implements RequestsDataSource {
       if (!connectivityResult.contains(ConnectivityResult.none)) {
         var response = await apiManager.postData(
           path: ApiEndPoints.dispatchCar,
-          data: {"car_id": 2},
+          data: {"car_id": 3},
           options: Options(
             headers: {
               "Content-Type": "application/json",

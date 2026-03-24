@@ -2,6 +2,7 @@ import 'package:either_dart/either.dart';
 import 'package:smart_midecal_transport_app/core/error/failures.dart';
 import 'package:smart_midecal_transport_app/presentation/employee/requests/Data/Models/bulk_request_response_dm.dart';
 import 'package:smart_midecal_transport_app/presentation/employee/requests/Data/Models/get_samples_response_dm.dart';
+import 'package:smart_midecal_transport_app/presentation/employee/requests/domain/entities/transport_request_entity.dart';
 
 abstract class RequestsDataSource {
   Future<Either<Failures, GetSamplesResponseDm>> getSampleById(
@@ -11,4 +12,8 @@ abstract class RequestsDataSource {
     List<String> sampleCodes,
     String roomNumber,
   );
+
+  // ── My Requests ──────────────────────────────────────────────────────────
+  Future<Either<Failures, List<TransportRequestEntity>>> fetchMyRequests();
+  Future<Either<Failures, bool>> cancelRequest(String requestId);
 }
