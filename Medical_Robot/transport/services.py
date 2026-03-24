@@ -5,6 +5,8 @@ from samples.models import BloodSample
 from cars.models import Car
 from .models import TransportRequest
 
+from django.core.exceptions import PermissionDenied
+
 
 def add_sample_to_car(sample_code, car_id):
     """
@@ -103,3 +105,40 @@ def dispatch_car(car_id):
         car.save()
 
     return dispatched_requests
+
+
+def cancel_transport_request(request_id, doctor):
+    """
+    Cancel a pending transport request.
+
+    Rules:
+    - TransportRequest must exist.
+    - User attempting to cancel must be the 'requested_by' doctor.
+    - Status must be 'PENDING'.
+    - Deletes the request and reverts BloodSample status to 'IN_STORAGE'.
+    """
+    
+
+    try:
+        transport_request = TransportRequest.objects.get(id=request_id)
+    except TransportRequest.DoesNotExist:
+        raise NotFound(f"No transport request found with ID: {request_id}")
+
+    if transport_request.requested_by != doctor:
+        raise PermissionDenied("You do not have permission to cancel this request.")
+
+    if transport_request.status != 'PENDING':
+        raise ValidationError(
+            f"Cannot cancel a request that is already {transport_request.status}."
+        )
+
+    with transaction.atomic():
+        # Revert the blood sample's status back to in storage
+        sample = transport_request.sample
+        sample.status = 'IN_STORAGE'
+        sample.save()
+
+        # Delete the transport request
+        transport_request.delete()
+
+    return True

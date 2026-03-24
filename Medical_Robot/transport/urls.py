@@ -3,6 +3,8 @@ from .views import (
     TransportRequestListView,
     AddToCarView,
     DispatchCarView,
+    DoctorTransportRequestListView,
+    CancelTransportRequestView,
 )
 
 urlpatterns = [
@@ -14,4 +16,10 @@ urlpatterns = [
     
     # POST /api/transport/dispatch-car/
     path('dispatch-car/', DispatchCarView.as_view(), name='dispatch-car'),
+
+    # GET /api/transport/my-requests/
+    path('my-requests/', DoctorTransportRequestListView.as_view(), name='my-requests'),
+
+    # DELETE /api/transport/requests/{uuid}/cancel/
+    path('requests/<uuid:request_id>/cancel/', CancelTransportRequestView.as_view(), name='cancel-request'),
 ]

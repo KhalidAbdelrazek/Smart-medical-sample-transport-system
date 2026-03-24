@@ -4,15 +4,15 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.views import APIView
 from common.utils.response import unified_response
 
-from accounts.permissions import IsStorageEmployee
+from accounts.permissions import IsStorageEmployee, IsDoctor
 from .serializers import (
     TransportRequestSerializer,
     AddToCarSerializer,
     DispatchCarSerializer,
 )
-from .services import add_sample_to_car, dispatch_car
+from .services import add_sample_to_car, dispatch_car, cancel_transport_request
 from .models import TransportRequest
-
+from django.core.exceptions import PermissionDenied
 
 class TransportRequestListView(APIView):
     """
@@ -111,3 +111,67 @@ class DispatchCarView(APIView):
             data={'dispatched_requests': response_data},
             status=status.HTTP_200_OK
         )
+
+
+class DoctorTransportRequestListView(APIView):
+    """
+    GET /api/transport/my-requests/
+    Returns all transport requests made by the current doctor.
+    Accessible by Doctors only.
+    """
+    permission_classes = [IsAuthenticated, IsDoctor]
+
+    @extend_schema(
+        tags=['Transport'],
+        summary='List My Requests',
+        description='Returns all sample transport requests created by the authenticated doctor.',
+        responses={200: TransportRequestSerializer(many=True)},
+    )
+    def get(self, request):
+        requests = TransportRequest.objects.filter(
+            requested_by=request.user
+        ).select_related('sample', 'assigned_car').order_by('-created_at')
+        
+        serializer = TransportRequestSerializer(requests, many=True)
+        return unified_response(
+            success=True,
+            message="Your transport requests fetched successfully",
+            data=serializer.data,
+            status=status.HTTP_200_OK
+        )
+
+
+class CancelTransportRequestView(APIView):
+    """
+    DELETE /api/transport/requests/{request_id}/cancel/
+    Allows a doctor to cancel their pending transport request.
+    """
+    permission_classes = [IsAuthenticated, IsDoctor]
+
+    @extend_schema(
+        tags=['Transport'],
+        summary='Cancel Transport Request',
+        description='Allows a doctor to cancel a transport request they made, provided it is still PENDING.',
+        responses={
+            200: OpenApiExample(
+                'Success', 
+                value={'success': True, 'message': 'Transport request cancelled successfully', 'data': None}
+            )
+        },
+    )
+    def delete(self, request, request_id):
+        
+        
+        try:
+            cancel_transport_request(request_id=request_id, doctor=request.user)
+            return unified_response(
+                success=True,
+                message="Transport request cancelled successfully",
+                status=status.HTTP_200_OK
+            )
+        except PermissionDenied as e:
+            return unified_response(
+                success=False,
+                message=str(e),
+                status=status.HTTP_403_FORBIDDEN
+            )
