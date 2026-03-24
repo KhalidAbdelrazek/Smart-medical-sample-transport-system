@@ -2,7 +2,6 @@ class GetRequestsResponseEntity {
   final bool? success;
   final String? message;
   final List<TransportRequestEntity>? data;
-  // final ErrorEntity? errors;
   final dynamic errors;
 
   GetRequestsResponseEntity({
@@ -18,7 +17,7 @@ class TransportRequestEntity {
   final SampleEntity? sample;
   final String? requestedByName;
   final String? roomNumber;
-  final String? assignedCar;
+  final AssignedCarEntity? assignedCar; // Changed from String?
   final String? status;
   final String? createdAt;
 
@@ -31,6 +30,15 @@ class TransportRequestEntity {
     this.status,
     this.createdAt,
   });
+}
+
+class AssignedCarEntity {
+  final int? id;
+  final String? carNumber;
+  final String? status;
+  final String? createdAt;
+
+  AssignedCarEntity({this.id, this.carNumber, this.status, this.createdAt});
 }
 
 class SampleEntity {
@@ -56,19 +64,3 @@ class SampleEntity {
     this.updatedAt,
   });
 }
-
-// class ErrorEntity {
-//   final String? detail;
-//   final String? code;
-//   final List<TokenMessageEntity>? messages;
-
-//   ErrorEntity({this.detail, this.code, this.messages});
-// }
-
-// class TokenMessageEntity {
-//   final String? tokenClass;
-//   final String? tokenType;
-//   final String? message;
-
-//   TokenMessageEntity({this.tokenClass, this.tokenType, this.message});
-// }
