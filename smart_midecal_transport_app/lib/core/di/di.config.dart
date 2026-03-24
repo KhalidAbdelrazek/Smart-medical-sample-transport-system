@@ -36,6 +36,8 @@ import '../../presentation/employee/requests/Data/repository/requests_repository
     as _i1020;
 import '../../presentation/employee/requests/domain/repository/requests_repository.dart'
     as _i960;
+import '../../presentation/employee/my_requests/cubit/my_requests_cubit.dart'
+    as _i777;
 import '../../presentation/employee/requests/ui/cubit/blood_sample_cubit.dart'
     as _i497;
 // import '../../presentation/employer/profile_tab/cubit/employer_profile_cubit.dart'
@@ -129,6 +131,9 @@ extension GetItInjectableX on _i174.GetIt {
       () => _i497.BloodSampleCubit(
         requestsRepository: gh<_i960.RequestsRepository>(),
       ),
+    );
+    gh.factory<_i777.MyRequestsCubit>(
+      () => _i777.MyRequestsCubit(gh<_i960.RequestsRepository>()),
     );
     return this;
   }

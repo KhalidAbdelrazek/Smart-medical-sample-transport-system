@@ -4,11 +4,12 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:smart_midecal_transport_app/core/theme/color.dart';
 
 import 'package:smart_midecal_transport_app/presentation/employee/home/ui/home_tab.dart';
+import 'package:smart_midecal_transport_app/presentation/employee/my_requests/my_requests_tab_page.dart';
 import 'package:smart_midecal_transport_app/presentation/employee/requests/ui/employee_requests_tab_page.dart';
 import 'package:smart_midecal_transport_app/presentation/storage/profile_tab/ui/profile_tab_page.dart';
 
-/// Employee root screen with 3-tab navigation (Home, Requests, Profile)
-/// Uses NavigationBar + IndexedStack matching employer/storage patterns
+/// Employee root screen with 4-tab navigation:
+/// Home | Request Samples | My Requests | Profile
 class RootScreen extends StatefulWidget {
   const RootScreen({super.key});
 
@@ -22,6 +23,7 @@ class RootScreenState extends State<RootScreen> {
   final List<String> _appbarTitles = [
     'appbar.employee_dashboard',
     'appbar.blood_sample_bags',
+    'my_requests.title',
     'appbar.settings',
   ];
 
@@ -44,6 +46,7 @@ class RootScreenState extends State<RootScreen> {
         children: const [
           EmployeeHomeTabPage(),
           EmployeeRequestsTabPage(),
+          MyRequestsTabPage(),
           ProfileTabPage(),
         ],
       ),
@@ -75,6 +78,14 @@ class RootScreenState extends State<RootScreen> {
               color: AppColors.primaryLight,
             ),
             label: 'employee.nav_requests'.tr(),
+          ),
+          NavigationDestination(
+            icon: const Icon(Icons.receipt_long_outlined),
+            selectedIcon: Icon(
+              Icons.receipt_long_rounded,
+              color: AppColors.primaryLight,
+            ),
+            label: 'my_requests.nav_label'.tr(),
           ),
           NavigationDestination(
             icon: const Icon(Icons.person_outline_rounded),
