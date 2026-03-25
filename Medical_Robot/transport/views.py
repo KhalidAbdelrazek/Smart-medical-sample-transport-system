@@ -9,6 +9,7 @@ from .serializers import (
     TransportRequestSerializer,
     AddToCarSerializer,
     DispatchCarSerializer,
+    AllTransportRequestsSerializer,
 )
 from .services import add_sample_to_car, dispatch_car, cancel_transport_request, remove_sample_from_cart
 from .models import TransportRequest
@@ -214,3 +215,35 @@ class RemoveFromCartView(APIView):
             return unified_response(
                 success=False, message=str(e), status=status.HTTP_400_BAD_REQUEST
             )
+
+
+class AllTransportRequestsView(APIView):
+    """
+    GET /api/transport/all-requests/
+    Returns all transport requests with complete details.
+    Accessible by Storage Employees and Admins only.
+    """
+
+    permission_classes = [IsAuthenticated, IsStorageEmployee]
+
+    @extend_schema(
+        tags=["Transport"],
+        summary="List All Transport Requests",
+        description="Returns all transport requests (PENDING, LOADED, DISPATCHED) with full details including sample, doctor, and car information.",
+        responses={200: AllTransportRequestsSerializer(many=True)},
+        parameters=[],
+    )
+    def get(self, request):
+        requests = (
+            TransportRequest.objects.all()
+            .select_related("sample", "requested_by", "assigned_car")
+            .order_by("-created_at")
+        )
+
+        serializer = AllTransportRequestsSerializer(requests, many=True)
+        return unified_response(
+            success=True,
+            message=f"All transport requests fetched successfully. Total: {len(serializer.data)}",
+            data=serializer.data,
+            status=status.HTTP_200_OK,
+        )

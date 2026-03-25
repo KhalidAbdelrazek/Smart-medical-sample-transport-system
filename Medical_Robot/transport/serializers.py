@@ -39,3 +39,54 @@ class RemoveFromCartSerializer(serializers.Serializer):
 
     # No input parameters needed - request_id comes from URL path
     pass
+
+
+class AllTransportRequestsSerializer(serializers.ModelSerializer):
+    """Detailed serializer showing all request information."""
+
+    sample_id = serializers.CharField(source="sample.id", read_only=True)
+    sample_code = serializers.CharField(source="sample.sample_code", read_only=True)
+    patient_name = serializers.CharField(source="sample.patient_name", read_only=True)
+    blood_type = serializers.CharField(source="sample.blood_type", read_only=True)
+    sample_status = serializers.CharField(source="sample.status", read_only=True)
+
+    requested_by_id = serializers.CharField(source="requested_by.id", read_only=True)
+    requested_by_name = serializers.CharField(
+        source="requested_by.full_name", read_only=True
+    )
+    requested_by_email = serializers.CharField(
+        source="requested_by.email", read_only=True
+    )
+
+    car_id = serializers.IntegerField(
+        source="assigned_car.id", read_only=True, allow_null=True
+    )
+    car_number = serializers.CharField(
+        source="assigned_car.car_number", read_only=True, allow_null=True
+    )
+    car_status = serializers.CharField(
+        source="assigned_car.status", read_only=True, allow_null=True
+    )
+
+    class Meta:
+        model = TransportRequest
+        fields = [
+            "id",
+            "status",
+            "room_number",
+            "created_at",
+            # Sample Details
+            "sample_id",
+            "sample_code",
+            "patient_name",
+            "blood_type",
+            "sample_status",
+            # Doctor Details
+            "requested_by_id",
+            "requested_by_name",
+            "requested_by_email",
+            # Car Details
+            "car_id",
+            "car_number",
+            "car_status",
+        ]
