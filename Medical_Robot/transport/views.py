@@ -10,7 +10,7 @@ from .serializers import (
     AddToCarSerializer,
     DispatchCarSerializer,
 )
-from .services import add_sample_to_car, dispatch_car, cancel_transport_request
+from .services import add_sample_to_car, dispatch_car, cancel_transport_request, remove_sample_from_cart
 from .models import TransportRequest
 from django.core.exceptions import PermissionDenied
 
@@ -160,8 +160,7 @@ class CancelTransportRequestView(APIView):
         },
     )
     def delete(self, request, request_id):
-        
-        
+
         try:
             cancel_transport_request(request_id=request_id, doctor=request.user)
             return unified_response(
@@ -174,4 +173,44 @@ class CancelTransportRequestView(APIView):
                 success=False,
                 message=str(e),
                 status=status.HTTP_403_FORBIDDEN
+            )
+
+
+class RemoveFromCartView(APIView):
+    """
+    DELETE /api/transport/requests/{request_id}/remove-from-cart/
+    Storage employee removes an accidentally added sample from a car.
+    Only works for LOADED requests that haven't been dispatched yet.
+    """
+
+    permission_classes = [IsAuthenticated, IsStorageEmployee]
+
+    @extend_schema(
+        tags=["Transport"],
+        summary="Remove Sample from Cart",
+        description="Remove a loaded sample from a car before dispatch. Storage employees only.",
+        responses={
+            200: OpenApiExample(
+                "Success",
+                value={
+                    "success": True,
+                    "message": "Sample removed from cart successfully",
+                    "data": {},
+                },
+            )
+        },
+    )
+    def delete(self, request, request_id):
+        try:
+            transport_request = remove_sample_from_cart(request_id=request_id)
+            response_data = TransportRequestSerializer(transport_request).data
+            return unified_response(
+                success=True,
+                message="Sample removed from cart successfully",
+                data=response_data,
+                status=status.HTTP_200_OK,
+            )
+        except (NotFound, ValidationError) as e:
+            return unified_response(
+                success=False, message=str(e), status=status.HTTP_400_BAD_REQUEST
             )
