@@ -32,3 +32,10 @@ class AddToCarSerializer(serializers.Serializer):
 class DispatchCarSerializer(serializers.Serializer):
     """Body for dispatching a car."""
     car_id = serializers.IntegerField()
+
+
+class RemoveFromCartSerializer(serializers.Serializer):
+    """Body for removing a sample from a car."""
+
+    # No input parameters needed - request_id comes from URL path
+    pass

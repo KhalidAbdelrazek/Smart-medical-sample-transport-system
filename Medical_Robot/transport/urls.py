@@ -5,6 +5,7 @@ from .views import (
     DispatchCarView,
     DoctorTransportRequestListView,
     CancelTransportRequestView,
+    RemoveFromCartView,
 )
 
 urlpatterns = [
@@ -22,4 +23,8 @@ urlpatterns = [
 
     # DELETE /api/transport/requests/{uuid}/cancel/
     path('requests/<uuid:request_id>/cancel/', CancelTransportRequestView.as_view(), name='cancel-request'),
+
+    # DELETE /api/transport/requests/{uuid}/remove-from-cart/
+    path('requests/<uuid:request_id>/remove-from-cart/', RemoveFromCartView.as_view(), name='remove-from-cart'),
+
 ]

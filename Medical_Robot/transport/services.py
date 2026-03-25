@@ -117,7 +117,6 @@ def cancel_transport_request(request_id, doctor):
     - Status must be 'PENDING'.
     - Deletes the request and reverts BloodSample status to 'IN_STORAGE'.
     """
-    
 
     try:
         transport_request = TransportRequest.objects.get(id=request_id)
@@ -142,3 +141,50 @@ def cancel_transport_request(request_id, doctor):
         transport_request.delete()
 
     return True
+
+
+def remove_sample_from_cart(request_id):
+    """
+    Storage employee removes a loaded sample from a car before dispatch.
+
+    Rules:
+    - TransportRequest must exist
+    - Status must be 'LOADED' (not PENDING or DISPATCHED)
+    - Reverts TransportRequest.status back to 'PENDING'
+    - Reverts BloodSample.status back to 'REQUESTED'
+    - Reverts Car.status back to 'IDLE' if no other LOADED requests exist for this car
+    """
+    try:
+        transport_request = TransportRequest.objects.get(id=request_id)
+    except TransportRequest.DoesNotExist:
+        raise NotFound(f"No transport request found with ID: {request_id}")
+
+    if transport_request.status != "LOADED":
+        raise ValidationError(
+            f"Cannot remove a sample that is {transport_request.status}. "
+            "You can only remove samples from carts that have not yet been dispatched."
+        )
+
+    with transaction.atomic():
+        # Revert the blood sample's status back to REQUESTED
+        sample = transport_request.sample
+        sample.status = "REQUESTED"
+        sample.save()
+
+        # Revert the transport request back to PENDING
+        car = transport_request.assigned_car
+        transport_request.assigned_car = None
+        transport_request.status = "PENDING"
+        transport_request.save()
+
+        # Revert car status to IDLE if no other LOADED requests exist for this car
+        other_loaded_requests = TransportRequest.objects.filter(
+            assigned_car=car,
+            status="LOADED",
+        ).exists()
+
+        if not other_loaded_requests:
+            car.status = "IDLE"
+            car.save()
+
+    return transport_request
