@@ -1,0 +1,19 @@
+flutter_native_splash:
+  # General splash for all platforms (except Android 12+)
+  color: "#FFFFFF"                  # Light mode color
+  image: assets/images/splash_ios_light.png
+
+  color_dark: "#0F172A"             # Dark mode color
+  image_dark: assets/images/splash_ios_dark.png
+
+  fullscreen: false
+
+  # Android 12+ splash
+  android_12:
+    color: "#FFFFFF"                 # Light mode color
+    image: assets/images/splash_android12_light.png
+    icon_background_color: "#FFFFFF"
+
+    color_dark: "#0F172A"            # Dark mode color
+    image_dark: assets/images/splash_android12_dark.png
+    icon_background_color_dark: "#0F172A"
