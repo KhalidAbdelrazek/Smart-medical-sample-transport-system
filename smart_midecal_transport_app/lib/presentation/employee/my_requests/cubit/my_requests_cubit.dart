@@ -1,17 +1,17 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:injectable/injectable.dart';
 import 'package:smart_midecal_transport_app/core/error/failures.dart';
-import 'package:smart_midecal_transport_app/presentation/employee/requests/domain/entities/transport_request_entity.dart';
-import 'package:smart_midecal_transport_app/presentation/employee/requests/domain/repository/requests_repository.dart';
+import 'package:smart_midecal_transport_app/presentation/employee/my_requests/domain/entities/tranport_req_entities.dart';
+import 'package:smart_midecal_transport_app/presentation/employee/my_requests/domain/repos/my_request_repo.dart';
 import 'my_requests_state.dart';
 
 /// Cubit for the "My Requests" tab — shows the doctor's own transport requests
 /// and allows cancelling pending ones.
 @injectable
 class MyRequestsCubit extends Cubit<MyRequestsState> {
-  final RequestsRepository _repository;
+  final MyRequestsRepository _repository;
 
-  List<TransportRequestEntity> _requests = [];
+  List<TransportMyRequestEntity> _requests = [];
 
   MyRequestsCubit(this._repository) : super(MyRequestsInitial());
 
