@@ -26,8 +26,16 @@ import '../../presentation/authentication/ui/cubit/employee_login_view_model.dar
     as _i600;
 import '../../presentation/employee/home/cubit/employee_home_cubit.dart'
     as _i289;
-// import '../../presentation/employee/profile/cubit/employee_profile_cubit.dart'
-//     as _i354;
+import '../../presentation/employee/my_requests/cubit/my_requests_cubit.dart'
+    as _i692;
+import '../../presentation/employee/my_requests/data/data%20source/myrequest_data_source.dart'
+    as _i274;
+import '../../presentation/employee/my_requests/data/data%20source/myrequest_data_source_impl.dart'
+    as _i1059;
+import '../../presentation/employee/my_requests/data/repos/myrequest_repo_impl.dart'
+    as _i1070;
+import '../../presentation/employee/my_requests/domain/repos/my_request_repo.dart'
+    as _i981;
 import '../../presentation/employee/requests/Data/data%20source/requests_data_source.dart'
     as _i588;
 import '../../presentation/employee/requests/Data/data%20source/requests_data_source_impl.dart'
@@ -36,12 +44,8 @@ import '../../presentation/employee/requests/Data/repository/requests_repository
     as _i1020;
 import '../../presentation/employee/requests/domain/repository/requests_repository.dart'
     as _i960;
-import '../../presentation/employee/my_requests/cubit/my_requests_cubit.dart'
-    as _i777;
 import '../../presentation/employee/requests/ui/cubit/blood_sample_cubit.dart'
     as _i497;
-// import '../../presentation/employer/profile_tab/cubit/employer_profile_cubit.dart'
-//     as _i732;
 import '../../presentation/employer/restrictions_tab/cubit/restrictions_cubit.dart'
     as _i963;
 import '../../presentation/employer/statistics_tab/cubit/statistics_cubit.dart'
@@ -77,12 +81,13 @@ extension GetItInjectableX on _i174.GetIt {
   }) {
     final gh = _i526.GetItHelper(this, environment, environmentFilter);
     gh.factory<_i289.EmployeeHomeCubit>(() => _i289.EmployeeHomeCubit());
-    // gh.factory<_i354.EmployeeProfileCubit>(() => _i354.EmployeeProfileCubit());
-    // gh.factory<_i732.EmployerProfileCubit>(() => _i732.EmployerProfileCubit());
     gh.factory<_i963.RestrictionsCubit>(() => _i963.RestrictionsCubit());
     gh.factory<_i327.StatisticsCubit>(() => _i327.StatisticsCubit());
     gh.factory<_i385.HomeCubit>(() => _i385.HomeCubit());
     gh.singleton<_i949.ApiManager>(() => _i949.ApiManager());
+    gh.factory<_i274.MyRequestsDataSource>(
+      () => _i1059.MyRequestsDataSourceImpl(apiManager: gh<_i949.ApiManager>()),
+    );
     gh.factory<_i727.AuthRemoteDataSource>(
       () => _i1029.AuthRemoteDataSourceImpl(apiManager: gh<_i949.ApiManager>()),
     );
@@ -113,6 +118,11 @@ extension GetItInjectableX on _i174.GetIt {
     gh.factory<_i50.ProfileCubit>(
       () => _i50.ProfileCubit(gh<_i247.ProfileRepository>()),
     );
+    gh.factory<_i981.MyRequestsRepository>(
+      () => _i1070.MyRequestsRepositoryImpl(
+        myRequestsDataSource: gh<_i274.MyRequestsDataSource>(),
+      ),
+    );
     gh.factory<_i964.AdminLoginViewModel>(
       () => _i964.AdminLoginViewModel(gh<_i471.AuthRepository>()),
     );
@@ -132,8 +142,8 @@ extension GetItInjectableX on _i174.GetIt {
         requestsRepository: gh<_i960.RequestsRepository>(),
       ),
     );
-    gh.factory<_i777.MyRequestsCubit>(
-      () => _i777.MyRequestsCubit(gh<_i960.RequestsRepository>()),
+    gh.factory<_i692.MyRequestsCubit>(
+      () => _i692.MyRequestsCubit(gh<_i981.MyRequestsRepository>()),
     );
     return this;
   }
