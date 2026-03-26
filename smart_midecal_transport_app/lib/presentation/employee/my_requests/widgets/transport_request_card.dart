@@ -2,7 +2,7 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:smart_midecal_transport_app/core/theme/color.dart';
-import 'package:smart_midecal_transport_app/presentation/employee/requests/domain/entities/transport_request_entity.dart';
+import 'package:smart_midecal_transport_app/presentation/employee/my_requests/domain/entities/tranport_req_entities.dart';
 
 /// A modern hospital-style card for a single transport request.
 ///
@@ -10,7 +10,7 @@ import 'package:smart_midecal_transport_app/presentation/employee/requests/domai
 /// • If status == PENDING → shows Cancel button.
 /// • [isCancelling] → shows CircularProgressIndicator inside the button.
 class TransportRequestCard extends StatelessWidget {
-  final TransportRequestEntity request;
+  final TransportMyRequestEntity request;
   final bool isCancelling;
   final VoidCallback? onCancel;
 
