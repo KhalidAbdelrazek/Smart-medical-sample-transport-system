@@ -1,0 +1,77 @@
+import paho.mqtt.client as mqtt
+import ssl
+import json
+import serial
+import time
+
+# ================== MQTT CONFIG ==================
+MQTT_HOST = "81758f399b5b46b9875ac5e5f1e3ef1e.s1.eu.hivemq.cloud"
+MQTT_PORT = 8883
+MQTT_USER = "hivemq.webclient.1764285829577"
+MQTT_PASS = "bNtHo2#E,9>w18<CcOfF"
+
+TOPIC = "#"  # subscribe to all topics
+
+# ================== UART CONFIG ==================
+ser = serial.Serial(
+    port='/dev/serial0',
+    baudrate=9600,
+    timeout=1
+)
+
+time.sleep(2)  # wait for UART ready
+
+# ================== FUNCTION ==================
+def send_uart(char):
+    """Send a single byte to ATmega32 via UART"""
+    ser.write(char.encode())  # encode string to bytes
+    print(f">>> Sent to ATmega: {char}")
+
+# ================== MQTT CALLBACKS ==================
+def on_connect(client, userdata, flags, rc):
+    print("Connected to HiveMQ with code:", rc)
+    client.subscribe(TOPIC)
+    print("Subscribed to:", TOPIC)
+
+def on_message(client, userdata, msg):
+    payload = msg.payload.decode().strip()
+
+    print("\n--- MESSAGE RECEIVED ---")
+    print("Topic:", msg.topic)
+    print("Raw payload:", payload)
+
+    
+    try:
+        data = json.loads(payload)
+        print("Parsed JSON:", data)
+
+        state = str(data.get("state", "")).strip().upper()
+        print("Extracted state:", state)
+
+    except Exception:
+        # ?? ?? JSON ?????? ??? ?????
+        state = payload.upper()
+        print("Using raw payload as state:", state)
+
+    
+    if state == "U":
+        send_uart('U')
+    else:
+        print("State is not U ? No UART action")
+
+# ================== MAIN ==================
+client = mqtt.Client()
+client.username_pw_set(MQTT_USER, MQTT_PASS)
+client.tls_set(cert_reqs=ssl.CERT_REQUIRED)
+
+client.on_connect = on_connect
+client.on_message = on_message
+
+print("Connecting to broker...")
+client.connect(MQTT_HOST, MQTT_PORT, 60)
+
+try:
+    client.loop_forever()
+except KeyboardInterrupt:
+    print("Closing serial...")
+    ser.close()
