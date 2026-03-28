@@ -28,8 +28,8 @@ urlpatterns = [
     # DELETE /api/transport/requests/{uuid}/remove-from-cart/
     path('requests/<uuid:request_id>/remove-from-cart/', RemoveFromCartView.as_view(), name='remove-from-cart'),
 
-    # GET /api/transport/all-requests/
-    path('all-requests/', AllTransportRequestsView.as_view(), name='all-transport-requests'),
+    # GET /api/transport/filtered-requests/
+    path('filtered-requests/', AllTransportRequestsView.as_view(), name='filtered-transport-requests'),
 
 
 ]
