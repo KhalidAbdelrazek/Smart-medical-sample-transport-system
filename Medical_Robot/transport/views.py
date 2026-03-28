@@ -1,4 +1,4 @@
-from drf_spectacular.utils import extend_schema, OpenApiExample
+from drf_spectacular.utils import extend_schema, OpenApiExample, OpenApiParameter
 from rest_framework import status
 from rest_framework.exceptions import NotFound, ValidationError
 from rest_framework.permissions import IsAuthenticated
@@ -222,6 +222,7 @@ class AllTransportRequestsView(APIView):
     """
     GET /api/transport/all-requests/
     Returns all transport requests with complete details.
+    Allows filtering by status via query parameter.
     Accessible by Storage Employees and Admins only.
     """
 
@@ -229,22 +230,41 @@ class AllTransportRequestsView(APIView):
 
     @extend_schema(
         tags=["Transport"],
-        summary="List All Transport Requests",
-        description="Returns all transport requests (PENDING, LOADED, DISPATCHED) with full details including sample, doctor, and car information.",
+        summary="List Transport Requests Filtered according to its status",
+        description="Returns transport requests with full details. Can be filtered by status (PENDING, LOADED, DISPATCHED).",
         responses={200: AllTransportRequestsSerializer(many=True)},
-        parameters=[],
+        parameters=[
+            OpenApiParameter(
+                name="status",
+                description="Filter by status",
+                required=False,
+                type=str,
+                enum=["PENDING", "LOADED", "DISPATCHED"],
+            )
+        ],
     )
     def get(self, request):
-        requests = (
-            TransportRequest.objects.all()
-            .select_related("sample", "requested_by", "assigned_car")
-            .order_by("-created_at")
+        status_filter = request.query_params.get("status")
+
+        queryset = TransportRequest.objects.all().select_related(
+            "sample", "requested_by", "assigned_car"
         )
 
+        if status_filter:
+            if status_filter not in dict(TransportRequest.STATUS_CHOICES):
+                return unified_response(
+                    success=False,
+                    message=f"Invalid status: {status_filter}. Must be one of: {', '.join(dict(TransportRequest.STATUS_CHOICES).keys())}",
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+            queryset = queryset.filter(status=status_filter)
+
+        requests = queryset.order_by("-created_at")
         serializer = AllTransportRequestsSerializer(requests, many=True)
+
         return unified_response(
             success=True,
-            message=f"All transport requests fetched successfully. Total: {len(serializer.data)}",
+            message=f"Transport requests fetched successfully. Total: {len(serializer.data)}",
             data=serializer.data,
             status=status.HTTP_200_OK,
         )
