@@ -16,59 +16,92 @@
 #include "LED.h"
 #include "main_movement.h"
 #include "Button.h"
+#include "USART.h"
+
+void handle_command(char cmd) {
+    // Debug: show raw received byte
+    UART_Send_string("[RX] byte: '");
+    UART_Send_data(cmd);
+    UART_Send_string("'\r\n");
+
+    switch (cmd) {
+        case 'F':
+        case 'f':
+            UART_Send_string("[DEBUG] Command: FORWARD\r\n");
+            Move_Up();
+            UART_Send_string("ACK\r\n");
+            break;
+        case 'B':
+        case 'b':
+            UART_Send_string("[DEBUG] Command: BACKWARD\r\n");
+            Move_Down();
+            UART_Send_string("ACK\r\n");
+            break;
+        case 'L':
+        case 'l':
+            UART_Send_string("[DEBUG] Command: LEFT\r\n");
+            Move_Left();
+            UART_Send_string("ACK\r\n");
+            break;
+        case 'R':
+        case 'r':
+            UART_Send_string("[DEBUG] Command: RIGHT\r\n");
+            Move_Right();
+            UART_Send_string("ACK\r\n");
+            break;
+        case 'S':
+        case 's':
+            UART_Send_string("[DEBUG] Command: STOP\r\n");
+            Stop();
+            UART_Send_string("ACK\r\n");
+            break;
+        case 'T':
+        case 't':
+            UART_Send_string("[DEBUG] Command: TEST\r\n");
+            // Verification command, no motor action
+            UART_Send_string("ACK\r\n");
+            break;
+        case '\r':
+        case '\n':
+            // Ignore carriage return and newline
+            break;
+        default:
+            UART_Send_string("[ERROR] Command INVALID: '");
+            UART_Send_data(cmd);
+            UART_Send_string("'\r\n");
+            UART_Send_string("ERR\r\n");
+            break;
+    }
+}
 
 int main(void)
 {
-   /*
-   OSCCAL += 10;
-   MCUCSR |= (1 << JTD);
-   MCUCSR |= (1 << JTD);
-   char x;
-   _delay_ms(500);
-   UART_Init(1200);
-   */
-   
-   DIO_Setpindir('A',0,1);
-   DIO_Setpindir('A',1,1);
-   DIO_Setpindir('A',2,1);
-   DIO_Setpindir('A',3,1);
-   DIO_Setpindir('A',4,1);
-   DIO_Setpindir('A',5,1);
-   DIO_Setpindir('A',6,1);
-   DIO_Setpindir('A',7,1);
-   LED_Init('D',7);
-   LED_On('D',7);
-   _delay_ms(1000);
-   LED_Off('D',7);
-   Button_Init('D',7);
-   Button_Init('C',0);
-   Button_Init('C',1);
-   Button_Init('C',7);
-   
-   
+    // Initialize Motor Pins (Port A)
+    DIO_Setpindir('A',0,1);
+    DIO_Setpindir('A',1,1);
+    DIO_Setpindir('A',2,1);
+    DIO_Setpindir('A',3,1);
+    DIO_Setpindir('A',4,1);
+    DIO_Setpindir('A',5,1);
+    DIO_Setpindir('A',6,1);
+    DIO_Setpindir('A',7,1);
+    
+    // Status Indicator
+    LED_Init('D',7);
+    LED_On('D',7);
+    _delay_ms(1000);
+    LED_Off('D',7);
+
+    // Initialize UART at 9600 baud
+    UART_Init(9600);
+    UART_Send_string("[DEBUG] Robotics UART Protocol Initialized (9600 Baud)\r\n");
+
+    char received_byte;
+
     while(1)
     {
-		if (Button_Read('D',7) == 1)
-		{
-			Move_Up();
-		}
-		else if (Button_Read('C',0) == 1)
-		{
-			Move_Down();
-		}
-		else if (Button_Read('C',1) == 1)
-		{
-			Move_Right();
-		}
-		else if (Button_Read('C',7) == 1)
-		{
-			Move_Left();
-		}
-		else
-		{
-			Stop();
-		}
-		
-		
+        // Wait for incoming data
+        received_byte = UART_Receive_data();
+        handle_command(received_byte);
     }
-}
+}
