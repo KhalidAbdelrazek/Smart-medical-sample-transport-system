@@ -40,14 +40,35 @@ int main(void)
    LED_On('D',7);
    _delay_ms(1000);
    LED_Off('D',7);
-   Button_Init('D',6);
+   Button_Init('D',7);
+   Button_Init('C',0);
+   Button_Init('C',1);
+   Button_Init('C',7);
    
    
     while(1)
     {
-		if (Button_Read('D',6) == 1)
+		if (Button_Read('D',7) == 1)
 		{
 			Move_Up();
 		}
+		else if (Button_Read('C',0) == 1)
+		{
+			Move_Down();
+		}
+		else if (Button_Read('C',1) == 1)
+		{
+			Move_Right();
+		}
+		else if (Button_Read('C',7) == 1)
+		{
+			Move_Left();
+		}
+		else
+		{
+			Stop();
+		}
+		
+		
     }
 }

@@ -13,6 +13,7 @@ int Move_Up(void);
 int Move_Down(void);
 int Move_Right(void);
 int Move_Left(void);
+int Stop(void);
 
 
 

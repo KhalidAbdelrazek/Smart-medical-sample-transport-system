@@ -54,3 +54,15 @@ int Move_Left(void)
 	DIO_Writepin('A',6,0);
 	DIO_Writepin('A',7,1);
 }
+
+int Stop(void)
+{
+	DIO_Writepin('A',0,0);
+	DIO_Writepin('A',1,0);
+	DIO_Writepin('A',2,0);
+	DIO_Writepin('A',3,0);
+	DIO_Writepin('A',4,0);
+	DIO_Writepin('A',5,0);
+	DIO_Writepin('A',6,0);
+	DIO_Writepin('A',7,0);
+}
