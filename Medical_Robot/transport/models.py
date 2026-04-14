@@ -22,9 +22,12 @@ class TransportRequest(models.Model):
         ('PENDING', 'Pending'),       # Doctor requested, waiting for storage action
         ('LOADED', 'Loaded'),          # Sample is loaded into a car
         ('DISPATCHED', 'Dispatched'),  # Car has been dispatched for delivery
-        ('SUCCESSFUL', 'Successful'),  # Delivery completed successfully
+        ('DELIVERED', 'Delivered'),    # Successfully delivered
+        ('RETURNED', 'Returned'),      # Returned to storage
+        ('CANCELLED', 'Cancelled'),    # Request was cancelled
         ('FAILED', 'Failed'),          # Delivery failed
-        ('EXECUTED', 'Executed'),      # Request has been executed/processed
+        ('SUCCESSFUL', 'Successful'),  # Legacy: Delivery completed successfully
+        ('EXECUTED', 'Executed'),      # Legacy: Request has been executed/processed
     ]
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
@@ -60,11 +63,29 @@ class TransportRequest(models.Model):
     status = models.CharField(max_length=15, choices=STATUS_CHOICES, default='PENDING')
 
     created_at = models.DateTimeField(auto_now_add=True)
+    
+    # Lifecycle timestamps for analytics
+    loaded_at = models.DateTimeField(null=True, blank=True, help_text="When sample was loaded into a car")
+    dispatched_at = models.DateTimeField(null=True, blank=True, help_text="When car carrying this sample was dispatched")
+    completed_at = models.DateTimeField(null=True, blank=True, help_text="When delivery was completed")
+    cancelled_at = models.DateTimeField(null=True, blank=True, help_text="When request was cancelled")
+    failed_at = models.DateTimeField(null=True, blank=True, help_text="When delivery failed")
+    
+    status_note = models.TextField(
+        blank=True,
+        default='',
+        help_text="Optional note explaining status change (e.g., cancellation reason, failure reason)"
+    )
 
     class Meta:
         verbose_name = 'Transport Request'
         verbose_name_plural = 'Transport Requests'
         ordering = ['-created_at']
+        indexes = [
+            models.Index(fields=['created_at', 'status']),
+            models.Index(fields=['requested_by', 'created_at']),
+            models.Index(fields=['assigned_car', 'created_at']),
+        ]
 
     def __str__(self):
         return (

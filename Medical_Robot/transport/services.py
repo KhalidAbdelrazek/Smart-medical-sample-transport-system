@@ -1,4 +1,5 @@
 from django.db import transaction
+from django.utils import timezone
 from rest_framework.exceptions import NotFound, ValidationError
 
 from samples.models import BloodSample
@@ -48,11 +49,24 @@ def add_sample_to_car(sample_code, car_id):
 
         transport_request.assigned_car = car
         transport_request.status = 'LOADED'
+        transport_request.loaded_at = timezone.now()
         transport_request.save()
 
         # Update car status to LOADING
         car.status = 'LOADING'
         car.save()
+        
+        # Log activity
+        from stats.services import log_user_activity
+        log_user_activity(
+            user=None,  # Storage employee context not available here
+            action_type='REQUEST_LOADED',
+            outcome='SUCCESS',
+            transport_request=transport_request,
+            car=car,
+            sample_code=sample_code,
+            notes=f"Sample loaded to car {car.id}"
+        )
 
     return transport_request
 
@@ -65,7 +79,7 @@ def dispatch_car(car_id):
     - Car must exist
     - Car must have at least one LOADED transport request
     - All LOADED samples are set to OUT_FOR_DELIVERY and is_in_storage=False
-    - All LOADED transport requests are set to DISPATCHED
+    - All LOADED transport requests are set to DISPATCHED and dispatched_at is set
     - Car status is set to DISPATCHED
     """
     try:
@@ -94,8 +108,9 @@ def dispatch_car(car_id):
             sample.is_in_storage = False
             sample.save()
 
-            # Update the transport request
+            # Update the transport request with timestamp
             transport_request.status = 'DISPATCHED'
+            transport_request.dispatched_at = timezone.now()
             transport_request.save()
 
             dispatched_requests.append(transport_request)
@@ -103,6 +118,24 @@ def dispatch_car(car_id):
         # Update car status
         car.status = 'DISPATCHED'
         car.save()
+        
+        # Log activity
+        from stats.services import log_user_activity, create_car_dispatch
+        log_user_activity(
+            user=None,
+            action_type='CAR_DISPATCHED',
+            outcome='PENDING',
+            car=car,
+            notes=f"Car dispatched with {len(dispatched_requests)} requests"
+        )
+        
+        # Create car dispatch event record
+        create_car_dispatch(
+            car=car,
+            dispatched_by=None,
+            request_count=len(dispatched_requests),
+            notes=f"Dispatch of {len(dispatched_requests)} transport requests"
+        )
 
     return dispatched_requests
 
@@ -115,7 +148,7 @@ def cancel_transport_request(request_id, doctor):
     - TransportRequest must exist.
     - User attempting to cancel must be the 'requested_by' doctor.
     - Status must be 'PENDING'.
-    - Deletes the request and reverts BloodSample status to 'IN_STORAGE'.
+    - Marks request as CANCELLED (does not delete) and reverts BloodSample status to 'IN_STORAGE'.
     """
 
     try:
@@ -132,13 +165,27 @@ def cancel_transport_request(request_id, doctor):
         )
 
     with transaction.atomic():
+        # Mark as CANCELLED instead of deleting
+        transport_request.status = 'CANCELLED'
+        transport_request.cancelled_at = timezone.now()
+        transport_request.status_note = 'Cancelled by doctor'
+        transport_request.save()
+        
         # Revert the blood sample's status back to in storage
         sample = transport_request.sample
         sample.status = 'IN_STORAGE'
         sample.save()
-
-        # Delete the transport request
-        transport_request.delete()
+        
+        # Log activity
+        from stats.services import log_user_activity
+        log_user_activity(
+            user=doctor,
+            action_type='REQUEST_CANCELLED',
+            outcome='CANCELLED',
+            transport_request=transport_request,
+            sample_code=sample.sample_code,
+            notes='Cancelled by doctor'
+        )
 
     return True
 
@@ -175,6 +222,7 @@ def remove_sample_from_cart(request_id):
         car = transport_request.assigned_car
         transport_request.assigned_car = None
         transport_request.status = "PENDING"
+        transport_request.loaded_at = None  # Clear the loaded timestamp
         transport_request.save()
 
         # Revert car status to IDLE if no other LOADED requests exist for this car
@@ -186,14 +234,25 @@ def remove_sample_from_cart(request_id):
         if not other_loaded_requests:
             car.status = "IDLE"
             car.save()
+        
+        # Log activity
+        from stats.services import log_user_activity
+        log_user_activity(
+            user=None,
+            action_type='REQUEST_LOADED',
+            outcome='CANCELLED',
+            transport_request=transport_request,
+            sample_code=sample.sample_code,
+            notes='Sample removed from cart'
+        )
 
     return transport_request
 
 
 def complete_transport_request(request_id):
     """
-    Mark a transport request as successful/executed.
-    Transition: DISPATCHED -> SUCCESSFUL or EXECUTED
+    Mark a transport request as successful/delivered.
+    Transition: DISPATCHED -> DELIVERED
     Car becomes IDLE if all its requests are completed.
     """
     try:
@@ -207,14 +266,15 @@ def complete_transport_request(request_id):
         )
 
     with transaction.atomic():
-        # Set to SUCCESSFUL (which also implies it was EXECUTED in the dashboard logic)
-        transport_request.status = "SUCCESSFUL"
+        # Set to DELIVERED
+        transport_request.status = "DELIVERED"
+        transport_request.completed_at = timezone.now()
         transport_request.save()
 
         # Update blood sample status
         sample = transport_request.sample
-        sample.status = "IN_STORAGE"  # Or add a DELIVERED status? Let's stay simple.
-        sample.is_in_storage = False
+        sample.status = "IN_STORAGE"
+        sample.is_in_storage = True
         sample.save()
 
         # Check if car should be IDLE
@@ -222,13 +282,24 @@ def complete_transport_request(request_id):
         if car:
             other_active = (
                 TransportRequest.objects.filter(assigned_car=car)
-                .exclude(status__in=["SUCCESSFUL", "FAILED", "EXECUTED", "PENDING"])
+                .exclude(status__in=["DELIVERED", "RETURNED", "FAILED", "CANCELLED", "PENDING"])
                 .exclude(id=request_id)
                 .exists()
             )
             if not other_active:
                 car.status = "IDLE"
                 car.save()
+        
+        # Log activity
+        from stats.services import log_user_activity
+        log_user_activity(
+            user=None,
+            action_type='REQUEST_DELIVERED',
+            outcome='SUCCESS',
+            transport_request=transport_request,
+            sample_code=sample.sample_code,
+            notes='Sample successfully delivered'
+        )
 
     return transport_request
 
@@ -244,6 +315,8 @@ def fail_transport_request(request_id):
 
     with transaction.atomic():
         transport_request.status = "FAILED"
+        transport_request.failed_at = timezone.now()
+        transport_request.status_note = "Delivery failed"
         transport_request.save()
 
         # Revert blood sample status to IN_STORAGE so it can be requested again
@@ -257,5 +330,16 @@ def fail_transport_request(request_id):
         if car:
             car.status = "IDLE"
             car.save()
+        
+        # Log activity
+        from stats.services import log_user_activity
+        log_user_activity(
+            user=None,
+            action_type='REQUEST_FAILED',
+            outcome='FAILED',
+            transport_request=transport_request,
+            sample_code=sample.sample_code,
+            notes='Delivery failed'
+        )
 
     return transport_request
