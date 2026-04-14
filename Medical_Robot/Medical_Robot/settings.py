@@ -54,6 +54,7 @@ INSTALLED_APPS = [
     'samples',
     'cars',
     'transport',
+    'dashboard',
 ]
 
 # Custom user model — replaces Django's default User

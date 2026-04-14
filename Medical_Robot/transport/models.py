@@ -22,6 +22,9 @@ class TransportRequest(models.Model):
         ('PENDING', 'Pending'),       # Doctor requested, waiting for storage action
         ('LOADED', 'Loaded'),          # Sample is loaded into a car
         ('DISPATCHED', 'Dispatched'),  # Car has been dispatched for delivery
+        ('SUCCESSFUL', 'Successful'),  # Delivery completed successfully
+        ('FAILED', 'Failed'),          # Delivery failed
+        ('EXECUTED', 'Executed'),      # Request has been executed/processed
     ]
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
