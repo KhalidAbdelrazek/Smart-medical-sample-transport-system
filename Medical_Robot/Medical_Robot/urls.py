@@ -10,5 +10,6 @@ urlpatterns = [
     path('api/auth/', include('accounts.urls')),
     path('api/samples/', include('samples.urls')),
     path('api/transport/', include('transport.urls')),
+    path('api/dashboard/', include('dashboard.urls')),
     path('', include('healthcare.urls')),
 ]

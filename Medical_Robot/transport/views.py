@@ -12,7 +12,14 @@ from .serializers import (
     DispatchCarSerializer,
     AllTransportRequestsSerializer,
 )
-from .services import add_sample_to_car, dispatch_car, cancel_transport_request, remove_sample_from_cart
+from .services import (
+    add_sample_to_car, 
+    dispatch_car, 
+    cancel_transport_request, 
+    remove_sample_from_cart,
+    complete_transport_request,
+    fail_transport_request
+)
 from .models import TransportRequest
 from django.core.exceptions import PermissionDenied
 
@@ -268,3 +275,61 @@ class AllTransportRequestsView(APIView):
             data=serializer.data,
             status=status.HTTP_200_OK,
         )
+
+
+class CompleteTransportRequestView(APIView):
+    """
+    POST /api/transport/requests/{request_id}/complete/
+    Mark a dispatched request as SUCCESSFUL/EXECUTED.
+    """
+
+    permission_classes = [IsAuthenticated, IsStorageEmployee]
+
+    @extend_schema(
+        tags=["Transport"],
+        summary="Complete Transport Request",
+        description="Mark a dispatched transport request as successful/executed.",
+        responses={200: TransportRequestSerializer},
+    )
+    def post(self, request, request_id):
+        try:
+            transport_request = complete_transport_request(request_id=request_id)
+            return unified_response(
+                success=True,
+                message="Transport request marked as completed",
+                data=TransportRequestSerializer(transport_request).data,
+                status=status.HTTP_200_OK,
+            )
+        except (NotFound, ValidationError) as e:
+            return unified_response(
+                success=False, message=str(e), status=status.HTTP_400_BAD_REQUEST
+            )
+
+
+class FailTransportRequestView(APIView):
+    """
+    POST /api/transport/requests/{request_id}/fail/
+    Mark a request as FAILED.
+    """
+
+    permission_classes = [IsAuthenticated, IsStorageEmployee]
+
+    @extend_schema(
+        tags=["Transport"],
+        summary="Fail Transport Request",
+        description="Mark a transport request as failed.",
+        responses={200: TransportRequestSerializer},
+    )
+    def post(self, request, request_id):
+        try:
+            transport_request = fail_transport_request(request_id=request_id)
+            return unified_response(
+                success=True,
+                message="Transport request marked as failed",
+                data=TransportRequestSerializer(transport_request).data,
+                status=status.HTTP_200_OK,
+            )
+        except (NotFound, ValidationError) as e:
+            return unified_response(
+                success=False, message=str(e), status=status.HTTP_400_BAD_REQUEST
+            )

@@ -188,3 +188,74 @@ def remove_sample_from_cart(request_id):
             car.save()
 
     return transport_request
+
+
+def complete_transport_request(request_id):
+    """
+    Mark a transport request as successful/executed.
+    Transition: DISPATCHED -> SUCCESSFUL or EXECUTED
+    Car becomes IDLE if all its requests are completed.
+    """
+    try:
+        transport_request = TransportRequest.objects.get(id=request_id)
+    except TransportRequest.DoesNotExist:
+        raise NotFound(f"No transport request found with ID: {request_id}")
+
+    if transport_request.status != "DISPATCHED":
+        raise ValidationError(
+            f"Only dispatched requests can be completed. Current status: {transport_request.status}"
+        )
+
+    with transaction.atomic():
+        # Set to SUCCESSFUL (which also implies it was EXECUTED in the dashboard logic)
+        transport_request.status = "SUCCESSFUL"
+        transport_request.save()
+
+        # Update blood sample status
+        sample = transport_request.sample
+        sample.status = "IN_STORAGE"  # Or add a DELIVERED status? Let's stay simple.
+        sample.is_in_storage = False
+        sample.save()
+
+        # Check if car should be IDLE
+        car = transport_request.assigned_car
+        if car:
+            other_active = (
+                TransportRequest.objects.filter(assigned_car=car)
+                .exclude(status__in=["SUCCESSFUL", "FAILED", "EXECUTED", "PENDING"])
+                .exclude(id=request_id)
+                .exists()
+            )
+            if not other_active:
+                car.status = "IDLE"
+                car.save()
+
+    return transport_request
+
+
+def fail_transport_request(request_id):
+    """
+    Mark a transport request as failed.
+    """
+    try:
+        transport_request = TransportRequest.objects.get(id=request_id)
+    except TransportRequest.DoesNotExist:
+        raise NotFound(f"No transport request found with ID: {request_id}")
+
+    with transaction.atomic():
+        transport_request.status = "FAILED"
+        transport_request.save()
+
+        # Revert blood sample status to IN_STORAGE so it can be requested again
+        sample = transport_request.sample
+        sample.status = "IN_STORAGE"
+        sample.is_in_storage = True
+        sample.save()
+
+        # Idle car if needed
+        car = transport_request.assigned_car
+        if car:
+            car.status = "IDLE"
+            car.save()
+
+    return transport_request

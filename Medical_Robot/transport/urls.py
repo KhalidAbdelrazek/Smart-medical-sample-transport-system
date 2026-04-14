@@ -7,6 +7,8 @@ from .views import (
     CancelTransportRequestView,
     RemoveFromCartView,
     AllTransportRequestsView,
+    CompleteTransportRequestView,
+    FailTransportRequestView,
 )
 
 urlpatterns = [
@@ -30,6 +32,12 @@ urlpatterns = [
 
     # GET /api/transport/filtered-requests/
     path('filtered-requests/', AllTransportRequestsView.as_view(), name='filtered-transport-requests'),
+
+    # POST /api/transport/requests/{uuid}/complete/
+    path('requests/<uuid:request_id>/complete/', CompleteTransportRequestView.as_view(), name='complete-request'),
+
+    # POST /api/transport/requests/{uuid}/fail/
+    path('requests/<uuid:request_id>/fail/', FailTransportRequestView.as_view(), name='fail-request'),
 
 
 ]
