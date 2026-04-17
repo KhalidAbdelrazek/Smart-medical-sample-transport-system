@@ -132,5 +132,15 @@ int main(void)
     {
         received_byte = UART_Receive_data();
         handle_command(received_byte);
+		if(received_byte == 'k')
+		{
+			LED_On('D', 7);
+			_delay_ms(2000);
+		}
+		else
+		{
+			LED_Off('D', 7);
+	
+		}
     }
 }
