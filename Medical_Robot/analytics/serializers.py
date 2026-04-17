@@ -6,6 +6,52 @@ Serializers for request analytics API endpoints.
 from rest_framework import serializers
 
 
+class StorageEmployeeLogsFilterSerializer(serializers.Serializer):
+    start_date = serializers.DateField(required=False, help_text="Start date (YYYY-MM-DD)")
+    end_date = serializers.DateField(required=False, help_text="End date (YYYY-MM-DD)")
+    granularity = serializers.ChoiceField(choices=["day", "month", "year"], required=False, default="day", help_text="Aggregation granularity for timeseries")
+    action = serializers.ChoiceField(
+        choices=[
+            ('CAR_DISPATCH', 'Car Dispatch'),
+            ('SAMPLE_REMOVED_FROM_CAR', 'Sample Removed From Car'),
+            ('SAMPLE_ADDED_TO_CAR', 'Sample Added To Car'),
+            ('CAR_STATUS_UPDATE', 'Car Status Update'),
+            ('TRANSPORT_REQUEST_UPDATE', 'Transport Request Update'),
+            ('OTHER', 'Other'),
+        ],
+        required=False,
+        allow_null=True,
+        help_text="Filter by action type (optional)"
+    )
+    employee_id = serializers.UUIDField(required=False, allow_null=True, help_text="Filter by storage employee ID (admin only)")
+    search = serializers.CharField(required=False, allow_blank=True, help_text="Search by user name or email (admin only)")
+
+
+class StorageEmployeeLogsSummarySerializer(serializers.Serializer):
+    total_actions = serializers.IntegerField()
+    car_dispatch = serializers.IntegerField()
+    sample_removed_from_car = serializers.IntegerField()
+    sample_added_to_car = serializers.IntegerField()
+    car_status_update = serializers.IntegerField()
+    transport_request_update = serializers.IntegerField()
+    other = serializers.IntegerField()
+
+
+class StorageEmployeeLogsTimeseriesSerializer(serializers.Serializer):
+    period = serializers.CharField(help_text="Period label (YYYY-MM-DD, YYYY-MM, YYYY)")
+    total = serializers.IntegerField()
+    car_dispatch = serializers.IntegerField()
+    sample_removed_from_car = serializers.IntegerField()
+    sample_added_to_car = serializers.IntegerField()
+    car_status_update = serializers.IntegerField()
+    transport_request_update = serializers.IntegerField()
+    other = serializers.IntegerField()
+
+
+class StorageEmployeeLogsResponseSerializer(serializers.Serializer):
+    summary = StorageEmployeeLogsSummarySerializer()
+    timeseries = StorageEmployeeLogsTimeseriesSerializer(many=True)
+
 class RequestAnalyticsFilterSerializer(serializers.Serializer):
     """Filter parameters for request analytics endpoints."""
     start_date = serializers.DateField(

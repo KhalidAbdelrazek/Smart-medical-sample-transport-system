@@ -68,3 +68,22 @@ def get_request_analytics(
         'summary': summary,
         'timeseries': timeseries,
     }
+
+def get_storage_employee_logs_analytics(
+    start_date=None,
+    end_date=None,
+    granularity='day',
+    employee_id=None,
+    search=None,
+    action=None,
+):
+    """
+    Get complete storage employee log analytics for the given filters.
+    Returns summary and timeseries dicts.
+    """
+    if granularity not in ['day', 'month', 'year']:
+        raise ValueError(f"Invalid granularity: {granularity}.")
+    from analytics import selectors
+    summary = selectors.get_storage_employee_logs_summary(start_date, end_date, employee_id, search, action)
+    timeseries = selectors.get_storage_employee_logs_timeseries(start_date, end_date, granularity, employee_id, search, action)
+    return { 'summary': summary, 'timeseries': timeseries }
