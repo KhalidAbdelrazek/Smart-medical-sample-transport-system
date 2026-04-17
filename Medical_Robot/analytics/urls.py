@@ -10,6 +10,6 @@ from analytics.views import RequestAnalyticsView, StorageEmployeeLogsAnalyticsVi
 app_name = 'analytics'
 
 urlpatterns = [
-    path('requests/', RequestAnalyticsView.as_view(), name='request-analytics'),
+    path('doctors/logs/', RequestAnalyticsView.as_view(), name='doctor-logs-analytics'),
     path('storage-employees/logs/', StorageEmployeeLogsAnalyticsView.as_view(), name='storage-employee-logs-analytics'),
 ]
