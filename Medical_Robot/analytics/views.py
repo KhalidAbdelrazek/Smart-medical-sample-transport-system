@@ -82,16 +82,7 @@ class RequestAnalyticsView(APIView):
                 )
             # Non-admin users can only see their own data
             user_id = str(request.user.id)
-        elif request.user.role == 'STORAGE_EMPLOYEE':
-            user_id = str(request.user.id)
-            search = None  # Employees cannot use search param
-        else:
-            return unified_response(
-                success=False,
-                message='You do not have permission for this analytics view',
-                errors={'permission_denied': 'Forbidden'},
-                status=403,
-            )
+        
 
         # Get analytics data
         data = services.get_request_analytics(

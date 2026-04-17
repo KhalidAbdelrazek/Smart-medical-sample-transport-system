@@ -111,7 +111,7 @@ def dispatch_car(car_id, actor=None):
         
         # Log activity
 
-    return dispatched_requests, car_dispatch
+    return dispatched_requests, car
 
 
 def cancel_transport_request(request_id, doctor):
