@@ -1,15 +1,17 @@
 /*
  * main.c
  *
- * Created: 3/1/2026 3:44:39 PM
- *  Author: NADER
- */ 
-
+ * Created: 3/1/2026
+ * Author : NADER
+ */
+ 
 #include <xc.h>
 #include <avr/io.h>
 #include <avr/interrupt.h>
 #define F_CPU 8000000UL
 #include <util/delay.h>
+#include <stdio.h>   // for sprintf
+ 
 #include "DIO.h"
 #include "Timers.h"
 #include "Interrupts.h"
@@ -17,91 +19,118 @@
 #include "main_movement.h"
 #include "Button.h"
 #include "USART.h"
-
+ 
+// =========================
+// Global Variables
+// =========================
+char last_cmd = 0;   // prevent duplicate execution
+ 
+// =========================
+// Command Handler
+// =========================
 void handle_command(char cmd) {
-    // Debug: show raw received byte
-    UART_Send_string("[RX] byte: '");
-    UART_Send_data(cmd);
-    UART_Send_string("'\r\n");
-
+ 
+    // -------- Debug: show ASCII value --------
+    char buffer[50];
+    sprintf(buffer, "[RX] ASCII: %d\r\n", cmd);
+    UART_Send_string(buffer);
+ 
+    // -------- Ignore newline chars --------
+    if (cmd == '\r' || cmd == '\n') {
+        return;
+    }
+ 
+    // -------- Prevent duplicate execution --------
+    if (cmd == last_cmd) {
+        UART_Send_string("[DEBUG] Duplicate command ignored\r\n");
+        UART_Send_string("<ACK>\r\n");
+        return;
+    }
+    last_cmd = cmd;
+ 
+    // -------- Command Processing --------
     switch (cmd) {
+ 
         case 'F':
         case 'f':
             UART_Send_string("[DEBUG] Command: FORWARD\r\n");
             Move_Up();
-            UART_Send_string("ACK\r\n");
+            _delay_ms(10);
+            UART_Send_string("<ACK>\r\n");
             break;
+ 
         case 'B':
         case 'b':
             UART_Send_string("[DEBUG] Command: BACKWARD\r\n");
             Move_Down();
-            UART_Send_string("ACK\r\n");
+            _delay_ms(10);
+            UART_Send_string("<ACK>\r\n");
             break;
+ 
         case 'L':
         case 'l':
             UART_Send_string("[DEBUG] Command: LEFT\r\n");
             Move_Left();
-            UART_Send_string("ACK\r\n");
+            _delay_ms(10);
+            UART_Send_string("<ACK>\r\n");
             break;
+ 
         case 'R':
         case 'r':
             UART_Send_string("[DEBUG] Command: RIGHT\r\n");
             Move_Right();
-            UART_Send_string("ACK\r\n");
+            _delay_ms(10);
+            UART_Send_string("<ACK>\r\n");
             break;
+ 
         case 'S':
         case 's':
             UART_Send_string("[DEBUG] Command: STOP\r\n");
             Stop();
-            UART_Send_string("ACK\r\n");
+            _delay_ms(10);
+            UART_Send_string("<ACK>\r\n");
             break;
+ 
         case 'T':
         case 't':
             UART_Send_string("[DEBUG] Command: TEST\r\n");
-            // Verification command, no motor action
-            UART_Send_string("ACK\r\n");
+            // No motor action
+            UART_Send_string("<ACK>\r\n");
             break;
-        case '\r':
-        case '\n':
-            // Ignore carriage return and newline
-            break;
+ 
         default:
-            UART_Send_string("[ERROR] Command INVALID: '");
-            UART_Send_data(cmd);
-            UART_Send_string("'\r\n");
-            UART_Send_string("ERR\r\n");
+            UART_Send_string("[ERROR] Invalid command\r\n");
+            UART_Send_string("<ERR>\r\n");
             break;
     }
 }
-
+ 
+// =========================
+// Main Function
+// =========================
 int main(void)
 {
-    // Initialize Motor Pins (Port A)
-    DIO_Setpindir('A',0,1);
-    DIO_Setpindir('A',1,1);
-    DIO_Setpindir('A',2,1);
-    DIO_Setpindir('A',3,1);
-    DIO_Setpindir('A',4,1);
-    DIO_Setpindir('A',5,1);
-    DIO_Setpindir('A',6,1);
-    DIO_Setpindir('A',7,1);
-    
-    // Status Indicator
-    LED_Init('D',7);
-    LED_On('D',7);
+    // -------- Motor Pins Init (Port A) --------
+    for (int i = 0; i < 8; i++) {
+        DIO_Setpindir('A', i, 1);
+    }
+ 
+    // -------- Status LED --------
+    LED_Init('D', 7);
+    LED_On('D', 7);
     _delay_ms(1000);
-    LED_Off('D',7);
-
-    // Initialize UART at 9600 baud
+    LED_Off('D', 7);
+ 
+    // -------- UART Init --------
     UART_Init(9600);
-    UART_Send_string("[DEBUG] Robotics UART Protocol Initialized (9600 Baud)\r\n");
-
+    UART_Send_string("[DEBUG] UART Initialized @9600\r\n");
+ 
     char received_byte;
-
-    while(1)
+ 
+    // -------- Main Loop --------
+    while (1)
     {
-        // Wait for incoming data
         received_byte = UART_Receive_data();
         handle_command(received_byte);
     }
-}
+}

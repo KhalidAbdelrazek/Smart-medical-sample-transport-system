@@ -44,12 +44,10 @@ char UART_Receive_data(void)
 	return UDR;
 }
 
-void UART_Send_string (char *ptr)
+void UART_Send_string (const char *ptr)
 {
-	while(*ptr !=0)
+	while (*ptr != '\0')
 	{
-		UART_Send_data(*ptr);
-		ptr++;
-		_delay_ms(100);
+		UART_Send_data(*ptr++);
 	}
 }

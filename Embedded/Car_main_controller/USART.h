@@ -12,6 +12,6 @@
 void UART_Init(unsigned long baud);
 void UART_Send_data(char data);
 char UART_Receive_data(void);
-void UART_Send_string (char *ptr);
+void UART_Send_string (const char *ptr);
 
 #endif /* USART_H_ */
