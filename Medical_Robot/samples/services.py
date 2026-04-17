@@ -53,14 +53,5 @@ def request_sample(sample_code, room_number, doctor):
         status='PENDING',
     )
 
-    from stats.services import log_user_activity
-    log_user_activity(
-        user=doctor,
-        action_type='REQUEST_CREATED',
-        outcome='PENDING',
-        transport_request=transport_request,
-        sample_code=sample.sample_code,
-        notes=f"Sample requested for room {room_number}",
-    )
 
     return transport_request

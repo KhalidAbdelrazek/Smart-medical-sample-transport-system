@@ -57,16 +57,6 @@ def add_sample_to_car(sample_code, car_id, actor=None):
         car.save()
         
         # Log activity
-        from stats.services import log_user_activity
-        log_user_activity(
-            user=actor,
-            action_type='REQUEST_LOADED',
-            outcome='SUCCESS',
-            transport_request=transport_request,
-            car=car,
-            sample_code=sample_code,
-            notes=f"Sample loaded to car {car.id}"
-        )
 
     return transport_request
 
@@ -120,22 +110,6 @@ def dispatch_car(car_id, actor=None):
         car.save()
         
         # Log activity
-        from stats.services import log_user_activity, create_car_dispatch
-        log_user_activity(
-            user=actor,
-            action_type='CAR_DISPATCHED',
-            outcome='PENDING',
-            car=car,
-            notes=f"Car dispatched with {len(dispatched_requests)} requests"
-        )
-        
-        # Create car dispatch event record
-        car_dispatch = create_car_dispatch(
-            car=car,
-            dispatched_by=actor,
-            request_count=len(dispatched_requests),
-            notes=f"Dispatch of {len(dispatched_requests)} transport requests"
-        )
 
     return dispatched_requests, car_dispatch
 
@@ -177,15 +151,6 @@ def cancel_transport_request(request_id, doctor):
         sample.save()
         
         # Log activity
-        from stats.services import log_user_activity
-        log_user_activity(
-            user=doctor,
-            action_type='REQUEST_CANCELLED',
-            outcome='CANCELLED',
-            transport_request=transport_request,
-            sample_code=sample.sample_code,
-            notes='Cancelled by doctor'
-        )
 
     return True, transport_request
 
@@ -236,15 +201,6 @@ def remove_sample_from_cart(request_id, actor=None):
             car.save()
         
         # Log activity
-        from stats.services import log_user_activity
-        log_user_activity(
-            user=actor,
-            action_type='REQUEST_LOADED',
-            outcome='CANCELLED',
-            transport_request=transport_request,
-            sample_code=sample.sample_code,
-            notes='Sample removed from cart'
-        )
 
     return transport_request
 
@@ -291,15 +247,6 @@ def complete_transport_request(request_id, actor=None):
                 car.save()
         
         # Log activity
-        from stats.services import log_user_activity
-        log_user_activity(
-            user=actor,
-            action_type='REQUEST_DELIVERED',
-            outcome='SUCCESS',
-            transport_request=transport_request,
-            sample_code=sample.sample_code,
-            notes='Sample successfully delivered'
-        )
 
     return transport_request
 
@@ -332,14 +279,5 @@ def fail_transport_request(request_id, actor=None):
             car.save()
         
         # Log activity
-        from stats.services import log_user_activity
-        log_user_activity(
-            user=actor,
-            action_type='REQUEST_FAILED',
-            outcome='FAILED',
-            transport_request=transport_request,
-            sample_code=sample.sample_code,
-            notes='Delivery failed'
-        )
 
     return transport_request
