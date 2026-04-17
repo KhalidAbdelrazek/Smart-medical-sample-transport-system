@@ -77,6 +77,7 @@ class AddToCarView(APIView):
         transport_request = add_sample_to_car(
             sample_code=serializer.validated_data['sample_code'],
             car_id=serializer.validated_data['car_id'],
+            actor=request.user,
         )
 
         response_data = TransportRequestSerializer(transport_request).data
@@ -109,8 +110,9 @@ class DispatchCarView(APIView):
         serializer = DispatchCarSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
 
-        dispatched_requests = dispatch_car(
+        dispatched_requests, _car_dispatch = dispatch_car(
             car_id=serializer.validated_data['car_id'],
+            actor=request.user,
         )
 
         response_data = TransportRequestSerializer(dispatched_requests, many=True).data
@@ -211,7 +213,10 @@ class RemoveFromCartView(APIView):
     )
     def delete(self, request, request_id):
         try:
-            transport_request = remove_sample_from_cart(request_id=request_id)
+            transport_request = remove_sample_from_cart(
+                request_id=request_id,
+                actor=request.user,
+            )
             response_data = TransportRequestSerializer(transport_request).data
             return unified_response(
                 success=True,
@@ -293,7 +298,10 @@ class CompleteTransportRequestView(APIView):
     )
     def post(self, request, request_id):
         try:
-            transport_request = complete_transport_request(request_id=request_id)
+            transport_request = complete_transport_request(
+                request_id=request_id,
+                actor=request.user,
+            )
             return unified_response(
                 success=True,
                 message="Transport request marked as completed",
@@ -322,7 +330,10 @@ class FailTransportRequestView(APIView):
     )
     def post(self, request, request_id):
         try:
-            transport_request = fail_transport_request(request_id=request_id)
+            transport_request = fail_transport_request(
+                request_id=request_id,
+                actor=request.user,
+            )
             return unified_response(
                 success=True,
                 message="Transport request marked as failed",
