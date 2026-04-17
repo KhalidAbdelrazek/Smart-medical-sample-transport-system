@@ -121,52 +121,56 @@ def get_user_activity(
     granularity: str = 'day',
 ) -> models.QuerySet:
     """
-    Get per-user daily/weekly/monthly request statistics.
+    Get per-user daily/weekly/monthly request statistics from UserActivityLog.
 
     Returns queryset with fields:
         - date (truncated)
-        - user_id, user_name, user_role
+        - user_id, name, role
         - request_count, success_count, cancelled_count, failed_count
     """
     trunc_func = get_trunc_function(granularity)
+    queryset = UserActivityLog.objects.filter(
+        user__isnull=False,
+        transport_request__isnull=False,
+    )
+    if start_date:
+        queryset = queryset.filter(created_at__date__gte=start_date)
+    if end_date:
+        queryset = queryset.filter(created_at__date__lte=end_date)
+    if role:
+        queryset = queryset.filter(user__role=role)
 
-    queryset = User.objects.filter(
-        transport_requests__isnull=False
+    return queryset.annotate(
+        date=trunc_func('created_at')
+    ).values(
+        'date',
+        'user',
+        'user__full_name',
+        'user__role',
     ).annotate(
-        date=trunc_func(F('transport_requests__created_at')),
-        user_id=F('id'),
-        name=F('full_name'),
-        request_count=Count('transport_requests__id', distinct=True),
+        user_id=F('user'),
+        name=Coalesce(F('user__full_name'), Value('')),
+        role=Coalesce(F('user__role'), Value('')),
+        request_count=Count('transport_request', distinct=True),
         success_count=Count(
-            'transport_requests__id',
-            filter=Q(transport_requests__status__in=['DELIVERED', 'RETURNED']),
+            'transport_request',
+            filter=Q(outcome='SUCCESS'),
             distinct=True
         ),
         cancelled_count=Count(
-            'transport_requests__id',
-            filter=Q(transport_requests__status='CANCELLED'),
+            'transport_request',
+            filter=Q(outcome='CANCELLED'),
             distinct=True
         ),
         failed_count=Count(
-            'transport_requests__id',
-            filter=Q(transport_requests__status='FAILED'),
+            'transport_request',
+            filter=Q(outcome='FAILED'),
             distinct=True
         ),
-    ).filter(
-        transport_requests__created_at__isnull=False
     ).values(
-        'date', 'user_id', 'full_name', 'role',
+        'date', 'user_id', 'name', 'role',
         'request_count', 'success_count', 'cancelled_count', 'failed_count'
-    ).order_by('-date', '-request_count')
-    
-    if start_date:
-        queryset = queryset.filter(transport_requests__created_at__date__gte=start_date)
-    if end_date:
-        queryset = queryset.filter(transport_requests__created_at__date__lte=end_date)
-    if role:
-        queryset = queryset.filter(role=role)
-    
-    return queryset
+    ).order_by('-date', 'role', '-request_count', 'name')
 
 
 def get_top_users(
@@ -176,46 +180,51 @@ def get_top_users(
     limit: int = 10,
 ) -> models.QuerySet:
     """
-    Get top users by request count.
-    
+    Get top users by request count from UserActivityLog.
+
     Returns queryset with fields:
         - user_id, name, role
         - request_count, success_count, cancelled_count, failed_count
     """
-    queryset = User.objects.annotate(
-        user_id=F('id'),
-        name=F('full_name'),
-        request_count=Count(
-            'transport_requests__id',
-            filter=Q(transport_requests__isnull=False)
-        ),
+    queryset = UserActivityLog.objects.filter(
+        user__isnull=False,
+        transport_request__isnull=False,
+    )
+    if start_date:
+        queryset = queryset.filter(created_at__date__gte=start_date)
+    if end_date:
+        queryset = queryset.filter(created_at__date__lte=end_date)
+    if role:
+        queryset = queryset.filter(user__role=role)
+
+    return queryset.values(
+        'user',
+        'user__full_name',
+        'user__role',
+    ).annotate(
+        user_id=F('user'),
+        name=Coalesce(F('user__full_name'), Value('')),
+        role=Coalesce(F('user__role'), Value('')),
+        request_count=Count('transport_request', distinct=True),
         success_count=Count(
-            'transport_requests__id',
-            filter=Q(transport_requests__status__in=['DELIVERED', 'RETURNED'])
+            'transport_request',
+            filter=Q(outcome='SUCCESS'),
+            distinct=True
         ),
         cancelled_count=Count(
-            'transport_requests__id',
-            filter=Q(transport_requests__status='CANCELLED')
+            'transport_request',
+            filter=Q(outcome='CANCELLED'),
+            distinct=True
         ),
         failed_count=Count(
-            'transport_requests__id',
-            filter=Q(transport_requests__status='FAILED')
+            'transport_request',
+            filter=Q(outcome='FAILED'),
+            distinct=True
         ),
-    ).filter(
-        transport_requests__isnull=False
     ).values(
-        'user_id', 'full_name', 'role',
+        'user_id', 'name', 'role',
         'request_count', 'success_count', 'cancelled_count', 'failed_count'
-    ).order_by('-request_count')
-    
-    if start_date:
-        queryset = queryset.filter(transport_requests__created_at__date__gte=start_date)
-    if end_date:
-        queryset = queryset.filter(transport_requests__created_at__date__lte=end_date)
-    if role:
-        queryset = queryset.filter(role=role)
-    
-    return queryset[:limit]
+    ).order_by('-request_count', 'name')[:limit]
 
 
 def get_requests_timeseries(
@@ -263,9 +272,10 @@ def get_car_utilization(
     trunc_func = get_trunc_function(granularity)
     
     queryset = CarDispatch.objects.annotate(
-        date=trunc_func('started_at')
+        date=trunc_func('started_at'),
+        car_number=F('car__car_number')
     ).values(
-        'car_id', 'car__car_number'
+        'car_id', 'car_number'
     ).annotate(
         total_dispatches=Count('id'),
         success_dispatches=Count('id', filter=Q(status='SUCCESS')),

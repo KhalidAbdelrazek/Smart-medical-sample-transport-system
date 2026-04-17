@@ -10,8 +10,59 @@ from typing import Optional
 from django.db import transaction
 from django.utils import timezone
 
+from accounts.models import User
 from stats import selectors
 from stats.models import CarDispatch, UserActivityLog
+
+
+def get_admin_stats(
+    start_date=None,
+    end_date=None,
+    granularity='day',
+    role=None,
+    car_id=None,
+    top=10,
+    page=1,
+    page_size=20,
+) -> dict:
+    """
+    Orchestrate all admin stats into a single response.
+
+    Returns:
+        {
+            'overview': {...},
+            'requests_timeseries': [...],
+            'user_activity': [...],
+            'user_activity_pagination': {'page': int, 'page_size': int, 'total_count': int},
+            'top_users': {'ADMIN': [...], 'DOCTOR': [...], 'STORAGE_EMPLOYEE': [...]},
+            'car_utilization': [...],
+        }
+    """
+    overview = get_overview_stats(start_date, end_date)
+    requests_timeseries = get_requests_timeseries(start_date, end_date, granularity)
+    car_utilization = get_car_utilization(start_date, end_date, car_id, granularity)
+
+    # User activity with pagination
+    full_user_activity = selectors.get_user_activity(start_date, end_date, role, granularity)
+    total_count = full_user_activity.count()
+    start_idx = (page - 1) * page_size
+    end_idx = start_idx + page_size
+    user_activity = list(full_user_activity[start_idx:end_idx])
+
+    top_users = get_top_users(start_date, end_date, role, top)
+
+    return {
+        'overview': overview,
+        'requests_timeseries': list(requests_timeseries),
+        'user_activity': user_activity,
+        'user_activity_pagination': {
+            'page': page,
+            'page_size': page_size,
+            'total_count': total_count,
+        },
+        'top_users': top_users,
+        'car_utilization': list(car_utilization),
+    }
 
 
 def get_overview_stats(
@@ -62,9 +113,23 @@ def get_top_users(
     limit: int = 10,
 ):
     """
-    Get top users by request count.
+    Get top users by request count grouped by role.
     """
-    return selectors.get_top_users(start_date, end_date, role, limit)
+    all_roles = [role_value for role_value, _ in User.ROLE_CHOICES]
+    selected_roles = [role] if role else all_roles
+    top_users_by_role = {role_value: [] for role_value in all_roles}
+
+    for role_value in selected_roles:
+        top_users_by_role[role_value] = list(
+            selectors.get_top_users(
+                start_date=start_date,
+                end_date=end_date,
+                role=role_value,
+                limit=limit,
+            )
+        )
+
+    return top_users_by_role
 
 
 def get_requests_timeseries(

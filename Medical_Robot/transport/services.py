@@ -9,7 +9,7 @@ from .models import TransportRequest
 from django.core.exceptions import PermissionDenied
 
 
-def add_sample_to_car(sample_code, car_id):
+def add_sample_to_car(sample_code, car_id, actor=None):
     """
     Storage employee adds a blood sample to a car.
 
@@ -59,7 +59,7 @@ def add_sample_to_car(sample_code, car_id):
         # Log activity
         from stats.services import log_user_activity
         log_user_activity(
-            user=None,  # Storage employee context not available here
+            user=actor,
             action_type='REQUEST_LOADED',
             outcome='SUCCESS',
             transport_request=transport_request,
@@ -71,7 +71,7 @@ def add_sample_to_car(sample_code, car_id):
     return transport_request
 
 
-def dispatch_car(car_id):
+def dispatch_car(car_id, actor=None):
     """
     Storage employee dispatches a car, sending all loaded samples for delivery.
 
@@ -122,7 +122,7 @@ def dispatch_car(car_id):
         # Log activity
         from stats.services import log_user_activity, create_car_dispatch
         log_user_activity(
-            user=None,
+            user=actor,
             action_type='CAR_DISPATCHED',
             outcome='PENDING',
             car=car,
@@ -130,14 +130,14 @@ def dispatch_car(car_id):
         )
         
         # Create car dispatch event record
-        create_car_dispatch(
+        car_dispatch = create_car_dispatch(
             car=car,
-            dispatched_by=None,
+            dispatched_by=actor,
             request_count=len(dispatched_requests),
             notes=f"Dispatch of {len(dispatched_requests)} transport requests"
         )
 
-    return dispatched_requests
+    return dispatched_requests, car_dispatch
 
 
 def cancel_transport_request(request_id, doctor):
@@ -187,10 +187,10 @@ def cancel_transport_request(request_id, doctor):
             notes='Cancelled by doctor'
         )
 
-    return True
+    return True, transport_request
 
 
-def remove_sample_from_cart(request_id):
+def remove_sample_from_cart(request_id, actor=None):
     """
     Storage employee removes a loaded sample from a car before dispatch.
 
@@ -238,7 +238,7 @@ def remove_sample_from_cart(request_id):
         # Log activity
         from stats.services import log_user_activity
         log_user_activity(
-            user=None,
+            user=actor,
             action_type='REQUEST_LOADED',
             outcome='CANCELLED',
             transport_request=transport_request,
@@ -249,7 +249,7 @@ def remove_sample_from_cart(request_id):
     return transport_request
 
 
-def complete_transport_request(request_id):
+def complete_transport_request(request_id, actor=None):
     """
     Mark a transport request as successful/delivered.
     Transition: DISPATCHED -> DELIVERED
@@ -293,7 +293,7 @@ def complete_transport_request(request_id):
         # Log activity
         from stats.services import log_user_activity
         log_user_activity(
-            user=None,
+            user=actor,
             action_type='REQUEST_DELIVERED',
             outcome='SUCCESS',
             transport_request=transport_request,
@@ -304,7 +304,7 @@ def complete_transport_request(request_id):
     return transport_request
 
 
-def fail_transport_request(request_id):
+def fail_transport_request(request_id, actor=None):
     """
     Mark a transport request as failed.
     """
@@ -334,7 +334,7 @@ def fail_transport_request(request_id):
         # Log activity
         from stats.services import log_user_activity
         log_user_activity(
-            user=None,
+            user=actor,
             action_type='REQUEST_FAILED',
             outcome='FAILED',
             transport_request=transport_request,

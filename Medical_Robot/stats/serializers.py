@@ -4,8 +4,6 @@ stats/serializers.py
 DTOs and serializers for statistics API endpoints.
 """
 from rest_framework import serializers
-from drf_spectacular.utils import extend_schema_field
-from drf_spectacular.types import OpenApiTypes
 
 
 class OverviewStatsSerializer(serializers.Serializer):
@@ -26,6 +24,7 @@ class OverviewStatsSerializer(serializers.Serializer):
 
 class UserActivityStatsSerializer(serializers.Serializer):
     """Per-user activity statistics."""
+    date = serializers.DateTimeField(help_text="Activity date (truncated)")
     user_id = serializers.UUIDField(help_text="User ID")
     name = serializers.CharField(help_text="User full name")
     role = serializers.CharField(help_text="User role (DOCTOR, ADMIN, STORAGE_EMPLOYEE)")
@@ -46,12 +45,19 @@ class TopUserSerializer(serializers.Serializer):
     failed_count = serializers.IntegerField(help_text="Failed count")
 
 
+class TopUsersByRoleSerializer(serializers.Serializer):
+    """Top users grouped by user role."""
+    ADMIN = TopUserSerializer(many=True)
+    DOCTOR = TopUserSerializer(many=True)
+    STORAGE_EMPLOYEE = TopUserSerializer(many=True)
+
+
 class CarUtilizationSerializer(serializers.Serializer):
     """Per-car utilization statistics."""
     car_id = serializers.UUIDField(help_text="Car ID")
     car_number = serializers.CharField(help_text="Car identifier/number")
     total_dispatches = serializers.IntegerField(help_text="Total dispatch events")
-    success_dispatches = serializers.IntegerField(help_text="Successful dispatchs")
+    success_dispatches = serializers.IntegerField(help_text="Successful dispatches")
     failed_dispatches = serializers.IntegerField(help_text="Failed dispatches")
     cancelled_dispatches = serializers.IntegerField(help_text="Cancelled dispatches")
     utilization_rate = serializers.FloatField(
@@ -81,5 +87,24 @@ class StatsFilterSerializer(serializers.Serializer):
         allow_null=True,
         help_text="Filter by user role"
     )
-    car_id = serializers.UUIDField(required=False, allow_null=True, help_text="Filter by car ID")
-    limit = serializers.IntegerField(required=False, default=10, min_value=1, max_value=100, help_text="Limit for top-N queries")
+    car_id = serializers.IntegerField(required=False, allow_null=True, help_text="Filter by car ID")
+    top = serializers.IntegerField(required=False, default=10, min_value=1, max_value=100, help_text="Limit for top-N queries")
+    page = serializers.IntegerField(required=False, default=1, min_value=1, help_text="Page number for user activity")
+    page_size = serializers.IntegerField(required=False, default=20, min_value=1, max_value=100, help_text="Page size for user activity")
+
+
+class UserActivityPaginationSerializer(serializers.Serializer):
+    """Pagination metadata for user activity."""
+    page = serializers.IntegerField()
+    page_size = serializers.IntegerField()
+    total_count = serializers.IntegerField()
+
+
+class UnifiedAdminStatsResponseSerializer(serializers.Serializer):
+    """Unified response serializer for the consolidated admin stats endpoint."""
+    overview = OverviewStatsSerializer()
+    requests_timeseries = TimeseriesPointSerializer(many=True)
+    user_activity = UserActivityStatsSerializer(many=True)
+    user_activity_pagination = UserActivityPaginationSerializer()
+    top_users = TopUsersByRoleSerializer()
+    car_utilization = CarUtilizationSerializer(many=True)
