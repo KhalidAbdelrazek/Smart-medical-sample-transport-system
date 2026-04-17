@@ -45,12 +45,12 @@ class UARTCarController:
         """
         Sends a command and waits for ACK with retry mechanism.
         """
-        command = command.upper()
         attempt = 0
 
         while attempt < max_retries:
             attempt += 1
             logging.info(f"[TX] Attempt {attempt}/{max_retries}: Sending '{command}'")
+            logging.info(f"[TX] Sent: '{command}' (ASCII: {ord(command)})")
             
             # Clear input buffer to avoid reading stale data
             self.ser.reset_input_buffer()
@@ -163,7 +163,7 @@ class ConsoleApp:
         print("  x -> Backward")
         print("  d -> Right")
         print("  a -> Left")
-        print("  t -> TEST CONNECTION")
+        print("  t -> enter manual test mode")
         print("  q -> Quit")
         print("-" * 30)
 
@@ -182,7 +182,11 @@ class ConsoleApp:
                 elif cmd == "a":
                     self.car.left()
                 elif cmd == "t":
-                    self.car.test()
+                    test_char = input("Enter test character: ")
+                    if len(test_char) == 1:
+                        self.car.send_command(test_char)
+                    else:
+                        logging.warning("Please enter exactly one character.")
                 elif cmd == "q":
                     logging.info("Exiting system")
                     self.stop()

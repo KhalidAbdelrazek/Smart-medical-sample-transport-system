@@ -32,7 +32,7 @@ void handle_command(char cmd) {
  
     // -------- Debug: show ASCII value --------
     char buffer[50];
-    sprintf(buffer, "[RX] ASCII: %d\r\n", cmd);
+    sprintf(buffer, "[RX] Received: '%c' (ASCII: %d)\r\n", cmd, cmd);
     UART_Send_string(buffer);
  
     // -------- Ignore newline chars --------
