@@ -5,6 +5,7 @@ from rest_framework.exceptions import NotFound, ValidationError
 from samples.models import BloodSample
 from cars.models import Car
 from .models import TransportRequest
+from analytics.services import log_storage_employee_action
 
 from django.core.exceptions import PermissionDenied
 
@@ -57,6 +58,14 @@ def add_sample_to_car(sample_code, car_id, actor=None):
         car.save()
         
         # Log activity
+        if actor:
+            log_storage_employee_action(
+                employee=actor,
+                action='SAMPLE_ADDED_TO_CAR',
+                description=f"Added sample {sample.sample_code} to car {car.car_number}",
+                transport_request=transport_request,
+                car=car,
+            )
 
     return transport_request
 
@@ -110,6 +119,13 @@ def dispatch_car(car_id, actor=None):
         car.save()
         
         # Log activity
+        if actor:
+            log_storage_employee_action(
+                employee=actor,
+                action='CAR_DISPATCH',
+                description=f"Dispatched car {car.car_number} with {len(dispatched_requests)} sample(s)",
+                car=car,
+            )
 
     return dispatched_requests, car
 
@@ -201,6 +217,14 @@ def remove_sample_from_cart(request_id, actor=None):
             car.save()
         
         # Log activity
+        if actor:
+            log_storage_employee_action(
+                employee=actor,
+                action='SAMPLE_REMOVED_FROM_CAR',
+                description=f"Removed sample {sample.sample_code} from car {car.car_number}",
+                transport_request=transport_request,
+                car=car,
+            )
 
     return transport_request
 
@@ -247,6 +271,14 @@ def complete_transport_request(request_id, actor=None):
                 car.save()
         
         # Log activity
+        if actor:
+            log_storage_employee_action(
+                employee=actor,
+                action='TRANSPORT_REQUEST_UPDATE',
+                description=f"Completed delivery of sample {sample.sample_code} to room {transport_request.room_number}",
+                transport_request=transport_request,
+                car=car,
+            )
 
     return transport_request
 
@@ -279,5 +311,13 @@ def fail_transport_request(request_id, actor=None):
             car.save()
         
         # Log activity
+        if actor:
+            log_storage_employee_action(
+                employee=actor,
+                action='TRANSPORT_REQUEST_UPDATE',
+                description=f"Failed delivery of sample {sample.sample_code}. Reason: {transport_request.status_note}",
+                transport_request=transport_request,
+                car=car,
+            )
 
     return transport_request
