@@ -7,14 +7,14 @@ import 'package:smart_midecal_transport_app/presentation/employee/home/domain/re
 
 
 
-@Injectable(as: StatisticsRepo)
-class StatisticsRepoImpl implements StatisticsRepo {
-  final StatisticsRemoteDataSource remote;
+@Injectable(as: EmploeeStatisticsRepo)
+class EmployeeStatisticsRepoImpl implements EmploeeStatisticsRepo {
+  final EmploeeStatisticsRemoteDataSource remote;
 
-  StatisticsRepoImpl(this.remote);
+  EmployeeStatisticsRepoImpl(this.remote);
 
   @override
-  Future<Either<Failures, StatisticsEntity>> getStatistics() {
+  Future<Either<Failures, EmploeeStatisticsEntity>> getStatistics() {
     return remote.getStatistics();
   }
 }

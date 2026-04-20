@@ -1,4 +1,4 @@
-class StatisticsEntity {
+class EmploeeStatisticsEntity {
   final int totalRequests;
   final int successfulRequests;
   final int failedRequests;
@@ -8,7 +8,7 @@ class StatisticsEntity {
   final String period;
   final String role;
 
-  StatisticsEntity({
+  EmploeeStatisticsEntity({
     required this.totalRequests,
     required this.successfulRequests,
     required this.failedRequests,
