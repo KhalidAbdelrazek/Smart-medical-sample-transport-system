@@ -1,15 +1,13 @@
 """
 analytics/urls.py
 
-URL configuration for request analytics endpoints.
+Single endpoint for the unified analytics dashboard.
 """
 from django.urls import path
-
-from analytics.views import RequestAnalyticsView, StorageEmployeeLogsAnalyticsView
+from analytics.views import DashboardView
 
 app_name = 'analytics'
 
 urlpatterns = [
-    path('doctors/logs/', RequestAnalyticsView.as_view(), name='doctor-logs-analytics'),
-    path('storage-employees/logs/', StorageEmployeeLogsAnalyticsView.as_view(), name='storage-employee-logs-analytics'),
+    path('dashboard/', DashboardView.as_view(), name='analytics-dashboard'),
 ]
