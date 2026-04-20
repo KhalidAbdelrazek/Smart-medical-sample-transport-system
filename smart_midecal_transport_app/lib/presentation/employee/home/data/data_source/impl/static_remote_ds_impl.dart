@@ -9,15 +9,15 @@ import 'package:smart_midecal_transport_app/core/utils/shared_pref_services.dart
 import 'package:smart_midecal_transport_app/presentation/employee/home/data/data_source/static_remote_ds.dart';
 import 'package:smart_midecal_transport_app/presentation/employee/home/data/model/static_model.dart';
 
-@Injectable(as: StatisticsRemoteDataSource)
-class StatisticsRemoteDataSourceImpl
-    implements StatisticsRemoteDataSource {
+@Injectable(as: EmploeeStatisticsRemoteDataSource)
+class EmploeeStatisticsRemoteDataSourceImpl
+    implements EmploeeStatisticsRemoteDataSource {
   final ApiManager apiManager;
 
-  StatisticsRemoteDataSourceImpl({required this.apiManager});
+  EmploeeStatisticsRemoteDataSourceImpl({required this.apiManager});
 
   @override
-  Future<Either<Failures, StatisticsModel>> getStatistics() async {
+  Future<Either<Failures, EmploeeStatisticsModel>> getStatistics() async {
     final connectivityResult = await Connectivity().checkConnectivity();
 
     try {
@@ -37,8 +37,8 @@ class StatisticsRemoteDataSourceImpl
           ),
         );
 
-        StatisticsModel model =
-            StatisticsModel.fromJson(response.data);
+        EmploeeStatisticsModel model =
+            EmploeeStatisticsModel.fromJson(response.data);
 
         if (response.statusCode! >= 200 &&
             response.statusCode! < 300) {

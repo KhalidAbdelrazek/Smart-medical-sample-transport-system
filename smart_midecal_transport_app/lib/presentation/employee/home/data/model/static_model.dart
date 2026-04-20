@@ -1,7 +1,7 @@
 import 'package:smart_midecal_transport_app/presentation/employee/home/domain/entites/static_entity.dart';
 
-class StatisticsModel extends StatisticsEntity {
-  StatisticsModel({
+class EmploeeStatisticsModel extends EmploeeStatisticsEntity {
+  EmploeeStatisticsModel({
     required super.totalRequests,
     required super.successfulRequests,
     required super.failedRequests,
@@ -12,10 +12,10 @@ class StatisticsModel extends StatisticsEntity {
     required super.role,
   });
 
-  factory StatisticsModel.fromJson(Map<String, dynamic> json) {
+  factory EmploeeStatisticsModel.fromJson(Map<String, dynamic> json) {
     final data = json['data'];
 
-    return StatisticsModel(
+    return EmploeeStatisticsModel(
       totalRequests: data['total_requests'],
       successfulRequests: data['successful_requests'],
       failedRequests: data['failed_requests'],
