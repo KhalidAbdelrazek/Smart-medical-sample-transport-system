@@ -24,7 +24,7 @@ import '../../presentation/authentication/ui/cubit/admin_login_view_model.dart'
     as _i964;
 import '../../presentation/authentication/ui/cubit/employee_login_view_model.dart'
     as _i600;
-import '../../presentation/employee/home/cubit/employee_home_cubit.dart'
+import '../../presentation/employee/home/ui/cubit/employee_home_cubit.dart'
     as _i289;
 import '../../presentation/employee/my_requests/cubit/my_requests_cubit.dart'
     as _i692;
