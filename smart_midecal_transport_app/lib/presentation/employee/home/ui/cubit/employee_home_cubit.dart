@@ -1,67 +1,54 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:injectable/injectable.dart';
+import 'package:smart_midecal_transport_app/presentation/employee/home/domain/repos/static_repo.dart';
+
+
 import 'employee_home_state.dart';
 
-/// Cubit for Employee Home Dashboard Tab
-/// - loadData(): Shows skeleton (initial load)
-/// - refresh(): Silent refresh (no skeleton)
-/// All analytics calculations happen here (ViewModel logic)
 @injectable
 class EmployeeHomeCubit extends Cubit<EmployeeHomeState> {
-  EmployeeHomeCubit() : super(EmployeeHomeInitial());
+  final EmploeeStatisticsRepo repo;
 
-  /// Load dashboard data with skeleton loading state
+  EmployeeHomeCubit(this.repo) : super(EmployeeHomeInitial());
+
+  /// Load dashboard data with loading state
   Future<void> loadData() async {
     emit(EmployeeHomeLoading());
     await _fetchData();
   }
 
-  /// Refresh data silently (no skeleton, keeps current data visible)
+  /// Refresh silently
   Future<void> refresh() async {
     await _fetchData();
   }
 
   Future<void> _fetchData() async {
     try {
-      // Simulate API delay
-      await Future.delayed(const Duration(seconds: 2));
+      final result = await repo.getStatistics();
 
-      // Generate dummy employee analytics data
-      final bloodBagsByType = _generateBloodBagsByType();
-      final totalBags = _calculateTotal(bloodBagsByType);
+      result.fold(
+        (failure) {
+          emit(EmployeeHomeError(failure.errorMessage));
+        },
+        (data) {
+          emit(
+            EmployeeHomeLoaded(
+              /// 🔥 REAL DATA FROM API
+              totalBloodBagsRequested: data.totalRequests,
+              completedRequests: data.successfulRequests,
+              pendingRequests: data.pendingRequests,
 
-      emit(
-        EmployeeHomeLoaded(
-          totalBloodBagsRequested: totalBags,
-          totalSamplesRequested: 87,
-          todayBloodBags: 12,
-          todaySamples: 8,
-          pendingRequests: 15,
-          completedRequests: 142,
-          bloodBagsByType: bloodBagsByType,
-        ),
+              /// ❗ NOT IN API → TEMP VALUES
+              totalSamplesRequested: 0,
+              todayBloodBags: 0,
+              todaySamples: 0,
+              bloodBagsByType: {},
+            ),
+          );
+        },
       );
     } catch (e) {
       emit(EmployeeHomeError('Failed to load dashboard data'));
     }
-  }
-
-  /// Generate dummy blood bags data by blood type
-  Map<String, int> _generateBloodBagsByType() {
-    return {
-      'A+': 28,
-      'A-': 7,
-      'B+': 22,
-      'B-': 5,
-      'AB+': 10,
-      'AB-': 3,
-      'O+': 35,
-      'O-': 12,
-    };
-  }
-
-  /// Calculate total from type map
-  int _calculateTotal(Map<String, int> byType) {
-    return byType.values.fold(0, (sum, count) => sum + count);
   }
 }

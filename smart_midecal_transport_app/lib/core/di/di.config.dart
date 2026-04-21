@@ -24,8 +24,15 @@ import '../../presentation/authentication/ui/cubit/admin_login_view_model.dart'
     as _i964;
 import '../../presentation/authentication/ui/cubit/employee_login_view_model.dart'
     as _i600;
+import '../../presentation/employee/home/data/data_source/impl/static_remote_ds_impl.dart'
+    as _i265;
+import '../../presentation/employee/home/data/data_source/static_remote_ds.dart'
+    as _i966;
+import '../../presentation/employee/home/data/repos/static_repo.dart' as _i927;
+import '../../presentation/employee/home/domain/repos/static_repo.dart'
+    as _i825;
 import '../../presentation/employee/home/ui/cubit/employee_home_cubit.dart'
-    as _i289;
+    as _i724;
 import '../../presentation/employee/my_requests/cubit/my_requests_cubit.dart'
     as _i692;
 import '../../presentation/employee/my_requests/data/data%20source/myrequest_data_source.dart'
@@ -80,7 +87,6 @@ extension GetItInjectableX on _i174.GetIt {
     _i526.EnvironmentFilter? environmentFilter,
   }) {
     final gh = _i526.GetItHelper(this, environment, environmentFilter);
-    gh.factory<_i289.EmployeeHomeCubit>(() => _i289.EmployeeHomeCubit());
     gh.factory<_i963.RestrictionsCubit>(() => _i963.RestrictionsCubit());
     gh.factory<_i327.StatisticsCubit>(() => _i327.StatisticsCubit());
     gh.factory<_i385.HomeCubit>(() => _i385.HomeCubit());
@@ -115,8 +121,18 @@ extension GetItInjectableX on _i174.GetIt {
         profileDataSource: gh<_i582.ProfileDataSource>(),
       ),
     );
+    gh.factory<_i966.EmploeeStatisticsRemoteDataSource>(
+      () => _i265.EmploeeStatisticsRemoteDataSourceImpl(
+        apiManager: gh<_i949.ApiManager>(),
+      ),
+    );
     gh.factory<_i50.ProfileCubit>(
       () => _i50.ProfileCubit(gh<_i247.ProfileRepository>()),
+    );
+    gh.factory<_i825.EmploeeStatisticsRepo>(
+      () => _i927.EmployeeStatisticsRepoImpl(
+        gh<_i966.EmploeeStatisticsRemoteDataSource>(),
+      ),
     );
     gh.factory<_i981.MyRequestsRepository>(
       () => _i1070.MyRequestsRepositoryImpl(
@@ -144,6 +160,9 @@ extension GetItInjectableX on _i174.GetIt {
     );
     gh.factory<_i692.MyRequestsCubit>(
       () => _i692.MyRequestsCubit(gh<_i981.MyRequestsRepository>()),
+    );
+    gh.factory<_i724.EmployeeHomeCubit>(
+      () => _i724.EmployeeHomeCubit(gh<_i825.EmploeeStatisticsRepo>()),
     );
     return this;
   }
