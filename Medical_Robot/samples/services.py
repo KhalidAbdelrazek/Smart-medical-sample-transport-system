@@ -1,4 +1,5 @@
 from rest_framework.exceptions import NotFound, ValidationError
+from restrictions.services import check_doctor_samples_restriction
 
 
 def get_sample_by_code(sample_code):
@@ -25,6 +26,10 @@ def request_sample(sample_code, room_number, doctor):
     """
     from .models import BloodSample
     from transport.models import TransportRequest
+
+    # ── RESTRICTION CHECK ──────────────────────────────
+    check_doctor_samples_restriction(doctor)
+    # ──────────────────────────────────────────────────
 
     sample = get_sample_by_code(sample_code)
 

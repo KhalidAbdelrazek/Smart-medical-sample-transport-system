@@ -8,6 +8,10 @@ from .models import TransportRequest
 from analytics.services import log_storage_employee_action
 
 from django.core.exceptions import PermissionDenied
+from restrictions.services import (
+    check_storage_samples_restriction,
+    check_transport_car_restriction,
+)
 
 
 def add_sample_to_car(sample_code, car_id, actor=None):
@@ -20,6 +24,11 @@ def add_sample_to_car(sample_code, car_id, actor=None):
     - Creates/updates the TransportRequest to LOADED
     - Sets car status to LOADING
     """
+    # ── RESTRICTION CHECK ──────────────────────────────
+    if actor:
+        check_storage_samples_restriction(actor)
+    # ──────────────────────────────────────────────────
+
     try:
         sample = BloodSample.objects.get(sample_code=sample_code)
     except BloodSample.DoesNotExist:
@@ -81,6 +90,10 @@ def dispatch_car(car_id, actor=None):
     - All LOADED transport requests are set to DISPATCHED and dispatched_at is set
     - Car status is set to DISPATCHED
     """
+    # ── RESTRICTION CHECK ──────────────────────────────
+    check_transport_car_restriction()
+    # ──────────────────────────────────────────────────
+
     try:
         car = Car.objects.get(id=car_id)
     except Car.DoesNotExist:
