@@ -12,5 +12,6 @@ urlpatterns = [
     path('api/transport/', include('transport.urls')),
     path('api/dashboard/', include('dashboard.urls')),
     path('api/analytics/', include('analytics.urls')),
+    path('api/restrictions/', include('restrictions.urls')),
     path('', include('healthcare.urls')),
 ]
