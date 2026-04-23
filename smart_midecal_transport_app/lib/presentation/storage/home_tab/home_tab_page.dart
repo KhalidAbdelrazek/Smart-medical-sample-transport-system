@@ -5,10 +5,10 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:smart_midecal_transport_app/core/di/di.dart';
 import 'package:smart_midecal_transport_app/core/theme/color.dart';
 
-import 'cubit/home_cubit.dart';
-import 'cubit/home_state.dart';
-import 'widgets/stats_card.dart';
-import 'widgets/welcome_header.dart';
+import 'ui/cubit/home_cubit.dart';
+import 'ui/cubit/home_state.dart';
+import 'ui/widgets/stats_card.dart';
+import 'ui/widgets/welcome_header.dart';
 
 /// Home Tab Page - Cached with AutomaticKeepAliveClientMixin
 /// Skeleton only shows on first load, not on pull-to-refresh
