@@ -1,13 +1,19 @@
+import logging
+
 from django.db import transaction
 from django.utils import timezone
 from rest_framework.exceptions import NotFound, ValidationError
 
 from samples.models import BloodSample
 from cars.models import Car
+from healthcare.mqtt_dispatch import build_dispatch_payload, publish_dispatch_event
 from .models import TransportRequest
 from analytics.services import log_storage_employee_action
 
 from django.core.exceptions import PermissionDenied
+
+
+logger = logging.getLogger(__name__)
 
 
 def add_sample_to_car(sample_code, car_id, actor=None):
@@ -126,6 +132,22 @@ def dispatch_car(car_id, actor=None):
                 description=f"Dispatched car {car.car_number} with {len(dispatched_requests)} sample(s)",
                 car=car,
             )
+
+    try:
+        payload = build_dispatch_payload(car=car, dispatched_requests=dispatched_requests)
+        published = publish_dispatch_event(payload)
+        if not published:
+            logger.error(
+                "Dispatch MQTT publish failed but dispatch completed. car_id=%s sample_count=%s",
+                car.id,
+                len(dispatched_requests),
+            )
+    except Exception:
+        logger.exception(
+            "Unexpected MQTT dispatch integration error. car_id=%s sample_count=%s",
+            car.id,
+            len(dispatched_requests),
+        )
 
     return dispatched_requests, car
 
