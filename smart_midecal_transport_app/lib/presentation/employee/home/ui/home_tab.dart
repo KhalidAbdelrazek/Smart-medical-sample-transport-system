@@ -120,57 +120,93 @@ class _EmployeeHomeTabPageState extends State<EmployeeHomeTabPage>
             childAspectRatio: 1.1,
             children: [
               EmployeeStatsCard(
-                icon: Icons.bloodtype_rounded,
-                color: AppColors.error,
-                label: 'employee.total_blood_bags'.tr(),
-                value: state.totalBloodBagsRequested.toString(),
-                subtitle: 'employee.today_count'.tr(
-                  args: [state.todayBloodBags.toString()],
+                icon: Icons.error_outline,
+                color: AppColors.success,
+                label: 'Role'.tr(),
+                value: state.role.toString(),
+                subtitle: 'Role'.tr(
+                  args: [state.role.toString()],
                 ),
               ),
+              
               EmployeeStatsCard(
-                icon: Icons.science_rounded,
-                color: AppColors.info,
-                label: 'employee.total_samples'.tr(),
-                value: state.totalSamplesRequested.toString(),
-                subtitle: 'employee.today_count'.tr(
-                  args: [state.todaySamples.toString()],
+                icon: Icons.bloodtype_rounded,
+                color: AppColors.appBarColor,
+                label: 'Total requests'.tr(),
+                value: state.totalRequests.toString(),
+                subtitle: 'Total'.tr(
+                  args: [state.totalRequests.toString()],
                 ),
               ),
+              
               EmployeeStatsCard(
                 icon: Icons.pending_actions_rounded,
                 color: AppColors.warning,
-                label: 'employee.pending_requests'.tr(),
+                label: 'Pending requests'.tr(),
                 value: state.pendingRequests.toString(),
+                subtitle: 'Pending'.tr(
+                  args: [state.pendingRequests.toString()],
+                ),
               ),
               EmployeeStatsCard(
-                icon: Icons.check_circle_rounded,
-                color: AppColors.success,
-                label: 'employee.completed_requests'.tr(),
-                value: state.completedRequests.toString(),
+                icon: Icons.cancel,
+                color: AppColors.error,
+                label: 'Cancelled requests'.tr(),
+                value: state.cancelledRequests.toString(),
+                subtitle: 'Cancelled'.tr(
+                  args: [state.cancelledRequests.toString()],
+                ),
               ),
+              EmployeeStatsCard(
+                icon: Icons.error_outline,
+                color: AppColors.bottomBarDarkColor,
+                label: 'Failed requests'.tr(),
+                value: state.failedRequests.toString(),
+                subtitle: 'Failed'.tr(
+                  args: [state.failedRequests.toString()],
+                ),
+              ),
+              EmployeeStatsCard(
+                icon: Icons.error_outline,
+                color: AppColors.success,
+                label: 'successful requests'.tr(),
+                value: state.successfulRequests.toString(),
+                subtitle: 'successful'.tr(
+                  args: [state.successfulRequests.toString()],
+                ),
+              ),EmployeeStatsCard(
+                icon: Icons.error_outline,
+                color: AppColors.success,
+                label: 'Success Rate'.tr(),
+                value: state.successRate.toString(),
+                subtitle: 'Success Rate'.tr(
+                  args: [state.successRate.toString()],
+                ),
+              ),
+              
+              
             ],
           ),
           SizedBox(height: 24.h),
 
           // Blood bags vs samples chart
-          EmployeeRequestChart(
-            bloodBags: state.totalBloodBagsRequested,
-            bloodSamples: state.totalSamplesRequested,
-            bloodBagsLabel: 'employee.blood_bags'.tr(),
-            samplesLabel: 'employee.blood_samples'.tr(),
-            title: 'employee.requests_distribution'.tr(),
-          ),
+          // EmployeeRequestChart(
+          //   bloodBags: state.totalBloodBagsRequested,
+          //   bloodSamples: state.totalSamplesRequested,
+          //   bloodBagsLabel: 'employee.blood_bags'.tr(),
+          //   samplesLabel: 'employee.blood_samples'.tr(),
+          //   title: 'employee.requests_distribution'.tr(),
+          // ),
           SizedBox(height: 16.h),
 
           // Request summary
-          EmployeeSummaryCard(
-            title: 'employee.request_overview'.tr(),
-            pendingCount: state.pendingRequests,
-            completedCount: state.completedRequests,
-            pendingLabel: 'employee.pending'.tr(),
-            completedLabel: 'employee.completed'.tr(),
-          ),
+          // EmployeeSummaryCard(
+          //   title: 'employee.request_overview'.tr(),
+          //   pendingCount: state.pendingRequests,
+          //   completedCount: state.completedRequests,
+          //   pendingLabel: 'employee.pending'.tr(),
+          //   completedLabel: 'employee.completed'.tr(),
+          // ),
           SizedBox(height: 32.h),
         ],
       );

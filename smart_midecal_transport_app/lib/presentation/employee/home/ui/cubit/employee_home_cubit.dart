@@ -2,7 +2,6 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:injectable/injectable.dart';
 import 'package:smart_midecal_transport_app/presentation/employee/home/domain/repos/static_repo.dart';
 
-
 import 'employee_home_state.dart';
 
 @injectable
@@ -11,13 +10,15 @@ class EmployeeHomeCubit extends Cubit<EmployeeHomeState> {
 
   EmployeeHomeCubit(this.repo) : super(EmployeeHomeInitial());
 
-  /// Load dashboard data with loading state
+  /// First load (shows loading)
   Future<void> loadData() async {
-    emit(EmployeeHomeLoading());
+    if (state is! EmployeeHomeLoaded) {
+      emit(EmployeeHomeLoading());
+    }
     await _fetchData();
   }
 
-  /// Refresh silently
+  /// Pull-to-refresh (no loading spinner)
   Future<void> refresh() async {
     await _fetchData();
   }
@@ -33,16 +34,14 @@ class EmployeeHomeCubit extends Cubit<EmployeeHomeState> {
         (data) {
           emit(
             EmployeeHomeLoaded(
-              /// 🔥 REAL DATA FROM API
-              totalBloodBagsRequested: data.totalRequests,
-              completedRequests: data.successfulRequests,
+              totalRequests: data.totalRequests,
+              successfulRequests: data.successfulRequests,
+              failedRequests: data.failedRequests,
+              cancelledRequests: data.cancelledRequests,
               pendingRequests: data.pendingRequests,
-
-              /// ❗ NOT IN API → TEMP VALUES
-              totalSamplesRequested: 0,
-              todayBloodBags: 0,
-              todaySamples: 0,
-              bloodBagsByType: {},
+              successRate: data.successRate,
+              period: data.period,
+              role: data.role,
             ),
           );
         },
