@@ -119,15 +119,7 @@ class _EmployeeHomeTabPageState extends State<EmployeeHomeTabPage>
             crossAxisSpacing: 12.w,
             childAspectRatio: 1.1,
             children: [
-              EmployeeStatsCard(
-                icon: Icons.error_outline,
-                color: AppColors.success,
-                label: 'Role'.tr(),
-                value: state.role.toString(),
-                subtitle: 'Role'.tr(
-                  args: [state.role.toString()],
-                ),
-              ),
+              
               
               EmployeeStatsCard(
                 icon: Icons.bloodtype_rounded,
