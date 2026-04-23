@@ -1,39 +1,53 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:injectable/injectable.dart';
+import 'package:smart_midecal_transport_app/presentation/storage/home_tab/domain/repos/static_storage_repo.dart';
+
+
+
 import 'home_state.dart';
 
-/// Cubit for Home Tab
-/// - loadData(): Shows skeleton (initial load)
-/// - refresh(): Silent refresh (no skeleton)
 @injectable
 class HomeCubit extends Cubit<HomeState> {
-  HomeCubit() : super(HomeInitial());
+  final StorageStatisticsRepo repo;
 
-  /// Load home data with skeleton loading state
+  HomeCubit(this.repo) : super(HomeInitial());
+
+  /// First load (shows skeleton)
   Future<void> loadData() async {
     emit(HomeLoading());
     await _fetchData();
   }
 
-  /// Refresh data silently (no skeleton, keeps current data visible)
+  /// Silent refresh (no skeleton)
   Future<void> refresh() async {
     await _fetchData();
   }
 
   Future<void> _fetchData() async {
     try {
-      await Future.delayed(const Duration(seconds: 2));
-      emit(
-        HomeLoaded(
-          totalBagsProcessed: 24,
-          totalSamplesProcessed: 18,
-          carsDispatched: 8,
-          currentShift: 'Morning (7:00 - 15:00)',
-          employeeName: 'Ahmed Hassan',
+      final result = await repo.getStatistics();
+
+      result.fold(
+        (failure) => emit(HomeError("Failed to load data: ${failure.toString()}")),
+        (data) => emit(
+          HomeLoaded(
+            totalactions: data.totalactions,
+            cardispatch: data.cardispatch,
+            sampleaddedtocar: data.sampleaddedtocar,
+            sampleremovedfromcar: data.sampleremovedfromcar,
+            transportrequestupdate: data.transportrequestupdate,
+            other: data.other,
+            period: data.period,
+            role: data.role,
+
+            // UI-only (can later come from profile module)
+            employeeName: "Ahmed Hassan",
+            currentShift: "Morning (7:00 - 15:00)",
+          ),
         ),
       );
     } catch (e) {
-      emit(HomeError('Failed to load data'));
+      emit(HomeError("Failed to load data: ${e.toString()}"));
     }
   }
 }

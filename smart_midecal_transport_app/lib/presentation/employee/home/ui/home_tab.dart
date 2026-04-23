@@ -4,7 +4,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:smart_midecal_transport_app/core/di/di.dart';
 import 'package:smart_midecal_transport_app/core/theme/color.dart';
-import 'package:smart_midecal_transport_app/presentation/employee/home/ui/widgets/advanced_donut_chart.dart';
+import 'package:smart_midecal_transport_app/presentation/storage/home_tab/ui/widgets/advanced_donut_chart.dart';
 import 'package:smart_midecal_transport_app/presentation/employee/home/ui/widgets/employee_donut_chart.dart';
 
 import 'cubit/employee_home_cubit.dart';
