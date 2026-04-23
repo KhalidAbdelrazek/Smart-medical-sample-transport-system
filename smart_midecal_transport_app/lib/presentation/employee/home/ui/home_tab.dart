@@ -4,6 +4,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:smart_midecal_transport_app/core/di/di.dart';
 import 'package:smart_midecal_transport_app/core/theme/color.dart';
+import 'package:smart_midecal_transport_app/presentation/employee/home/ui/widgets/employee_donut_chart.dart';
 
 import 'cubit/employee_home_cubit.dart';
 import 'cubit/employee_home_state.dart';
@@ -110,6 +111,13 @@ class _EmployeeHomeTabPageState extends State<EmployeeHomeTabPage>
           ),
           SizedBox(height: 24.h),
 
+          EmployeeDonutChart(
+            pending: state.pendingRequests,
+            cancelled: state.cancelledRequests,
+            failed: state.failedRequests,
+            success: state.successfulRequests,
+          ),
+          SizedBox(height: 24.h),
           // Stats grid
           GridView.count(
             shrinkWrap: true,
@@ -119,18 +127,14 @@ class _EmployeeHomeTabPageState extends State<EmployeeHomeTabPage>
             crossAxisSpacing: 12.w,
             childAspectRatio: 1.1,
             children: [
-              
-              
               EmployeeStatsCard(
                 icon: Icons.bloodtype_rounded,
                 color: AppColors.appBarColor,
                 label: 'Total requests'.tr(),
                 value: state.totalRequests.toString(),
-                subtitle: 'Total'.tr(
-                  args: [state.totalRequests.toString()],
-                ),
+                subtitle: 'Total'.tr(args: [state.totalRequests.toString()]),
               ),
-              
+
               EmployeeStatsCard(
                 icon: Icons.pending_actions_rounded,
                 color: AppColors.warning,
@@ -154,9 +158,7 @@ class _EmployeeHomeTabPageState extends State<EmployeeHomeTabPage>
                 color: AppColors.bottomBarDarkColor,
                 label: 'Failed requests'.tr(),
                 value: state.failedRequests.toString(),
-                subtitle: 'Failed'.tr(
-                  args: [state.failedRequests.toString()],
-                ),
+                subtitle: 'Failed'.tr(args: [state.failedRequests.toString()]),
               ),
               EmployeeStatsCard(
                 icon: Icons.error_outline,
@@ -166,7 +168,8 @@ class _EmployeeHomeTabPageState extends State<EmployeeHomeTabPage>
                 subtitle: 'successful'.tr(
                   args: [state.successfulRequests.toString()],
                 ),
-              ),EmployeeStatsCard(
+              ),
+              EmployeeStatsCard(
                 icon: Icons.error_outline,
                 color: AppColors.success,
                 label: 'Success Rate'.tr(),
@@ -175,8 +178,6 @@ class _EmployeeHomeTabPageState extends State<EmployeeHomeTabPage>
                   args: [state.successRate.toString()],
                 ),
               ),
-              
-              
             ],
           ),
           SizedBox(height: 24.h),
