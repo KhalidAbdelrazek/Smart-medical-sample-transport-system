@@ -6,22 +6,24 @@ class EmployeeHomeInitial extends EmployeeHomeState {}
 class EmployeeHomeLoading extends EmployeeHomeState {}
 
 class EmployeeHomeLoaded extends EmployeeHomeState {
-  final int totalBloodBagsRequested;
-  final int totalSamplesRequested;
-  final int todayBloodBags;
-  final int todaySamples;
+  final int totalRequests;
+  final int successfulRequests;
+  final int failedRequests;
+  final int cancelledRequests;
   final int pendingRequests;
-  final int completedRequests;
-  final Map<String, int> bloodBagsByType;
+  final double successRate;
+  final String period;
+  final String role;
 
   EmployeeHomeLoaded({
-    required this.totalBloodBagsRequested,
-    required this.totalSamplesRequested,
-    required this.todayBloodBags,
-    required this.todaySamples,
+    required this.totalRequests,
+    required this.successfulRequests,
+    required this.failedRequests,
+    required this.cancelledRequests,
     required this.pendingRequests,
-    required this.completedRequests,
-    required this.bloodBagsByType,
+    required this.successRate,
+    required this.period,
+    required this.role,
   });
 }
 
