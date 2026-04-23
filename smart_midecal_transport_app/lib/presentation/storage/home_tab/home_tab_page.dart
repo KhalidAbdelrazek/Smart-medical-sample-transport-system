@@ -4,6 +4,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:smart_midecal_transport_app/core/di/di.dart';
 import 'package:smart_midecal_transport_app/core/theme/color.dart';
+import 'package:smart_midecal_transport_app/presentation/storage/home_tab/ui/widgets/advanced_donut_chart.dart';
 
 import 'ui/cubit/home_cubit.dart';
 import 'ui/cubit/home_state.dart';
@@ -105,8 +106,16 @@ class _HomeTabPageState extends State<HomeTabPage>
               fontWeight: FontWeight.w600,
             ),
           ),
-          SizedBox(height: 16.h),
-
+          
+          AdvancedDonutChart(
+            data: {
+              "totalactions": state.totalactions,
+              "cardispatch": state.cardispatch,
+              "sampleaddedtocar": state.sampleaddedtocar,
+              "transportrequestupdate": state.transportrequestupdate,
+            },
+          ),
+          SizedBox(height: 24.h),
           // Stats grid
           GridView.count(
             shrinkWrap: true,
@@ -117,28 +126,42 @@ class _HomeTabPageState extends State<HomeTabPage>
             childAspectRatio: 1.1,
             children: [
               StatsCard(
-                icon: Icons.bloodtype_rounded,
+                icon: Icons.analytics_rounded,
                 color: AppColors.error,
-                label: 'home.blood_bags'.tr(),
-                value: state.totalBagsProcessed.toString(),
-              ),
-              StatsCard(
-                icon: Icons.science_rounded,
-                color: AppColors.info,
-                label: 'home.samples'.tr(),
-                value: state.totalSamplesProcessed.toString(),
+                label: 'total actions'.tr(),
+                value: state.totalactions.toString(),
               ),
               StatsCard(
                 icon: Icons.local_shipping_rounded,
                 color: AppColors.success,
-                label: 'home.cars_dispatched'.tr(),
-                value: state.carsDispatched.toString(),
+                label: 'cars dispatched'.tr(),
+                value: state.cardispatch.toString(),
               ),
               StatsCard(
-                icon: Icons.pending_actions_rounded,
+                icon: Icons.car_crash_rounded,
                 color: AppColors.warning,
-                label: 'home.pending'.tr(),
-                value: '3',
+                label: 'sample added to car'.tr(),
+                value: state.sampleaddedtocar.toString(),
+              ),
+              StatsCard(
+                icon: Icons.remove_circle,
+                color: AppColors.error,
+                label: 'sample removed from car'.tr(),
+                value: state.sampleremovedfromcar.toString(),
+              ),
+
+              StatsCard(
+                icon: Icons.update_rounded,
+                color: AppColors.info,
+                label: 'transport request update'.tr(),
+                value: state.transportrequestupdate.toString(),
+              ),
+              
+              StatsCard(
+                icon: Icons.help_outline_sharp,
+                color: AppColors.bottomBarDarkColor,
+                label: 'other'.tr(),
+                value: state.other.toString(),
               ),
             ],
           ),

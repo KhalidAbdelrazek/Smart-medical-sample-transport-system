@@ -57,7 +57,15 @@ import '../../presentation/employer/restrictions_tab/cubit/restrictions_cubit.da
     as _i963;
 import '../../presentation/employer/statistics_tab/cubit/statistics_cubit.dart'
     as _i327;
-import '../../presentation/storage/home_tab/ui/cubit/home_cubit.dart' as _i385;
+import '../../presentation/storage/home_tab/data/data_source/impl/static_storage_remote_ds_impl.dart'
+    as _i304;
+import '../../presentation/storage/home_tab/data/data_source/static_storage_remote_ds.dart'
+    as _i545;
+import '../../presentation/storage/home_tab/data/repos/static_storage_repo.dart'
+    as _i843;
+import '../../presentation/storage/home_tab/domain/repos/static_storage_repo.dart'
+    as _i771;
+import '../../presentation/storage/home_tab/ui/cubit/home_cubit.dart' as _i592;
 import '../../presentation/storage/profile_tab/Data/Data%20Sources/impl/profile_ds_impl.dart'
     as _i892;
 import '../../presentation/storage/profile_tab/Data/Data%20Sources/profile_ds.dart'
@@ -89,7 +97,6 @@ extension GetItInjectableX on _i174.GetIt {
     final gh = _i526.GetItHelper(this, environment, environmentFilter);
     gh.factory<_i963.RestrictionsCubit>(() => _i963.RestrictionsCubit());
     gh.factory<_i327.StatisticsCubit>(() => _i327.StatisticsCubit());
-    gh.factory<_i385.HomeCubit>(() => _i385.HomeCubit());
     gh.singleton<_i949.ApiManager>(() => _i949.ApiManager());
     gh.factory<_i274.MyRequestsDataSource>(
       () => _i1059.MyRequestsDataSourceImpl(apiManager: gh<_i949.ApiManager>()),
@@ -119,6 +126,11 @@ extension GetItInjectableX on _i174.GetIt {
     gh.factory<_i247.ProfileRepository>(
       () => _i597.ProfileRepositoryImpl(
         profileDataSource: gh<_i582.ProfileDataSource>(),
+      ),
+    );
+    gh.factory<_i545.StorageStatisticsRemoteDataSource>(
+      () => _i304.StorageStatisticsRemoteDataSourceImpl(
+        apiManager: gh<_i949.ApiManager>(),
       ),
     );
     gh.factory<_i966.EmploeeStatisticsRemoteDataSource>(
@@ -163,6 +175,14 @@ extension GetItInjectableX on _i174.GetIt {
     );
     gh.factory<_i724.EmployeeHomeCubit>(
       () => _i724.EmployeeHomeCubit(gh<_i825.EmploeeStatisticsRepo>()),
+    );
+    gh.factory<_i771.StorageStatisticsRepo>(
+      () => _i843.StorageStatisticsRepoImpl(
+        gh<_i545.StorageStatisticsRemoteDataSource>(),
+      ),
+    );
+    gh.factory<_i592.HomeCubit>(
+      () => _i592.HomeCubit(gh<_i771.StorageStatisticsRepo>()),
     );
     return this;
   }

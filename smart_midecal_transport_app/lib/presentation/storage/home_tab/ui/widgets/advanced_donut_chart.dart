@@ -22,7 +22,7 @@ class _AdvancedDonutChartState extends State<AdvancedDonutChart> {
     }
 
     return SizedBox(
-      height: 250,
+      height: 300,
       child: Stack(
         alignment: Alignment.center,
         children: [
@@ -34,7 +34,7 @@ class _AdvancedDonutChartState extends State<AdvancedDonutChart> {
               });
             },
             child: CustomPaint(
-              size: const Size(250, 250),
+              size: const Size(200, 200),
               painter: _DonutPainter(
                 data: widget.data.map((key, value) => MapEntry(key, value.toDouble())),
                 selectedIndex: selectedIndex,
