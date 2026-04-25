@@ -26,25 +26,25 @@ from django.core.exceptions import PermissionDenied
 class TransportRequestListView(APIView):
     """
     GET /api/transport/requests/
-    Returns all PENDING transport requests.
+    Returns all PENDING and LOADED transport requests.
     Accessible by Storage Employees only.
     """
     permission_classes = [IsAuthenticated, IsStorageEmployee]
 
     @extend_schema(
         tags=['Transport'],
-        summary='List Pending Transport Requests',
-        description='Returns all PENDING sample transport requests for the storage dashboard.',
+        summary='List Pending and Loaded Transport Requests',
+        description='Returns all PENDING and LOADED sample transport requests for the storage dashboard.',
         responses={200: TransportRequestSerializer(many=True)},
     )
     def get(self, request):
         requests = TransportRequest.objects.filter(
-            status='PENDING'
+            status__in=['PENDING', 'LOADED']
         ).select_related('sample', 'requested_by', 'assigned_car')
         serializer = TransportRequestSerializer(requests, many=True)
         return unified_response(
             success=True,
-            message="Pending transport requests fetched successfully",
+            message="Pending and loaded transport requests fetched successfully",
             data=serializer.data,
             status=status.HTTP_200_OK
         )
