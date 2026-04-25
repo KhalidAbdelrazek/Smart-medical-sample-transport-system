@@ -1,0 +1,153 @@
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:injectable/injectable.dart';
+import 'package:smart_midecal_transport_app/core/error/failures.dart';
+import 'package:smart_midecal_transport_app/presentation/employer/statistics_tab/domain/entities/admin_stats_entity.dart';
+import 'package:smart_midecal_transport_app/presentation/employer/statistics_tab/domain/repos/admin_stats_repository.dart';
+import 'statistics_state.dart';
+
+/// Filter options mapping (key → display label)
+const Map<String, String> filterLabels = {
+  'week': 'Week',
+  'month': 'Month',
+  'year': 'Year',
+  'all_time': 'All Time',
+};
+
+/// StatisticsCubit — ViewModel for the Admin Statistics Dashboard
+///
+/// Responsibilities:
+/// - Orchestrates API calls via [AdminStatsRepository]
+/// - Manages loading / success / error / token-expired states
+/// - Pre-computes chart segments and percentages (ViewModel logic)
+/// - Manages active filter selection
+@injectable
+class StatisticsCubit extends Cubit<StatisticsState> {
+  final AdminStatsRepository _repository;
+
+  String _selectedFilter = 'month';
+  String get selectedFilter => _selectedFilter;
+
+  StatisticsCubit(this._repository) : super(StatisticsInitial());
+
+  // ─── Public API ────────────────────────────────────────────────────────
+
+  /// Initial load — shows skeleton loading UI
+  Future<void> loadData({String? filter}) async {
+    _selectedFilter = filter ?? _selectedFilter;
+    emit(StatisticsLoading());
+    await _fetchData();
+  }
+
+  /// Change filter and reload (also shows loading skeleton)
+  Future<void> changeFilter(String filter) async {
+    if (_selectedFilter == filter) return;
+    _selectedFilter = filter;
+    emit(StatisticsLoading());
+    await _fetchData();
+  }
+
+  /// Silent refresh — re-fetches with current filter, shows loading again
+  Future<void> refresh() async {
+    emit(StatisticsLoading());
+    await _fetchData();
+  }
+
+  // ─── Private ───────────────────────────────────────────────────────────
+
+  Future<void> _fetchData() async {
+    final result = await _repository.getStatistics(
+      selectedPeriod: _selectedFilter,
+    );
+
+    result.fold(
+      (failure) => _handleFailure(failure),
+      (entity) => _handleSuccess(entity),
+    );
+  }
+
+  void _handleFailure(Failures failure) {
+    if (failure is TokenExpiredFailure) {
+      emit(StatisticsTokenExpired());
+      return;
+    }
+
+    emit(StatisticsError(
+      message: failure.errorMessage,
+      isNetwork: failure is NetworkError,
+    ));
+  }
+
+  void _handleSuccess(dynamic entity) {
+    // Guard: entity must have data
+    if (entity.data == null) {
+      emit(StatisticsError(message: entity.message ?? 'No data available'));
+      return;
+    }
+
+    final data = entity.data!;
+    final doctors = data.doctors;
+    final storage = data.storage;
+
+    if (doctors == null || storage == null) {
+      emit(StatisticsError(message: 'Incomplete data received'));
+      return;
+    }
+
+    emit(StatisticsLoaded(
+      doctors: doctors,
+      storage: storage,
+      period: data.period ?? '',
+      selectedFilter: _selectedFilter,
+      doctorSegments: _buildDoctorSegments(doctors),
+      storageSegments: _buildStorageSegments(storage),
+    ));
+  }
+
+  // ─── Chart segment builders (ViewModel logic) ─────────────────────────
+
+  List<ChartSegment> _buildDoctorSegments(DoctorStatsEntity d) {
+    final total = d.totalRequests ?? 0;
+    if (total == 0) return [];
+
+    final items = [
+      ('Successful', d.successful ?? 0),
+      ('Failed', d.failed ?? 0),
+      ('Cancelled', d.cancelled ?? 0),
+      ('Pending', d.pending ?? 0),
+    ];
+
+    return items
+        .where((e) => e.$2 > 0)
+        .map((e) => ChartSegment(
+              label: e.$1,
+              value: e.$2,
+              percentage: _pct(e.$2, total),
+            ))
+        .toList();
+  }
+
+  List<ChartSegment> _buildStorageSegments(StorageStatsEntity s) {
+    final total = s.totalActions ?? 0;
+    if (total == 0) return [];
+
+    final items = [
+      ('Car Dispatch', s.carDispatch ?? 0),
+      ('Sample Added', s.sampleAddedToCar ?? 0),
+      ('Sample Removed', s.sampleRemovedFromCar ?? 0),
+      ('Transport Updates', s.transportRequestUpdate ?? 0),
+      ('Other', s.other ?? 0),
+    ];
+
+    return items
+        .where((e) => e.$2 > 0)
+        .map((e) => ChartSegment(
+              label: e.$1,
+              value: e.$2,
+              percentage: _pct(e.$2, total),
+            ))
+        .toList();
+  }
+
+  double _pct(int value, int total) =>
+      total == 0 ? 0 : double.parse(((value / total) * 100).toStringAsFixed(1));
+}
