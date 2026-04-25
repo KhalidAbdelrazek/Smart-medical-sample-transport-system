@@ -2,7 +2,6 @@ import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:dio/dio.dart';
 import 'package:either_dart/either.dart';
 import 'package:injectable/injectable.dart';
-import 'dart:convert';
 import 'package:smart_midecal_transport_app/core/api%20manager/api_endpoints.dart';
 import 'package:smart_midecal_transport_app/core/api%20manager/api_manager.dart';
 import 'package:smart_midecal_transport_app/core/error/failures.dart';

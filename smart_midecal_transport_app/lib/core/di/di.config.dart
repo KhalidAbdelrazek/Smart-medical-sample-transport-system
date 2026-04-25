@@ -55,7 +55,15 @@ import '../../presentation/employee/requests/ui/cubit/blood_sample_cubit.dart'
     as _i497;
 import '../../presentation/employer/restrictions_tab/cubit/restrictions_cubit.dart'
     as _i963;
-import '../../presentation/employer/statistics_tab/cubit/statistics_cubit.dart'
+import '../../presentation/employer/statistics_tab/data/data_source/admin_stats_data_source.dart'
+    as _i_asds;
+import '../../presentation/employer/statistics_tab/data/data_source/impl/admin_stats_data_source_impl.dart'
+    as _i_asdsi;
+import '../../presentation/employer/statistics_tab/data/repos/admin_stats_repository_impl.dart'
+    as _i_asri;
+import '../../presentation/employer/statistics_tab/domain/repos/admin_stats_repository.dart'
+    as _i_asr;
+import '../../presentation/employer/statistics_tab/ui/cubit/statistics_cubit.dart'
     as _i327;
 import '../../presentation/storage/home_tab/data/data_source/impl/static_storage_remote_ds_impl.dart'
     as _i304;
@@ -96,7 +104,19 @@ extension GetItInjectableX on _i174.GetIt {
   }) {
     final gh = _i526.GetItHelper(this, environment, environmentFilter);
     gh.factory<_i963.RestrictionsCubit>(() => _i963.RestrictionsCubit());
-    gh.factory<_i327.StatisticsCubit>(() => _i327.StatisticsCubit());
+    gh.factory<_i_asds.AdminStatsDataSource>(
+      () => _i_asdsi.AdminStatsDataSourceImpl(
+        apiManager: gh<_i949.ApiManager>(),
+      ),
+    );
+    gh.factory<_i_asr.AdminStatsRepository>(
+      () => _i_asri.AdminStatsRepositoryImpl(
+        gh<_i_asds.AdminStatsDataSource>(),
+      ),
+    );
+    gh.factory<_i327.StatisticsCubit>(
+      () => _i327.StatisticsCubit(gh<_i_asr.AdminStatsRepository>()),
+    );
     gh.singleton<_i949.ApiManager>(() => _i949.ApiManager());
     gh.factory<_i274.MyRequestsDataSource>(
       () => _i1059.MyRequestsDataSourceImpl(apiManager: gh<_i949.ApiManager>()),
