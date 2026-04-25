@@ -13,7 +13,7 @@ abstract class ApiEndPoints {
   static const dispatchCar =
       '${ApiConstants.baseUrl}/api/transport/dispatch-car/';
 
-  static const statisticsDashboard = '${ApiConstants.baseUrl}/api/analytics/dashboard/?period=month';
+  static const statisticsDashboard = '${ApiConstants.baseUrl}api/analytics/dashboard/';
 
   // ── My Requests (Employee / Doctor) ──────────────────────────────────────
   static const getMyTransportRequests =
