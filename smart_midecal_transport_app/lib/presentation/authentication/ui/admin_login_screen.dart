@@ -71,7 +71,7 @@ class _AdminLoginScreenState extends State<AdminLoginScreen>
           } else if (state is AdminLoginSuccess) {
             DialogUtils.hideLoading(context);
             // Navigate to Admin Dashboard (sharing root for now or separate)
-            Navigator.pushReplacementNamed(context, RouteNames.root);
+            Navigator.pushReplacementNamed(context, RouteNames.employerMainScreen);
           } else if (state is AdminLoginError) {
             DialogUtils.hideLoading(context);
             DialogUtils.showMessage(context: context, message: state.message);
