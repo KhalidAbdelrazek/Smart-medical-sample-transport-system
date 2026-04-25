@@ -23,8 +23,9 @@ class DashboardStatsCard extends StatelessWidget {
     final theme = Theme.of(context);
 
     return Container(
-      padding: EdgeInsets.all(16.w),
+      padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 15.4.h),
       decoration: BoxDecoration(
+        
         color: theme.cardColor,
         borderRadius: BorderRadius.circular(16.r),
         border: Border.all(color: theme.dividerColor.withValues(alpha: 0.3)),
@@ -68,7 +69,7 @@ class DashboardStatsCard extends StatelessWidget {
                 ),
             ],
           ),
-          SizedBox(height: 12.h),
+          SizedBox(height: 8.h),
           Text(
             value,
             style: theme.textTheme.headlineMedium?.copyWith(
