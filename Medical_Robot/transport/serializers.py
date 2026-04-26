@@ -18,7 +18,7 @@ class TransportRequestSerializer(serializers.ModelSerializer):
     class Meta:
         model = TransportRequest
         fields = [
-            'id', 'sample', 'requested_by_name',
+            'id', 'request_type', 'sample', 'requested_by_name',
             'room_number', 'assigned_car', 'status', 'created_at',
         ]
 
@@ -39,6 +39,20 @@ class RemoveFromCartSerializer(serializers.Serializer):
 
     # No input parameters needed - request_id comes from URL path
     pass
+
+
+class DoctorReturnRequestSerializer(serializers.Serializer):
+    """Body for doctor requesting sample return."""
+    sample_code = serializers.CharField()
+
+
+class StartReturnCollectionSerializer(serializers.Serializer):
+    """Body for storage employee starting return collection."""
+    car_id = serializers.IntegerField()
+    selected_request_ids = serializers.ListField(
+        child=serializers.CharField(),
+        help_text="List of TransportRequest IDs to collect"
+    )
 
 
 class AllTransportRequestsSerializer(serializers.ModelSerializer):
@@ -72,6 +86,7 @@ class AllTransportRequestsSerializer(serializers.ModelSerializer):
         model = TransportRequest
         fields = [
             "id",
+            "request_type",
             "status",
             "room_number",
             "created_at",

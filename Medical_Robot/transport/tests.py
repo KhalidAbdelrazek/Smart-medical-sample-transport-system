@@ -101,3 +101,196 @@ class DispatchCarMqttIntegrationTests(TestCase):
         self.assertEqual(self.car.status, "DISPATCHED")
         self.assertEqual(self.request_1.status, "DISPATCHED")
         self.assertEqual(self.request_2.status, "DISPATCHED")
+
+
+class ReturnFlowTests(TestCase):
+    """Test reverse logistics: doctor return requests and batch collection."""
+
+    def setUp(self):
+        self.storage = User.objects.create_user(
+            email="storage@test.com",
+            password="testpass123",
+            full_name="Storage Employee",
+            role="STORAGE_EMPLOYEE",
+        )
+        self.doctor = User.objects.create_user(
+            email="doctor.return@test.com",
+            password="testpass123",
+            full_name="Dr. Return",
+            role="DOCTOR",
+        )
+
+        self.car = Car.objects.create(car_number="CAR-RETURN-01", status="IDLE", capacity=5)
+
+        self.sample = BloodSample.objects.create(
+            patient_name="Return Patient",
+            blood_type="O+",
+            status="WITH_DOCTOR",
+            is_in_storage=False,
+        )
+
+    def test_doctor_can_request_return_for_delivered_sample(self):
+        """Doctor can create a return request for a sample they have."""
+        from transport.return_services import request_sample_return
+
+        self.sample.status = "WITH_DOCTOR"
+        self.sample.is_in_storage = False
+        self.sample.save()
+
+        orig_request = TransportRequest.objects.create(
+            sample=self.sample,
+            requested_by=self.doctor,
+            room_number="Room-101",
+            status="DELIVERED",
+            request_type="DELIVERY",
+        )
+
+        return_request = request_sample_return(
+            sample_code=self.sample.sample_code,
+            doctor=self.doctor,
+        )
+
+        self.assertEqual(return_request.request_type, "RETURN")
+        self.assertEqual(return_request.status, "PENDING")
+        self.assertEqual(return_request.sample.id, self.sample.id)
+        self.assertEqual(return_request.room_number, "Room-101")
+
+    def test_doctor_return_request_unknown_sample_raises_not_found(self):
+        from transport.return_services import request_sample_return
+        from rest_framework.exceptions import NotFound
+
+        with self.assertRaises(NotFound):
+            request_sample_return(sample_code="PT-9999", doctor=self.doctor)
+
+    def test_start_return_collection_enforces_capacity(self):
+        """Cannot select more returns than car capacity."""
+        from transport.return_services import start_return_collection
+        from rest_framework.exceptions import ValidationError
+
+        self.car.capacity = 2
+        self.car.save()
+
+        requests = []
+        for i in range(3):
+            sample = BloodSample.objects.create(
+                patient_name=f"Patient {i}",
+                blood_type="O+",
+                status="WITH_DOCTOR",
+                is_in_storage=False,
+            )
+            req = TransportRequest.objects.create(
+                sample=sample,
+                requested_by=self.doctor,
+                room_number=f"Room-{i}",
+                status="PENDING",
+                request_type="RETURN",
+            )
+            requests.append(req)
+
+        with self.assertRaises(ValidationError):
+            start_return_collection(
+                car_id=self.car.id,
+                selected_request_ids=[str(req.id) for req in requests],
+                actor=self.storage,
+            )
+
+    def test_start_return_collection_requires_selection(self):
+        from transport.return_services import start_return_collection
+        from rest_framework.exceptions import ValidationError
+
+        with self.assertRaises(ValidationError):
+            start_return_collection(
+                car_id=self.car.id,
+                selected_request_ids=[],
+                actor=self.storage,
+            )
+
+    def test_start_return_collection_dispatches_selected_requests(self):
+        from transport.return_services import start_return_collection
+
+        req = TransportRequest.objects.create(
+            sample=self.sample,
+            requested_by=self.doctor,
+            room_number="Room-101",
+            status="PENDING",
+            request_type="RETURN",
+        )
+
+        with patch("transport.return_services.publish_dispatch_event", return_value=True):
+            dispatched_requests, car = start_return_collection(
+                car_id=self.car.id,
+                selected_request_ids=[str(req.id)],
+                actor=self.storage,
+            )
+
+        self.assertEqual(len(dispatched_requests), 1)
+        self.assertEqual(car.status, "DISPATCHED")
+
+        req.refresh_from_db()
+        self.sample.refresh_from_db()
+        self.car.refresh_from_db()
+
+        self.assertEqual(req.status, "DISPATCHED")
+        self.assertEqual(req.assigned_car_id, self.car.id)
+        self.assertEqual(self.sample.status, "OUT_FOR_DELIVERY")
+        self.assertFalse(self.sample.is_in_storage)
+        self.assertEqual(self.car.status, "DISPATCHED")
+
+    def test_delivery_completion_moves_sample_to_with_doctor(self):
+        """Completing a DELIVERY request moves sample to WITH_DOCTOR state."""
+        from transport.services import complete_transport_request
+
+        sample = BloodSample.objects.create(
+            patient_name="Delivery Test",
+            blood_type="AB+",
+            status="OUT_FOR_DELIVERY",
+        )
+        req = TransportRequest.objects.create(
+            sample=sample,
+            requested_by=self.doctor,
+            room_number="Room-150",
+            status="DISPATCHED",
+            assigned_car=self.car,
+            request_type="DELIVERY",
+        )
+
+        with patch("transport.services.publish_dispatch_event", return_value=True):
+            completed_req = complete_transport_request(
+                request_id=req.id,
+                actor=self.storage,
+            )
+
+        self.assertEqual(completed_req.status, "DELIVERED")
+        sample.refresh_from_db()
+        self.assertEqual(sample.status, "WITH_DOCTOR")
+        self.assertEqual(sample.is_in_storage, False)
+
+    def test_return_completion_moves_sample_back_to_in_storage(self):
+        """Completing a RETURN request moves sample back to IN_STORAGE."""
+        from transport.services import complete_transport_request
+
+        sample = BloodSample.objects.create(
+            patient_name="Return Complete Test",
+            blood_type="B-",
+            status="OUT_FOR_DELIVERY",
+            is_in_storage=False,
+        )
+        req = TransportRequest.objects.create(
+            sample=sample,
+            requested_by=self.doctor,
+            room_number="Room-160",
+            status="DISPATCHED",
+            assigned_car=self.car,
+            request_type="RETURN",
+        )
+
+        with patch("transport.services.publish_dispatch_event", return_value=True):
+            completed_req = complete_transport_request(
+                request_id=req.id,
+                actor=self.storage,
+            )
+
+        self.assertEqual(completed_req.status, "RETURNED")
+        sample.refresh_from_db()
+        self.assertEqual(sample.status, "IN_STORAGE")
+        self.assertEqual(sample.is_in_storage, True)

@@ -266,8 +266,12 @@ def remove_sample_from_cart(request_id, actor=None):
 
 def complete_transport_request(request_id, actor=None):
     """
-    Mark a transport request as successful/delivered.
-    Transition: DISPATCHED -> DELIVERED
+    Mark a transport request as completed.
+    
+    Transitions:
+    - DELIVERY (DISPATCHED -> DELIVERED): sample moves to WITH_DOCTOR (stays with doctor, not in storage)
+    - RETURN (DISPATCHED -> RETURNED): sample returns to IN_STORAGE
+    
     Car becomes IDLE if all its requests are completed.
     """
     try:
@@ -281,15 +285,24 @@ def complete_transport_request(request_id, actor=None):
         )
 
     with transaction.atomic():
-        # Set to DELIVERED
-        transport_request.status = "DELIVERED"
+        sample = transport_request.sample
+        
+        # Branch by request type
+        if transport_request.request_type == 'DELIVERY':
+            # Delivery completion: sample stays with doctor
+            transport_request.status = "DELIVERED"
+            sample.status = "WITH_DOCTOR"
+            sample.is_in_storage = False
+            description = f"Completed delivery of sample {sample.sample_code} to room {transport_request.room_number}"
+        else:  # RETURN
+            # Return completion: sample back to storage
+            transport_request.status = "RETURNED"
+            sample.status = "IN_STORAGE"
+            sample.is_in_storage = True
+            description = f"Completed return of sample {sample.sample_code} from room {transport_request.room_number}"
+        
         transport_request.completed_at = timezone.now()
         transport_request.save()
-
-        # Update blood sample status
-        sample = transport_request.sample
-        sample.status = "IN_STORAGE"
-        sample.is_in_storage = True
         sample.save()
 
         # Check if car should be IDLE
@@ -310,17 +323,19 @@ def complete_transport_request(request_id, actor=None):
             log_storage_employee_action(
                 employee=actor,
                 action='TRANSPORT_REQUEST_UPDATE',
-                description=f"Completed delivery of sample {sample.sample_code} to room {transport_request.room_number}",
+                description=description,
                 transport_request=transport_request,
                 car=car,
             )
 
     return transport_request
 
-
 def fail_transport_request(request_id, actor=None):
     """
     Mark a transport request as failed.
+    
+    For DELIVERY: sample reverts to IN_STORAGE for retry
+    For RETURN: sample reverts to WITH_DOCTOR so doctor can retry return
     """
     try:
         transport_request = TransportRequest.objects.get(id=request_id)
@@ -330,16 +345,24 @@ def fail_transport_request(request_id, actor=None):
     with transaction.atomic():
         transport_request.status = "FAILED"
         transport_request.failed_at = timezone.now()
-        transport_request.status_note = "Delivery failed"
+        transport_request.status_note = "Transport failed"
         transport_request.save()
 
-        # Revert blood sample status to IN_STORAGE so it can be requested again
         sample = transport_request.sample
-        sample.status = "IN_STORAGE"
-        sample.is_in_storage = True
+        
+        # Branch by request type to revert sample to appropriate status
+        if transport_request.request_type == 'DELIVERY':
+            # Delivery failed: sample back to storage for retry
+            sample.status = "IN_STORAGE"
+            sample.is_in_storage = True
+        else:  # RETURN
+            # Return failed: sample stays with doctor for retry
+            sample.status = "WITH_DOCTOR"
+            sample.is_in_storage = False
+        
         sample.save()
 
-        # Idle car if needed
+        # Idle car
         car = transport_request.assigned_car
         if car:
             car.status = "IDLE"
@@ -350,7 +373,7 @@ def fail_transport_request(request_id, actor=None):
             log_storage_employee_action(
                 employee=actor,
                 action='TRANSPORT_REQUEST_UPDATE',
-                description=f"Failed delivery of sample {sample.sample_code}. Reason: {transport_request.status_note}",
+                description=f"Failed {transport_request.request_type.lower()} of sample {sample.sample_code}. Reason: {transport_request.status_note}",
                 transport_request=transport_request,
                 car=car,
             )

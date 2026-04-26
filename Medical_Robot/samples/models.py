@@ -21,9 +21,10 @@ class BloodSample(models.Model):
     ]
 
     STATUS_CHOICES = [
-        ('IN_STORAGE', 'In Storage'),
-        ('REQUESTED', 'Requested'),
-        ('OUT_FOR_DELIVERY', 'Out For Delivery'),
+        ('IN_STORAGE', 'In Storage'),       # Sample is in storage, not assigned to anyone
+        ('REQUESTED', 'Requested'),         # Doctor has requested delivery to their room
+        ('OUT_FOR_DELIVERY', 'Out For Delivery'),  # Sample is being transported for delivery
+        ('WITH_DOCTOR', 'With Doctor'),     # Sample has been delivered to doctor (not in storage yet)
     ]
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)

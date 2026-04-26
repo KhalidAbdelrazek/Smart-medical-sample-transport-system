@@ -9,6 +9,9 @@ from .views import (
     AllTransportRequestsView,
     CompleteTransportRequestView,
     FailTransportRequestView,
+    DoctorReturnRequestView,
+    ListPendingReturnsView,
+    StartReturnCollectionView,
 )
 
 urlpatterns = [
@@ -38,6 +41,13 @@ urlpatterns = [
 
     # POST /api/transport/requests/{uuid}/fail/
     path('requests/<uuid:request_id>/fail/', FailTransportRequestView.as_view(), name='fail-request'),
-
-
+    
+    # POST /api/transport/return-request/ - Doctor requests sample return
+    path('return-request/', DoctorReturnRequestView.as_view(), name='return-request'),
+    
+    # GET /api/transport/pending-returns/ - Storage views pending returns
+    path('pending-returns/', ListPendingReturnsView.as_view(), name='pending-returns'),
+    
+    # POST /api/transport/start-return-collection/ - Storage starts collection with selected samples
+    path('start-return-collection/', StartReturnCollectionView.as_view(), name='start-return-collection'),
 ]
