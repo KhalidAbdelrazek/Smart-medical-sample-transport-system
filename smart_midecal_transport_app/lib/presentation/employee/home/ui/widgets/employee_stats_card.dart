@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
-/// Dashboard stats card widget for employee home
+/// Modern stats card — identical design language to DashboardStatsCard
+/// in employer/statistics_tab (same structure, same shadow, same border).
 class EmployeeStatsCard extends StatelessWidget {
   final IconData icon;
   final Color color;
@@ -23,7 +24,7 @@ class EmployeeStatsCard extends StatelessWidget {
     final theme = Theme.of(context);
 
     return Container(
-      padding: EdgeInsets.all(16.w),
+      padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 15.h),
       decoration: BoxDecoration(
         color: theme.cardColor,
         borderRadius: BorderRadius.circular(16.r),
@@ -52,7 +53,8 @@ class EmployeeStatsCard extends StatelessWidget {
               const Spacer(),
               if (subtitle != null)
                 Container(
-                  padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 4.h),
+                  padding:
+                      EdgeInsets.symmetric(horizontal: 8.w, vertical: 4.h),
                   decoration: BoxDecoration(
                     color: color.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(8.r),
@@ -68,7 +70,7 @@ class EmployeeStatsCard extends StatelessWidget {
                 ),
             ],
           ),
-          SizedBox(height: 12.h),
+          SizedBox(height: 8.h),
           Text(
             value,
             style: theme.textTheme.headlineMedium?.copyWith(
@@ -76,7 +78,12 @@ class EmployeeStatsCard extends StatelessWidget {
             ),
           ),
           SizedBox(height: 4.h),
-          Text(label, style: theme.textTheme.bodySmall),
+          Text(
+            label,
+            style: theme.textTheme.bodySmall,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+          ),
         ],
       ),
     );

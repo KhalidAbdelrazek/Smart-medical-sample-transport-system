@@ -1,12 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
-/// Stats card widget for home tab
+/// Modern stats card — same design language as DashboardStatsCard.
 class StatsCard extends StatelessWidget {
   final IconData icon;
   final Color color;
   final String label;
   final String value;
+  final String? subtitle;
 
   const StatsCard({
     super.key,
@@ -14,6 +15,7 @@ class StatsCard extends StatelessWidget {
     required this.color,
     required this.label,
     required this.value,
+    this.subtitle,
   });
 
   @override
@@ -21,7 +23,7 @@ class StatsCard extends StatelessWidget {
     final theme = Theme.of(context);
 
     return Container(
-      padding: EdgeInsets.all(16.w),
+      padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 15.h),
       decoration: BoxDecoration(
         color: theme.cardColor,
         borderRadius: BorderRadius.circular(16.r),
@@ -37,15 +39,37 @@ class StatsCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Container(
-            padding: EdgeInsets.all(10.w),
-            decoration: BoxDecoration(
-              color: color.withValues(alpha: 0.15),
-              borderRadius: BorderRadius.circular(12.r),
-            ),
-            child: Icon(icon, color: color, size: 24.sp),
+          Row(
+            children: [
+              Container(
+                padding: EdgeInsets.all(10.w),
+                decoration: BoxDecoration(
+                  color: color.withValues(alpha: 0.15),
+                  borderRadius: BorderRadius.circular(12.r),
+                ),
+                child: Icon(icon, color: color, size: 24.sp),
+              ),
+              const Spacer(),
+              if (subtitle != null)
+                Container(
+                  padding:
+                      EdgeInsets.symmetric(horizontal: 8.w, vertical: 4.h),
+                  decoration: BoxDecoration(
+                    color: color.withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(8.r),
+                  ),
+                  child: Text(
+                    subtitle!,
+                    style: TextStyle(
+                      color: color,
+                      fontSize: 10.sp,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ),
+            ],
           ),
-          SizedBox(height: 12.h),
+          SizedBox(height: 8.h),
           Text(
             value,
             style: theme.textTheme.headlineMedium?.copyWith(
@@ -53,7 +77,12 @@ class StatsCard extends StatelessWidget {
             ),
           ),
           SizedBox(height: 4.h),
-          Text(label, style: theme.textTheme.bodySmall),
+          Text(
+            label,
+            style: theme.textTheme.bodySmall,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+          ),
         ],
       ),
     );
