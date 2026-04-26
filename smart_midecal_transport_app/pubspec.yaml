@@ -52,6 +52,7 @@ dependencies:
   flutter_native_splash: ^2.4.3
   easy_localization: ^3.0.7+1
   donut_chart: ^0.0.1
+  shimmer: ^3.0.0
 
 
 

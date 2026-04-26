@@ -1,102 +1,64 @@
-// ─── Restriction Type ──────────────────────────────────────────────────────
-
-enum RestrictionType { none, global, partial }
+enum RestrictionType {
+  allUnrestrict,
+  globalRestrict,
+  partialRestrict,
+  partialUnrestrict,
+}
 
 extension RestrictionTypeX on RestrictionType {
   String get value {
     switch (this) {
-      case RestrictionType.none:
-        return 'NONE';
-      case RestrictionType.global:
-        return 'GLOBAL';
-      case RestrictionType.partial:
-        return 'PARTIAL';
+      case RestrictionType.allUnrestrict:
+        return 'ALL_UNRESTRICT';
+      case RestrictionType.globalRestrict:
+        return 'GLOBAL_RESTRICT';
+      case RestrictionType.partialRestrict:
+        return 'PARTIAL_RESTRICT';
+      case RestrictionType.partialUnrestrict:
+        return 'PARTIAL_UNRESTRICT';
     }
   }
 
   static RestrictionType fromString(String? s) {
     switch (s?.toUpperCase()) {
-      case 'GLOBAL':
-        return RestrictionType.global;
-      case 'PARTIAL':
-        return RestrictionType.partial;
+      case 'GLOBAL_RESTRICT':
+        return RestrictionType.globalRestrict;
+      case 'PARTIAL_RESTRICT':
+        return RestrictionType.partialRestrict;
+      case 'PARTIAL_UNRESTRICT':
+        return RestrictionType.partialUnrestrict;
       default:
-        return RestrictionType.none;
+        return RestrictionType.allUnrestrict;
     }
   }
 }
 
 // ─── Restrictions Status ───────────────────────────────────────────────────
 
-class RestrictionsStatusEntity {
-  final bool? success;
-  final String? message;
-  final RestrictionsDataEntity? data;
-  final dynamic errors;
-
-  RestrictionsStatusEntity({
-    this.success,
-    this.message,
-    this.data,
-    this.errors,
-  });
-}
-
-class RestrictionsDataEntity {
-  final DoctorRestrictionEntity? doctorRestriction;
-  final StorageRestrictionEntity? storageRestriction;
-  final CarRestrictionEntity? carRestriction;
-
-  RestrictionsDataEntity({
-    this.doctorRestriction,
-    this.storageRestriction,
-    this.carRestriction,
-  });
-}
-
-class DoctorRestrictionEntity {
-  final String? restrictionType;
-  final List<String>? doctorIds;
-  final String? reason;
-
-  DoctorRestrictionEntity({
-    this.restrictionType,
-    this.doctorIds,
-    this.reason,
-  });
-
-  RestrictionType get type =>
-      RestrictionTypeX.fromString(restrictionType);
-}
-
-class StorageRestrictionEntity {
-  final String? restrictionType;
-  final List<String>? employeeIds;
-  final String? reason;
-
-  StorageRestrictionEntity({
-    this.restrictionType,
-    this.employeeIds,
-    this.reason,
-  });
-
-  RestrictionType get type =>
-      RestrictionTypeX.fromString(restrictionType);
-}
-
-class CarRestrictionEntity {
-  final bool? status;
-  final String? reason;
-
-  CarRestrictionEntity({this.status, this.reason});
-}
-
-// ─── Person (doctor / storage employee) ───────────────────────────────────
-
 class PersonEntity {
   final String? id;
   final String? name;
   final String? email;
+  final bool isRestricted;
 
-  PersonEntity({this.id, this.name, this.email});
+  PersonEntity({
+    this.id,
+    this.name,
+    this.email,
+    this.isRestricted = false,
+  });
+
+  PersonEntity copyWith({
+    String? id,
+    String? name,
+    String? email,
+    bool? isRestricted,
+  }) {
+    return PersonEntity(
+      id: id ?? this.id,
+      name: name ?? this.name,
+      email: email ?? this.email,
+      isRestricted: isRestricted ?? this.isRestricted,
+    );
+  }
 }
