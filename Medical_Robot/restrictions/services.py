@@ -10,7 +10,8 @@ Two layers of service functions:
   APPLY LAYER  — called from restrictions/views.py to mutate the database
                  when an admin activates or lifts a restriction.
 """
-from django.db import transaction
+from django.db import transaction, models
+from django.db.models import Value, BooleanField, Exists, OuterRef, F
 from rest_framework.exceptions import PermissionDenied
 
 from .models import SystemRestriction, RestrictedUser
@@ -251,3 +252,55 @@ def get_all_restriction_statuses() -> dict:
         'storage_samples': _entry('STORAGE_SAMPLES'),
         'transport_car':   _entry('TRANSPORT_CAR'),
     }
+
+
+def get_users_restriction_status(category: str):
+    """
+    Return a list of users (id, name, is_restricted) for a given category.
+    Used by GET /api/restrictions/status/?type=...
+    
+    Logic:
+      - GLOBAL  → all is_restricted: True
+      - PARTIAL → only those in RestrictedUser are True
+      - NONE    → all is_restricted: False
+    """
+    from accounts.models import User
+
+    if category == 'doctor':
+        role = 'DOCTOR'
+        restriction_type = 'DOCTOR_SAMPLES'
+    elif category == 'storage':
+        role = 'STORAGE_EMPLOYEE'
+        restriction_type = 'STORAGE_SAMPLES'
+    else:
+        return []
+
+    restriction = _get_restriction(restriction_type)
+    mode = restriction.mode
+
+    queryset = User.objects.filter(role=role, is_active=True)
+
+    if mode == 'GLOBAL':
+        queryset = queryset.annotate(
+            _res=Value(True, output_field=BooleanField())
+        )
+    elif mode == 'NONE':
+        queryset = queryset.annotate(
+            _res=Value(False, output_field=BooleanField())
+        )
+    else:  # PARTIAL
+        # Exists subquery for performance
+        restricted_subquery = RestrictedUser.objects.filter(
+            restriction=restriction,
+            user=OuterRef('pk')
+        )
+        queryset = queryset.annotate(
+            _res=Exists(restricted_subquery)
+        )
+
+    # Alphabetical sorting and field mapping
+    return queryset.order_by('full_name').values(
+        'id',
+        name=F('full_name'),
+        is_restricted=F('_res')
+    )

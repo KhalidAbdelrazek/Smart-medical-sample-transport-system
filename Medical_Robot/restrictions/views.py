@@ -7,7 +7,7 @@ Includes endpoints for admins to set restrictions and a public status endpoint.
 from rest_framework.views import APIView
 from rest_framework.permissions import IsAuthenticated
 from rest_framework import status
-from drf_spectacular.utils import extend_schema, OpenApiExample
+from drf_spectacular.utils import extend_schema, OpenApiExample, OpenApiParameter
 
 from accounts.permissions import IsAdminRole
 from common.utils.response import unified_response
@@ -21,6 +21,7 @@ from .services import (
     apply_storage_samples_restriction,
     apply_transport_car_restriction,
     get_all_restriction_statuses,
+    get_users_restriction_status,
 )
 
 
@@ -166,23 +167,45 @@ class RestrictionStatusView(APIView):
 
     @extend_schema(
         tags=['Restrictions'],
-        summary='Get All Restrictions Status',
-        description='Returns a summary of all active system restrictions for client synchronization.',
+        summary='Get Restrictions Status',
+        description=(
+            'Returns current system restrictions. '
+            'Pass ?type=doctor or ?type=storage to get an alphabetical list of users '
+            'in that category with their individual "is_restricted" status.'
+        ),
+        parameters=[
+            OpenApiParameter(
+                name='type',
+                type=str,
+                location=OpenApiParameter.QUERY,
+                description='Category of users to list (doctor or storage)',
+                required=False,
+                enum=['doctor', 'storage']
+            ),
+        ],
         responses={200: OpenApiExample('Status Response', value={
             "success": True,
             "message": "Current system restrictions fetched successfully.",
             "data": {
-                "doctor_samples": {"mode": "NONE", "reason": "", "updated_at": "2026-04-23T18:00:00Z"},
-                "storage_samples": {"mode": "GLOBAL", "reason": "Maintenance", "updated_at": "2026-04-23T18:05:00Z"},
-                "transport_car": {"mode": "NONE", "reason": "", "updated_at": "2026-04-23T18:10:00Z"}
+                "doctor_samples": {"mode": "NONE", "reason": "", "updated_at": "..."},
+                "storage_samples": {"mode": "GLOBAL", "reason": "...", "updated_at": "..."},
+                "transport_car": {"mode": "NONE", "reason": "", "updated_at": "..."}
             }
         })},
     )
     def get(self, request):
-        statuses = get_all_restriction_statuses()
+        category = request.query_params.get('type')
+
+        if category in ['doctor', 'storage']:
+            data = get_users_restriction_status(category)
+            msg = f"List of {category}s with restriction status fetched successfully."
+        else:
+            data = get_all_restriction_statuses()
+            msg = "Current system restrictions fetched successfully."
+
         return unified_response(
             success=True,
-            message="Current system restrictions fetched successfully.",
-            data=statuses,
+            message=msg,
+            data=data,
             status=status.HTTP_200_OK
         )
