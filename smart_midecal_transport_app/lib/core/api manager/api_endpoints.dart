@@ -15,6 +15,21 @@ abstract class ApiEndPoints {
 
   static const statisticsDashboard = '${ApiConstants.baseUrl}api/analytics/dashboard/';
 
+  // ── Restrictions ──────────────────────────────────────────────────────────
+  static const restrictionsStatus =
+      '${ApiConstants.baseUrl}api/restrictions/status/';
+  static const restrictDoctorSamples =
+      '${ApiConstants.baseUrl}api/restrictions/restrict-doctor-samples/';
+  static const restrictStorageSamples =
+      '${ApiConstants.baseUrl}api/restrictions/restrict-storage-samples/';
+  static const restrictTransportCar =
+      '${ApiConstants.baseUrl}api/restrictions/restrict-transport-car/';
+
+  // ── People lists (for partial restriction selection) ──────────────────────
+  static const getDoctors = '${ApiConstants.baseUrl}api/auth/doctors/';
+  static const getStorageEmployees =
+      '${ApiConstants.baseUrl}api/auth/storage-employees/';
+
   // ── My Requests (Employee / Doctor) ──────────────────────────────────────
   static const getMyTransportRequests =
       '${ApiConstants.baseUrl}api/transport/my-requests/';
