@@ -155,7 +155,8 @@
     "settings": "الإعدادات",
     "language": "اللغة",
     "theme": "المظهر",
-    "retry": "إعادة المحاولة"
+    "retry": "إعادة المحاولة",
+    "logout": "تسجيل الخروج"
   },
   "request_sample": {
     "patient_name": "اسم المريض",

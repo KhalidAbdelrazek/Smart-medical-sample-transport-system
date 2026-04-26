@@ -155,7 +155,8 @@
     "settings": "Settings",
     "language": "Language",
     "theme": "Theme",
-    "retry": "Retry"
+    "retry": "Retry",
+    "logout": "Logout"
   },
   "request_sample": {
     "patient_name": "Patient Name",
