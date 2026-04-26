@@ -37,13 +37,6 @@ class RestrictionsDataSourceImpl implements RestrictionsDataSource {
   Either<Failures, T> _parseError<T>(Response response) {
     final data = response.data;
     if (data is Map<String, dynamic>) {
-      final errors = data['errors'];
-      if (errors is Map<String, dynamic>) {
-        final code = errors['code'] as String?;
-        if (code == 'token_not_valid') return Left(TokenExpiredFailure());
-        final detail = errors['detail'] as String?;
-        return Left(ServerError(errorMessage: detail ?? 'Server error'));
-      }
       final message = data['message'] as String?;
       return Left(ServerError(errorMessage: message ?? 'Server error'));
     }
@@ -53,21 +46,24 @@ class RestrictionsDataSourceImpl implements RestrictionsDataSource {
   // ─── GET restrictions/status/ ────────────────────────────────────────────
 
   @override
-  Future<Either<Failures, RestrictionsStatusEntity>> getRestrictionsStatus() async {
+  Future<Either<Failures, List<PersonEntity>>> getRestrictionsStatus({
+    required String type,
+  }) async {
     if (!await _hasNetwork()) {
       return Left(NetworkError(errorMessage: 'No internet connection'));
     }
     try {
       final response = await apiManager.getData(
-        path: ApiEndPoints.restrictionsStatus,
+        path: '${ApiEndPoints.restrictionsStatus}?type=$type',
         options: _authOptions(),
       );
       final code = response.statusCode ?? 0;
       if (code >= 200 && code < 300) {
-        final model = RestrictionsStatusModel.fromJson(
-          response.data as Map<String, dynamic>,
-        );
-        return Right(model);
+        final data = response.data;
+        if (data is Map<String, dynamic> && data['data'] != null) {
+          return Right(PersonModel.fromJsonList(data['data']));
+        }
+        return const Right([]);
       }
       return _parseError(response);
     } catch (e) {
@@ -80,7 +76,7 @@ class RestrictionsDataSourceImpl implements RestrictionsDataSource {
   @override
   Future<Either<Failures, bool>> restrictDoctorSamples({
     required RestrictionType type,
-    List<String> doctorIds = const [],
+    List<String> userIds = const [],
     String reason = '',
   }) async {
     if (!await _hasNetwork()) {
@@ -91,7 +87,7 @@ class RestrictionsDataSourceImpl implements RestrictionsDataSource {
         path: ApiEndPoints.restrictDoctorSamples,
         data: {
           'restriction_type': type.value,
-          'doctor_ids': doctorIds,
+          'user_ids': userIds,
           'reason': reason,
         },
         options: _authOptions(),
@@ -109,7 +105,7 @@ class RestrictionsDataSourceImpl implements RestrictionsDataSource {
   @override
   Future<Either<Failures, bool>> restrictStorageSamples({
     required RestrictionType type,
-    List<String> employeeIds = const [],
+    List<String> userIds = const [],
     String reason = '',
   }) async {
     if (!await _hasNetwork()) {
@@ -120,7 +116,7 @@ class RestrictionsDataSourceImpl implements RestrictionsDataSource {
         path: ApiEndPoints.restrictStorageSamples,
         data: {
           'restriction_type': type.value,
-          'employee_ids': employeeIds,
+          'user_ids': userIds,
           'reason': reason,
         },
         options: _authOptions(),
@@ -151,74 +147,6 @@ class RestrictionsDataSourceImpl implements RestrictionsDataSource {
       );
       final code = response.statusCode ?? 0;
       if (code >= 200 && code < 300) return const Right(true);
-      return _parseError(response);
-    } catch (e) {
-      return Left(ServerError(errorMessage: e.toString()));
-    }
-  }
-
-  // ─── GET doctors list ────────────────────────────────────────────────────
-
-  @override
-  Future<Either<Failures, List<PersonEntity>>> getDoctors() async {
-    if (!await _hasNetwork()) {
-      return Left(NetworkError(errorMessage: 'No internet connection'));
-    }
-    try {
-      final response = await apiManager.getData(
-        path: ApiEndPoints.getDoctors,
-        options: _authOptions(),
-      );
-      final code = response.statusCode ?? 0;
-      if (code >= 200 && code < 300) {
-        final rawList = response.data;
-        List<dynamic> list;
-        if (rawList is List) {
-          list = rawList;
-        } else if (rawList is Map<String, dynamic>) {
-          list = (rawList['results'] ?? rawList['data'] ?? []) as List<dynamic>;
-        } else {
-          list = [];
-        }
-        final doctors = list
-            .map((e) => PersonModel.fromJson(e as Map<String, dynamic>))
-            .toList();
-        return Right(doctors);
-      }
-      return _parseError(response);
-    } catch (e) {
-      return Left(ServerError(errorMessage: e.toString()));
-    }
-  }
-
-  // ─── GET storage employees list ──────────────────────────────────────────
-
-  @override
-  Future<Either<Failures, List<PersonEntity>>> getStorageEmployees() async {
-    if (!await _hasNetwork()) {
-      return Left(NetworkError(errorMessage: 'No internet connection'));
-    }
-    try {
-      final response = await apiManager.getData(
-        path: ApiEndPoints.getStorageEmployees,
-        options: _authOptions(),
-      );
-      final code = response.statusCode ?? 0;
-      if (code >= 200 && code < 300) {
-        final rawList = response.data;
-        List<dynamic> list;
-        if (rawList is List) {
-          list = rawList;
-        } else if (rawList is Map<String, dynamic>) {
-          list = (rawList['results'] ?? rawList['data'] ?? []) as List<dynamic>;
-        } else {
-          list = [];
-        }
-        final employees = list
-            .map((e) => PersonModel.fromJson(e as Map<String, dynamic>))
-            .toList();
-        return Right(employees);
-      }
       return _parseError(response);
     } catch (e) {
       return Left(ServerError(errorMessage: e.toString()));

@@ -1,3 +1,4 @@
+import 'package:either_dart/either.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:injectable/injectable.dart';
 import 'package:smart_midecal_transport_app/core/error/failures.dart';
@@ -5,14 +6,6 @@ import 'package:smart_midecal_transport_app/presentation/employer/restrictions_t
 import 'package:smart_midecal_transport_app/presentation/employer/restrictions_tab/domain/repos/restrictions_repository.dart';
 import 'restrictions_state.dart';
 
-/// RestrictionsCubit — ViewModel for the Restrictions Tab
-///
-/// Responsibilities:
-///  - Load current restriction status from API
-///  - Toggle global restrictions (NONE ↔ GLOBAL)
-///  - Manage partial selection lists with search
-///  - Apply partial restrictions per domain
-///  - Track per-action loading to prevent double taps
 @injectable
 class RestrictionsCubit extends Cubit<RestrictionsState> {
   final RestrictionsRepository _repository;
@@ -23,298 +16,167 @@ class RestrictionsCubit extends Cubit<RestrictionsState> {
 
   Future<void> loadData() async {
     emit(RestrictionsLoading());
-    await _fetchStatus();
+    await _fetchAll();
   }
 
   Future<void> refresh() async {
-    emit(RestrictionsLoading());
-    await _fetchStatus();
+    await _fetchAll();
   }
 
-  Future<void> _fetchStatus() async {
-    final result = await _repository.getRestrictionsStatus();
-    result.fold(
-      (failure) => emit(RestrictionsError(
-        failure.errorMessage,
-        isNetwork: failure is NetworkError,
-      )),
-      (entity) {
-        final data = entity.data;
-        final doctor = data?.doctorRestriction;
-        final storage = data?.storageRestriction;
-        final car = data?.carRestriction;
+  Future<void> _fetchAll() async {
+    final results = await Future.wait([
+      _repository.getRestrictionsStatus(type: 'doctor'),
+      _repository.getRestrictionsStatus(type: 'storage'),
+    ]);
 
-        emit(RestrictionsLoaded(
-          doctorRestrictionType: RestrictionTypeX.fromString(
-            doctor?.restrictionType,
-          ),
-          storageRestrictionType: RestrictionTypeX.fromString(
-            storage?.restrictionType,
-          ),
-          carRestricted: car?.status ?? false,
-          selectedDoctorIds: Set<String>.from(doctor?.doctorIds ?? []),
-          selectedStorageIds: Set<String>.from(storage?.employeeIds ?? []),
-        ));
+    final doctorResult = results[0];
+    final storageResult = results[1];
+
+    List<PersonEntity>? doctors;
+    List<PersonEntity>? storage;
+
+    doctorResult.fold(
+      (failure) {
+        emit(RestrictionsError(failure.errorMessage, isNetwork: failure is NetworkError));
       },
+      (list) => doctors = list,
     );
+
+    if (state is RestrictionsError) return;
+
+    storageResult.fold(
+      (failure) {
+        emit(RestrictionsError(failure.errorMessage, isNetwork: failure is NetworkError));
+      },
+      (list) => storage = list,
+    );
+
+    if (state is RestrictionsError) return;
+
+    if (doctors != null && storage != null) {
+      emit(RestrictionsLoaded(
+        doctors: doctors!,
+        storageEmployees: storage!,
+      ));
+    }
   }
 
   // ─── Global toggles ────────────────────────────────────────────────────
 
-  /// Toggle doctor samples NONE ↔ GLOBAL
   Future<void> toggleDoctorGlobal(bool value) async {
     final s = _loaded;
     if (s == null || s.isDoctorLoading) return;
 
-    final targetType = value ? RestrictionType.global : RestrictionType.none;
     emit(s.copyWith(isDoctorLoading: true));
+    final targetType = value ? RestrictionType.globalRestrict : RestrictionType.allUnrestrict;
 
     final result = await _repository.restrictDoctorSamples(type: targetType);
     result.fold(
       (f) => emit(s.copyWith(isDoctorLoading: false)),
-      (_) => emit(s.copyWith(
-        doctorRestrictionType: targetType,
-        // collapse partial panel when going global/none
-        isDoctorPartialExpanded: false,
-        isDoctorLoading: false,
-      )),
+      (_) async {
+        // Refresh full list to get updated status
+        final refreshResult = await _repository.getRestrictionsStatus(type: 'doctor');
+        refreshResult.fold(
+          (f) => emit(s.copyWith(isDoctorLoading: false)),
+          (list) => emit(s.copyWith(doctors: list, isDoctorLoading: false)),
+        );
+      },
     );
   }
 
-  /// Toggle storage samples NONE ↔ GLOBAL
   Future<void> toggleStorageGlobal(bool value) async {
     final s = _loaded;
     if (s == null || s.isStorageLoading) return;
 
-    final targetType = value ? RestrictionType.global : RestrictionType.none;
     emit(s.copyWith(isStorageLoading: true));
+    final targetType = value ? RestrictionType.globalRestrict : RestrictionType.allUnrestrict;
 
     final result = await _repository.restrictStorageSamples(type: targetType);
     result.fold(
       (f) => emit(s.copyWith(isStorageLoading: false)),
-      (_) => emit(s.copyWith(
-        storageRestrictionType: targetType,
-        isStoragePartialExpanded: false,
-        isStorageLoading: false,
-      )),
+      (_) async {
+        final refreshResult = await _repository.getRestrictionsStatus(type: 'storage');
+        refreshResult.fold(
+          (f) => emit(s.copyWith(isStorageLoading: false)),
+          (list) => emit(s.copyWith(storageEmployees: list, isStorageLoading: false)),
+        );
+      },
     );
   }
 
-  /// Toggle transport car restriction
   Future<void> toggleCarRestriction(bool value, {String reason = ''}) async {
     final s = _loaded;
     if (s == null || s.isCarLoading) return;
 
     emit(s.copyWith(isCarLoading: true));
-
-    final result = await _repository.restrictTransportCar(
-      status: value,
-      reason: reason,
-    );
+    final result = await _repository.restrictTransportCar(status: value, reason: reason);
     result.fold(
       (f) => emit(s.copyWith(isCarLoading: false)),
       (_) => emit(s.copyWith(carRestricted: value, isCarLoading: false)),
     );
   }
 
-  // ─── Partial section expansion ─────────────────────────────────────────
+  // ─── Individual toggles ───────────────────────────────────────────────
 
-  Future<void> toggleDoctorPartialExpanded() async {
-    final s = _loaded;
-    if (s == null) return;
-
-    final willExpand = !s.isDoctorPartialExpanded;
-    emit(s.copyWith(isDoctorPartialExpanded: willExpand));
-
-    // Lazy-load doctor list the first time the panel opens
-    if (willExpand && s.doctors.isEmpty) {
-      await _loadDoctors();
-    }
-  }
-
-  Future<void> toggleStoragePartialExpanded() async {
-    final s = _loaded;
-    if (s == null) return;
-
-    final willExpand = !s.isStoragePartialExpanded;
-    emit(s.copyWith(isStoragePartialExpanded: willExpand));
-
-    // Lazy-load storage list the first time
-    if (willExpand && s.storageEmployees.isEmpty) {
-      await _loadStorageEmployees();
-    }
-  }
-
-  // ─── Load person lists ──────────────────────────────────────────────────
-
-  Future<void> _loadDoctors() async {
-    final s = _loaded;
-    if (s == null) return;
-
-    emit(s.copyWith(isDoctorListLoading: true));
-    final result = await _repository.getDoctors();
-    result.fold(
-      (f) {
-        final cur = _loaded;
-        if (cur != null) emit(cur.copyWith(isDoctorListLoading: false));
-      },
-      (doctors) {
-        final cur = _loaded;
-        if (cur != null) {
-          emit(cur.copyWith(doctors: doctors, isDoctorListLoading: false));
-        }
-      },
-    );
-  }
-
-  Future<void> _loadStorageEmployees() async {
-    final s = _loaded;
-    if (s == null) return;
-
-    emit(s.copyWith(isStorageListLoading: true));
-    final result = await _repository.getStorageEmployees();
-    result.fold(
-      (f) {
-        final cur = _loaded;
-        if (cur != null) emit(cur.copyWith(isStorageListLoading: false));
-      },
-      (employees) {
-        final cur = _loaded;
-        if (cur != null) {
-          emit(cur.copyWith(
-            storageEmployees: employees,
-            isStorageListLoading: false,
-          ));
-        }
-      },
-    );
-  }
-
-  // ─── Partial selection toggles ─────────────────────────────────────────
-
-  void toggleDoctorSelection(String doctorId) {
-    final s = _loaded;
-    if (s == null) return;
-
-    final updated = Set<String>.from(s.selectedDoctorIds);
-    if (updated.contains(doctorId)) {
-      updated.remove(doctorId);
-    } else {
-      updated.add(doctorId);
-    }
-    emit(s.copyWith(selectedDoctorIds: updated));
-  }
-
-  void toggleStorageSelection(String employeeId) {
-    final s = _loaded;
-    if (s == null) return;
-
-    final updated = Set<String>.from(s.selectedStorageIds);
-    if (updated.contains(employeeId)) {
-      updated.remove(employeeId);
-    } else {
-      updated.add(employeeId);
-    }
-    emit(s.copyWith(selectedStorageIds: updated));
-  }
-
-  void selectAllDoctors() {
-    final s = _loaded;
-    if (s == null) return;
-    final allIds = s.doctors.map((d) => d.id ?? '').toSet();
-    emit(s.copyWith(selectedDoctorIds: allIds));
-  }
-
-  void clearAllDoctors() {
-    final s = _loaded;
-    if (s == null) return;
-    emit(s.copyWith(selectedDoctorIds: {}));
-  }
-
-  void selectAllStorageEmployees() {
-    final s = _loaded;
-    if (s == null) return;
-    final allIds = s.storageEmployees.map((e) => e.id ?? '').toSet();
-    emit(s.copyWith(selectedStorageIds: allIds));
-  }
-
-  void clearAllStorageEmployees() {
-    final s = _loaded;
-    if (s == null) return;
-    emit(s.copyWith(selectedStorageIds: {}));
-  }
-
-  // ─── Apply partial restrictions ────────────────────────────────────────
-
-  Future<void> applyPartialDoctorRestriction({String reason = ''}) async {
+  Future<void> toggleIndividualDoctor(String id, bool value) async {
     final s = _loaded;
     if (s == null || s.isDoctorLoading) return;
 
     emit(s.copyWith(isDoctorLoading: true));
-    final ids = s.selectedDoctorIds.toList();
+    final targetType = value ? RestrictionType.partialRestrict : RestrictionType.partialUnrestrict;
+
     final result = await _repository.restrictDoctorSamples(
-      type: RestrictionType.partial,
-      doctorIds: ids,
-      reason: reason,
+      type: targetType,
+      userIds: [id],
     );
+
     result.fold(
-      (f) {
-        final cur = _loaded;
-        if (cur != null) emit(cur.copyWith(isDoctorLoading: false));
-      },
+      (f) => emit(s.copyWith(isDoctorLoading: false)),
       (_) {
-        final cur = _loaded;
-        if (cur != null) {
-          emit(cur.copyWith(
-            doctorRestrictionType: RestrictionType.partial,
-            isDoctorLoading: false,
-          ));
-        }
+        final updated = s.doctors.map((d) {
+          if (d.id == id) return d.copyWith(isRestricted: value);
+          return d;
+        }).toList();
+        emit(s.copyWith(doctors: updated, isDoctorLoading: false));
       },
     );
   }
 
-  Future<void> applyPartialStorageRestriction({String reason = ''}) async {
+  Future<void> toggleIndividualStorage(String id, bool value) async {
     final s = _loaded;
     if (s == null || s.isStorageLoading) return;
 
     emit(s.copyWith(isStorageLoading: true));
-    final ids = s.selectedStorageIds.toList();
+    final targetType = value ? RestrictionType.partialRestrict : RestrictionType.partialUnrestrict;
+
     final result = await _repository.restrictStorageSamples(
-      type: RestrictionType.partial,
-      employeeIds: ids,
-      reason: reason,
+      type: targetType,
+      userIds: [id],
     );
+
     result.fold(
-      (f) {
-        final cur = _loaded;
-        if (cur != null) emit(cur.copyWith(isStorageLoading: false));
-      },
+      (f) => emit(s.copyWith(isStorageLoading: false)),
       (_) {
-        final cur = _loaded;
-        if (cur != null) {
-          emit(cur.copyWith(
-            storageRestrictionType: RestrictionType.partial,
-            isStorageLoading: false,
-          ));
-        }
+        final updated = s.storageEmployees.map((e) {
+          if (e.id == id) return e.copyWith(isRestricted: value);
+          return e;
+        }).toList();
+        emit(s.copyWith(storageEmployees: updated, isStorageLoading: false));
       },
     );
   }
 
-  // ─── Search ────────────────────────────────────────────────────────────
+  // ─── UI Helpers ────────────────────────────────────────────────────────
 
-  void updateDoctorSearch(String query) {
+  void toggleDoctorExpanded() {
     final s = _loaded;
-    if (s != null) emit(s.copyWith(doctorSearchQuery: query));
+    if (s != null) emit(s.copyWith(isDoctorExpanded: !s.isDoctorExpanded));
   }
 
-  void updateStorageSearch(String query) {
+  void toggleStorageExpanded() {
     final s = _loaded;
-    if (s != null) emit(s.copyWith(storageSearchQuery: query));
+    if (s != null) emit(s.copyWith(isStorageExpanded: !s.isStorageExpanded));
   }
-
-  // ─── Helpers ───────────────────────────────────────────────────────────
 
   RestrictionsLoaded? get _loaded =>
       state is RestrictionsLoaded ? state as RestrictionsLoaded : null;

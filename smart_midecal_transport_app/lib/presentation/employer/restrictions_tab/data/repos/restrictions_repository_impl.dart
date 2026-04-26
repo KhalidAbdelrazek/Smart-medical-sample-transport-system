@@ -12,30 +12,32 @@ class RestrictionsRepositoryImpl implements RestrictionsRepository {
   RestrictionsRepositoryImpl(this.remote);
 
   @override
-  Future<Either<Failures, RestrictionsStatusEntity>> getRestrictionsStatus() =>
-      remote.getRestrictionsStatus();
+  Future<Either<Failures, List<PersonEntity>>> getRestrictionsStatus({
+    required String type,
+  }) =>
+      remote.getRestrictionsStatus(type: type);
 
   @override
   Future<Either<Failures, bool>> restrictDoctorSamples({
     required RestrictionType type,
-    List<String> doctorIds = const [],
+    List<String> userIds = const [],
     String reason = '',
   }) =>
       remote.restrictDoctorSamples(
         type: type,
-        doctorIds: doctorIds,
+        userIds: userIds,
         reason: reason,
       );
 
   @override
   Future<Either<Failures, bool>> restrictStorageSamples({
     required RestrictionType type,
-    List<String> employeeIds = const [],
+    List<String> userIds = const [],
     String reason = '',
   }) =>
       remote.restrictStorageSamples(
         type: type,
-        employeeIds: employeeIds,
+        userIds: userIds,
         reason: reason,
       );
 
@@ -45,12 +47,4 @@ class RestrictionsRepositoryImpl implements RestrictionsRepository {
     String reason = '',
   }) =>
       remote.restrictTransportCar(status: status, reason: reason);
-
-  @override
-  Future<Either<Failures, List<PersonEntity>>> getDoctors() =>
-      remote.getDoctors();
-
-  @override
-  Future<Either<Failures, List<PersonEntity>>> getStorageEmployees() =>
-      remote.getStorageEmployees();
 }
