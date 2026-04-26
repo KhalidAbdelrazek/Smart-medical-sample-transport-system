@@ -4,7 +4,7 @@ import 'package:smart_midecal_transport_app/core/theme/color.dart';
 import 'package:smart_midecal_transport_app/presentation/storage/profile_tab/ui/profile_tab_page.dart';
 
 import '../statistics_tab/ui/statistics_tab_page.dart';
-import '../restrictions_tab/restrictions_tab_page.dart';
+import '../restrictions_tab/ui/restrictions_tab_page.dart';
 
 /// Main screen with bottom navigation for employer (admin)
 /// All tabs are cached for better performance
