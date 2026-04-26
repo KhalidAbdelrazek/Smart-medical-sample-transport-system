@@ -11,6 +11,8 @@ from .serializers import (
     AddToCarSerializer,
     DispatchCarSerializer,
     AllTransportRequestsSerializer,
+    DoctorReturnRequestSerializer,
+    StartReturnCollectionSerializer,
 )
 from .services import (
     add_sample_to_car, 
@@ -19,6 +21,11 @@ from .services import (
     remove_sample_from_cart,
     complete_transport_request,
     fail_transport_request
+)
+from .return_services import (
+    request_sample_return,
+    list_pending_returns,
+    start_return_collection,
 )
 from .models import TransportRequest
 from django.core.exceptions import PermissionDenied
@@ -343,4 +350,167 @@ class FailTransportRequestView(APIView):
         except (NotFound, ValidationError) as e:
             return unified_response(
                 success=False, message=str(e), status=status.HTTP_400_BAD_REQUEST
+            )
+
+
+class DoctorReturnRequestView(APIView):
+    """
+    POST /api/transport/return-request/
+    Doctor requests return of a sample they've finished examining.
+    """
+    permission_classes = [IsAuthenticated, IsDoctor]
+
+    @extend_schema(
+        tags=['Transport - Return'],
+        summary='Request Sample Return',
+        description='Doctor marks a sample as finished and requests its return to storage.',
+        request=DoctorReturnRequestSerializer,
+        responses={201: TransportRequestSerializer},
+        examples=[
+            OpenApiExample(
+                'Return Request',
+                value={'sample_code': 'PT-0001'},
+                request_only=True,
+            ),
+        ],
+    )
+    def post(self, request):
+        serializer = DoctorReturnRequestSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        try:
+            return_request = request_sample_return(
+                sample_code=serializer.validated_data['sample_code'],
+                doctor=request.user,
+            )
+            response_data = TransportRequestSerializer(return_request).data
+            return unified_response(
+                success=True,
+                message="Sample return request created successfully",
+                data=response_data,
+                status=status.HTTP_201_CREATED,
+            )
+        except NotFound as e:
+            return unified_response(
+                success=False,
+                message=str(e),
+                status=status.HTTP_404_NOT_FOUND,
+            )
+        except ValidationError as e:
+            return unified_response(
+                success=False,
+                message=str(e),
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+
+class ListPendingReturnsView(APIView):
+    """
+    GET /api/transport/pending-returns/?car_id={id}
+    Storage employee views pending return requests for picking/selection.
+    Optionally shows capacity context for a specific car.
+    """
+    permission_classes = [IsAuthenticated, IsStorageEmployee]
+
+    @extend_schema(
+        tags=['Transport - Return'],
+        summary='List Pending Return Requests',
+        description='Returns all pending return requests grouped by room. Shows car capacity if car_id provided.',
+        parameters=[
+            OpenApiParameter(
+                name='car_id',
+                description='Optional car ID to show capacity context',
+                required=False,
+                type=int,
+            ),
+        ],
+        responses={200: TransportRequestSerializer(many=True)},
+    )
+    def get(self, request):
+        car_id = request.query_params.get('car_id')
+        
+        try:
+            queryset, car = list_pending_returns(car_id=car_id)
+            serializer = TransportRequestSerializer(queryset, many=True)
+            pending_count = queryset.count()
+            
+            response_data = {'requests': serializer.data}
+            if car:
+                response_data['car_info'] = {
+                    'id': car.id,
+                    'car_number': car.car_number,
+                    'capacity': car.capacity,
+                    'remaining_capacity': car.capacity,
+                    'pending_requests_count': pending_count,
+                    'max_selectable_now': min(car.capacity, pending_count),
+                    'overflow_count': max(pending_count - car.capacity, 0),
+                    'status': car.status,
+                }
+            
+            return unified_response(
+                success=True,
+                message=f"Found {pending_count} pending return request(s)",
+                data=response_data,
+                status=status.HTTP_200_OK,
+            )
+        except NotFound as e:
+            return unified_response(
+                success=False,
+                message=str(e),
+                status=status.HTTP_404_NOT_FOUND,
+            )
+
+
+class StartReturnCollectionView(APIView):
+    """
+    POST /api/transport/start-return-collection/
+    Storage employee manually starts a return collection run with selected samples.
+    """
+    permission_classes = [IsAuthenticated, IsStorageEmployee]
+
+    @extend_schema(
+        tags=['Transport - Return'],
+        summary='Start Return Collection Run',
+        description='Dispatch a car to collect selected return samples. Guards: car must be IDLE, no outbound deliveries pending, selections within capacity.',
+        request=StartReturnCollectionSerializer,
+        responses={200: TransportRequestSerializer(many=True)},
+        examples=[
+            OpenApiExample(
+                'Start Collection',
+                value={
+                    'car_id': 1,
+                    'selected_request_ids': ['uuid-1', 'uuid-2'],
+                },
+                request_only=True,
+            ),
+        ],
+    )
+    def post(self, request):
+        serializer = StartReturnCollectionSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        try:
+            dispatched_requests, car = start_return_collection(
+                car_id=serializer.validated_data['car_id'],
+                selected_request_ids=serializer.validated_data['selected_request_ids'],
+                actor=request.user,
+            )
+            response_data = TransportRequestSerializer(dispatched_requests, many=True).data
+            return unified_response(
+                success=True,
+                message=f"Return collection started with {len(dispatched_requests)} sample(s)",
+                data={'selected_requests': response_data},
+                status=status.HTTP_200_OK,
+            )
+        except NotFound as e:
+            return unified_response(
+                success=False,
+                message=str(e),
+                status=status.HTTP_404_NOT_FOUND,
+            )
+        except ValidationError as e:
+            return unified_response(
+                success=False,
+                message=str(e),
+                status=status.HTTP_400_BAD_REQUEST,
             )

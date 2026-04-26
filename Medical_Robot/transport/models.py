@@ -10,27 +10,50 @@ from django.db import models
 
 class TransportRequest(models.Model):
     """
-    Represents a Doctor's request to transport a blood sample to their room.
+    Represents a Doctor's request to transport a blood sample to their room or return it.
 
-    Lifecycle:
+    Request Types:
+        DELIVERY - outbound: sample is picked from storage and delivered to doctor
+        RETURN   - inbound: sample is picked from doctor and returned to storage
+
+    Lifecycle (DELIVERY):
         Doctor requests sample -> PENDING
         Storage employee adds to car -> LOADED
         Car dispatched -> DISPATCHED
+        Doctor receives -> DELIVERED (sample now with doctor, not in storage)
+
+    Lifecycle (RETURN):
+        Doctor finishes exam, requests return -> PENDING
+        Storage employee selects for collection -> LOADED
+        Car dispatched -> DISPATCHED
+        Car collects from doctor -> RETURNED (sample back in storage)
     """
 
+    REQUEST_TYPE_CHOICES = [
+        ('DELIVERY', 'Delivery'),  # Outbound: storage -> doctor
+        ('RETURN', 'Return'),      # Inbound: doctor -> storage
+    ]
+
     STATUS_CHOICES = [
-        ('PENDING', 'Pending'),       # Doctor requested, waiting for storage action
+        ('PENDING', 'Pending'),       # Waiting for next action (load/select)
         ('LOADED', 'Loaded'),          # Sample is loaded into a car
-        ('DISPATCHED', 'Dispatched'),  # Car has been dispatched for delivery
-        ('DELIVERED', 'Delivered'),    # Successfully delivered
-        ('RETURNED', 'Returned'),      # Returned to storage
+        ('DISPATCHED', 'Dispatched'),  # Car has been dispatched
+        ('DELIVERED', 'Delivered'),    # DELIVERY: successfully delivered to doctor
+        ('RETURNED', 'Returned'),      # RETURN: successfully returned to storage
         ('CANCELLED', 'Cancelled'),    # Request was cancelled
-        ('FAILED', 'Failed'),          # Delivery failed
+        ('FAILED', 'Failed'),          # Transport failed
         ('SUCCESSFUL', 'Successful'),  # Legacy: Delivery completed successfully
         ('EXECUTED', 'Executed'),      # Legacy: Request has been executed/processed
     ]
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+
+    request_type = models.CharField(
+        max_length=10,
+        choices=REQUEST_TYPE_CHOICES,
+        default='DELIVERY',
+        help_text="Direction of transport: DELIVERY (storage->doctor) or RETURN (doctor->storage)"
+    )
 
     sample = models.ForeignKey(
         'samples.BloodSample',
@@ -83,6 +106,7 @@ class TransportRequest(models.Model):
         ordering = ['-created_at']
         indexes = [
             models.Index(fields=['created_at', 'status']),
+            models.Index(fields=['request_type', 'status']),
             models.Index(fields=['requested_by', 'created_at']),
             models.Index(fields=['assigned_car', 'created_at']),
         ]

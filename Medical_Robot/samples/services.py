@@ -50,12 +50,13 @@ def request_sample(sample_code, room_number, doctor):
     sample.status = 'REQUESTED'
     sample.save()
 
-    # Create transport request
+    # Create transport request (DELIVERY type - outbound)
     transport_request = TransportRequest.objects.create(
         sample=sample,
         requested_by=doctor,
         room_number=room_number,
         status='PENDING',
+        request_type='DELIVERY',  # Outbound delivery
     )
 
 
