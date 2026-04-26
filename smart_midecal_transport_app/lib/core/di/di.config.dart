@@ -53,8 +53,16 @@ import '../../presentation/employee/requests/domain/repository/requests_reposito
     as _i960;
 import '../../presentation/employee/requests/ui/cubit/blood_sample_cubit.dart'
     as _i497;
-import '../../presentation/employer/restrictions_tab/cubit/restrictions_cubit.dart'
+import '../../presentation/employer/restrictions_tab/ui/cubit/restrictions_cubit.dart'
     as _i963;
+import '../../presentation/employer/restrictions_tab/data/data_source/impl/restrictions_data_source_impl.dart'
+    as _i_rdsi;
+import '../../presentation/employer/restrictions_tab/data/data_source/restrictions_data_source.dart'
+    as _i_rds;
+import '../../presentation/employer/restrictions_tab/data/repos/restrictions_repository_impl.dart'
+    as _i_rri;
+import '../../presentation/employer/restrictions_tab/domain/repos/restrictions_repository.dart'
+    as _i_rr;
 import '../../presentation/employer/statistics_tab/data/data_source/admin_stats_data_source.dart'
     as _i_asds;
 import '../../presentation/employer/statistics_tab/data/data_source/impl/admin_stats_data_source_impl.dart'
@@ -103,7 +111,19 @@ extension GetItInjectableX on _i174.GetIt {
     _i526.EnvironmentFilter? environmentFilter,
   }) {
     final gh = _i526.GetItHelper(this, environment, environmentFilter);
-    gh.factory<_i963.RestrictionsCubit>(() => _i963.RestrictionsCubit());
+    gh.factory<_i_rds.RestrictionsDataSource>(
+      () => _i_rdsi.RestrictionsDataSourceImpl(
+        apiManager: gh<_i949.ApiManager>(),
+      ),
+    );
+    gh.factory<_i_rr.RestrictionsRepository>(
+      () => _i_rri.RestrictionsRepositoryImpl(
+        gh<_i_rds.RestrictionsDataSource>(),
+      ),
+    );
+    gh.factory<_i963.RestrictionsCubit>(
+      () => _i963.RestrictionsCubit(gh<_i_rr.RestrictionsRepository>()),
+    );
     gh.factory<_i_asds.AdminStatsDataSource>(
       () => _i_asdsi.AdminStatsDataSourceImpl(
         apiManager: gh<_i949.ApiManager>(),
