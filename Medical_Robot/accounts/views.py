@@ -44,6 +44,10 @@ class LoginView(APIView):
                 'email': 'doctor1@bioroute.com',
                 'password': 'AaAa112233_',
             }, request_only=True),
+            OpenApiExample('Storage Employee Login', value={
+                'email': 'storage1@bioroute.com',
+                'password': 'AaAa112233_',
+            }, request_only=True),
         ],
     )
     def post(self, request):

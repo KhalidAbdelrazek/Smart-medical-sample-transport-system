@@ -2,6 +2,7 @@ from unittest.mock import patch
 
 from django.contrib.auth import get_user_model
 from django.test import TestCase
+from rest_framework.test import APIClient
 
 from cars.models import Car
 from samples.models import BloodSample
@@ -107,6 +108,8 @@ class ReturnFlowTests(TestCase):
     """Test reverse logistics: doctor return requests and batch collection."""
 
     def setUp(self):
+        self.client = APIClient()
+
         self.storage = User.objects.create_user(
             email="storage@test.com",
             password="testpass123",
@@ -294,3 +297,74 @@ class ReturnFlowTests(TestCase):
         sample.refresh_from_db()
         self.assertEqual(sample.status, "IN_STORAGE")
         self.assertEqual(sample.is_in_storage, True)
+
+    def test_confirm_returned_samples_marks_samples_in_storage(self):
+        from transport.return_services import confirm_returned_samples
+
+        sample = BloodSample.objects.create(
+            patient_name="Batch Return",
+            blood_type="A-",
+            status="OUT_FOR_DELIVERY",
+            is_in_storage=False,
+        )
+        req = TransportRequest.objects.create(
+            sample=sample,
+            requested_by=self.doctor,
+            room_number="Room-170",
+            status="DISPATCHED",
+            assigned_car=self.car,
+            request_type="RETURN",
+        )
+        self.car.status = "DISPATCHED"
+        self.car.save()
+
+        updated_requests = confirm_returned_samples(
+            sample_codes=[sample.sample_code],
+            actor=self.storage,
+        )
+
+        self.assertEqual(len(updated_requests), 1)
+        req.refresh_from_db()
+        sample.refresh_from_db()
+        self.car.refresh_from_db()
+
+        self.assertEqual(req.status, "DELIVERED")
+        self.assertEqual(sample.status, "IN_STORAGE")
+        self.assertTrue(sample.is_in_storage)
+        self.assertEqual(self.car.status, "IDLE")
+
+    def test_confirm_returned_samples_api_updates_by_sample_code_list(self):
+        sample = BloodSample.objects.create(
+            patient_name="API Return",
+            blood_type="AB-",
+            status="OUT_FOR_DELIVERY",
+            is_in_storage=False,
+        )
+        req = TransportRequest.objects.create(
+            sample=sample,
+            requested_by=self.doctor,
+            room_number="Room-180",
+            status="DISPATCHED",
+            assigned_car=self.car,
+            request_type="RETURN",
+        )
+        self.car.status = "DISPATCHED"
+        self.car.save()
+
+        self.client.force_authenticate(user=self.storage)
+        response = self.client.post(
+            "/api/transport/confirm-returned-samples/",
+            {"sample_codes": [sample.sample_code]},
+            format="json",
+        )
+
+        self.assertEqual(response.status_code, 200)
+
+        req.refresh_from_db()
+        sample.refresh_from_db()
+        self.car.refresh_from_db()
+
+        self.assertEqual(req.status, "DELIVERED")
+        self.assertEqual(sample.status, "IN_STORAGE")
+        self.assertTrue(sample.is_in_storage)
+        self.assertEqual(self.car.status, "IDLE")
