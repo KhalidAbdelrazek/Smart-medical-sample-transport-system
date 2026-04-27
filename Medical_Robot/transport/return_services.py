@@ -217,3 +217,101 @@ def start_return_collection(car_id, selected_request_ids, actor=None):
         )
 
     return dispatched_requests, car
+
+
+def confirm_returned_samples(sample_codes, actor=None):
+    """
+    Confirm a batch of physically returned samples by sample code.
+
+    Rules:
+    - Every sample code must exist.
+    - Every sample must have a DISPATCHED RETURN request.
+    - Sample transitions to IN_STORAGE / is_in_storage=True.
+    - Request is marked DELIVERED (terminal), not RETURNED.
+    - Assigned car is set to IDLE if it has no other active requests.
+    """
+    if not sample_codes:
+        raise ValidationError("At least one sample code must be provided.")
+
+    normalized_codes = [str(code).strip() for code in sample_codes if str(code).strip()]
+    unique_codes = list(dict.fromkeys(normalized_codes))
+    if not unique_codes:
+        raise ValidationError("At least one valid sample code must be provided.")
+
+    with transaction.atomic():
+        samples = list(
+            BloodSample.objects.select_for_update().filter(sample_code__in=unique_codes)
+        )
+        found_sample_codes = {sample.sample_code for sample in samples}
+        missing_sample_codes = [code for code in unique_codes if code not in found_sample_codes]
+        if missing_sample_codes:
+            raise ValidationError(f"Sample not found: {missing_sample_codes[0]}")
+
+        dispatched_returns = list(
+            TransportRequest.objects.select_for_update()
+            .select_related("sample", "assigned_car")
+            .filter(
+                sample__sample_code__in=unique_codes,
+                request_type="RETURN",
+                status="DISPATCHED",
+            )
+            .order_by("created_at")
+        )
+
+        request_by_sample_code = {}
+        for transport_request in dispatched_returns:
+            request_by_sample_code[transport_request.sample.sample_code] = transport_request
+
+        missing_dispatched_requests = [
+            code for code in unique_codes if code not in request_by_sample_code
+        ]
+        if missing_dispatched_requests:
+            raise ValidationError(
+                f"Sample {missing_dispatched_requests[0]} has no dispatched RETURN request."
+            )
+
+        now = timezone.now()
+        affected_car_ids = set()
+        updated_requests = []
+
+        for sample_code in unique_codes:
+            transport_request = request_by_sample_code[sample_code]
+            sample = transport_request.sample
+
+            sample.status = "IN_STORAGE"
+            sample.is_in_storage = True
+            sample.save(update_fields=["status", "is_in_storage", "updated_at"])
+
+            transport_request.status = "DELIVERED"
+            transport_request.completed_at = now
+            transport_request.save(update_fields=["status", "completed_at"])
+
+            if transport_request.assigned_car_id:
+                affected_car_ids.add(transport_request.assigned_car_id)
+
+            updated_requests.append(transport_request)
+
+            if actor:
+                log_storage_employee_action(
+                    employee=actor,
+                    action="TRANSPORT_REQUEST_UPDATE",
+                    description=(
+                        f"Confirmed return for sample {sample.sample_code}; "
+                        "sample moved to IN_STORAGE"
+                    ),
+                    transport_request=transport_request,
+                    car=transport_request.assigned_car,
+                )
+
+        for car_id in affected_car_ids:
+            car = Car.objects.select_for_update().get(id=car_id)
+            has_other_active_requests = (
+                TransportRequest.objects.filter(assigned_car=car)
+                .exclude(status__in=["DELIVERED", "RETURNED", "FAILED", "CANCELLED", "PENDING"])
+                .exists()
+            )
+            if not has_other_active_requests:
+                car.status = "IDLE"
+                car.save(update_fields=["status"])
+
+    return updated_requests

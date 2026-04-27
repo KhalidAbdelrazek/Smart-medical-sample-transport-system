@@ -12,6 +12,7 @@ from .views import (
     DoctorReturnRequestView,
     ListPendingReturnsView,
     StartReturnCollectionView,
+    ConfirmReturnedSamplesView,
 )
 
 urlpatterns = [
@@ -50,4 +51,7 @@ urlpatterns = [
     
     # POST /api/transport/start-return-collection/ - Storage starts collection with selected samples
     path('start-return-collection/', StartReturnCollectionView.as_view(), name='start-return-collection'),
+
+    # POST /api/transport/confirm-returned-samples/ - Storage confirms returned sample codes
+    path('confirm-returned-samples/', ConfirmReturnedSamplesView.as_view(), name='confirm-returned-samples'),
 ]

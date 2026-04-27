@@ -3,7 +3,7 @@ from rest_framework import status
 from rest_framework.exceptions import NotFound, ValidationError
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.views import APIView
-from common.utils.response import unified_response
+from common.utils.response import unified_response, format_error_message
 
 from accounts.permissions import IsStorageEmployee, IsDoctor
 from .serializers import (
@@ -13,6 +13,7 @@ from .serializers import (
     AllTransportRequestsSerializer,
     DoctorReturnRequestSerializer,
     StartReturnCollectionSerializer,
+    ConfirmReturnedSamplesSerializer,
 )
 from .services import (
     add_sample_to_car, 
@@ -26,6 +27,7 @@ from .return_services import (
     request_sample_return,
     list_pending_returns,
     start_return_collection,
+    confirm_returned_samples,
 )
 from .models import TransportRequest
 from django.core.exceptions import PermissionDenied
@@ -189,7 +191,7 @@ class CancelTransportRequestView(APIView):
         except PermissionDenied as e:
             return unified_response(
                 success=False,
-                message=str(e),
+                message=format_error_message(e),
                 status=status.HTTP_403_FORBIDDEN
             )
 
@@ -233,7 +235,7 @@ class RemoveFromCartView(APIView):
             )
         except (NotFound, ValidationError) as e:
             return unified_response(
-                success=False, message=str(e), status=status.HTTP_400_BAD_REQUEST
+                success=False, message=format_error_message(e), status=status.HTTP_400_BAD_REQUEST
             )
 
 
@@ -295,11 +297,11 @@ class CompleteTransportRequestView(APIView):
     Mark a dispatched request as SUCCESSFUL/EXECUTED.
     """
 
-    permission_classes = [IsAuthenticated, IsStorageEmployee]
+    permission_classes = [IsAuthenticated, IsDoctor]
 
     @extend_schema(
-        tags=["Transport"],
-        summary="Complete Transport Request",
+        tags=['Transport - Return'],
+        summary="Verify the delivery of the sample to the doctor.",
         description="Mark a dispatched transport request as successful/executed.",
         responses={200: TransportRequestSerializer},
     )
@@ -317,7 +319,7 @@ class CompleteTransportRequestView(APIView):
             )
         except (NotFound, ValidationError) as e:
             return unified_response(
-                success=False, message=str(e), status=status.HTTP_400_BAD_REQUEST
+                success=False, message=format_error_message(e), status=status.HTTP_400_BAD_REQUEST
             )
 
 
@@ -349,7 +351,7 @@ class FailTransportRequestView(APIView):
             )
         except (NotFound, ValidationError) as e:
             return unified_response(
-                success=False, message=str(e), status=status.HTTP_400_BAD_REQUEST
+                success=False, message=format_error_message(e), status=status.HTTP_400_BAD_REQUEST
             )
 
 
@@ -393,13 +395,13 @@ class DoctorReturnRequestView(APIView):
         except NotFound as e:
             return unified_response(
                 success=False,
-                message=str(e),
+                message=format_error_message(e),
                 status=status.HTTP_404_NOT_FOUND,
             )
         except ValidationError as e:
             return unified_response(
                 success=False,
-                message=str(e),
+                message=format_error_message(e),
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
@@ -456,7 +458,7 @@ class ListPendingReturnsView(APIView):
         except NotFound as e:
             return unified_response(
                 success=False,
-                message=str(e),
+                message=format_error_message(e),
                 status=status.HTTP_404_NOT_FOUND,
             )
 
@@ -505,12 +507,63 @@ class StartReturnCollectionView(APIView):
         except NotFound as e:
             return unified_response(
                 success=False,
-                message=str(e),
+                message=format_error_message(e),
                 status=status.HTTP_404_NOT_FOUND,
             )
         except ValidationError as e:
             return unified_response(
                 success=False,
-                message=str(e),
+                message=format_error_message(e),
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+
+class ConfirmReturnedSamplesView(APIView):
+    """
+    POST /api/transport/confirm-returned-samples/
+    Storage employee confirms which sample codes physically returned to storage.
+    """
+    permission_classes = [IsAuthenticated, IsStorageEmployee]
+
+    @extend_schema(
+        tags=['Transport - Return'],
+        summary='Confirm Returned Samples to the storage.',
+        description='Marks selected returned samples as IN_STORAGE using a list of sample codes.',
+        request=ConfirmReturnedSamplesSerializer,
+        responses={200: TransportRequestSerializer(many=True)},
+        examples=[
+            OpenApiExample(
+                'Confirm Returned Batch',
+                value={'sample_codes': ['PT-0001', 'PT-0002']},
+                request_only=True,
+            ),
+        ],
+    )
+    def post(self, request):
+        serializer = ConfirmReturnedSamplesSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        try:
+            updated_requests = confirm_returned_samples(
+                sample_codes=serializer.validated_data['sample_codes'],
+                actor=request.user,
+            )
+            response_data = TransportRequestSerializer(updated_requests, many=True).data
+            return unified_response(
+                success=True,
+                message=f"Confirmed {len(updated_requests)} returned sample(s)",
+                data={'updated_requests': response_data},
+                status=status.HTTP_200_OK,
+            )
+        except NotFound as e:
+            return unified_response(
+                success=False,
+                message=format_error_message(e),
+                status=status.HTTP_404_NOT_FOUND,
+            )
+        except ValidationError as e:
+            return unified_response(
+                success=False,
+                message=format_error_message(e),
                 status=status.HTTP_400_BAD_REQUEST,
             )

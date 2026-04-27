@@ -55,6 +55,15 @@ class StartReturnCollectionSerializer(serializers.Serializer):
     )
 
 
+class ConfirmReturnedSamplesSerializer(serializers.Serializer):
+    """Body for storage employee confirming returned samples by sample code."""
+    sample_codes = serializers.ListField(
+        child=serializers.CharField(),
+        allow_empty=False,
+        help_text="List of sample codes that physically returned to storage"
+    )
+
+
 class AllTransportRequestsSerializer(serializers.ModelSerializer):
     """Detailed serializer showing all request information."""
 
