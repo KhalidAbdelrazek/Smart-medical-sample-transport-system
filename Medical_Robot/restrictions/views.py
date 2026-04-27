@@ -56,7 +56,7 @@ class RestrictDoctorSamplesView(APIView):
 
         result = apply_doctor_samples_restriction(
             restriction_type=serializer.validated_data['restriction_type'],
-            user_ids=serializer.validated_data.get('doctor_ids', []),
+            user_ids=serializer.validated_data.get('user_ids', []),
             reason=serializer.validated_data.get('reason', ''),
             admin=request.user,
         )
@@ -100,7 +100,7 @@ class RestrictStorageSamplesView(APIView):
 
         result = apply_storage_samples_restriction(
             restriction_type=serializer.validated_data['restriction_type'],
-            user_ids=serializer.validated_data.get('employee_ids', []),
+            user_ids=serializer.validated_data.get('user_ids', []),
             reason=serializer.validated_data.get('reason', ''),
             admin=request.user,
         )
