@@ -34,9 +34,9 @@ class SystemRestriction(models.Model):
     ]
 
     RESTRICTION_MODE_CHOICES = [
-        ('NONE',    'Not Restricted'),
-        ('GLOBAL',  'Globally Restricted'),
-        ('PARTIAL', 'Partially Restricted (specific users)'),
+        ('ALL_UNRESTRICT',   'Not Restricted'),
+        ('GLOBAL_RESTRICT',  'Globally Restricted'),
+        ('PARTIAL_RESTRICT', 'Partially Restricted (specific users)'),
     ]
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
@@ -48,9 +48,9 @@ class SystemRestriction(models.Model):
     )
 
     mode = models.CharField(
-        max_length=10,
+        max_length=20,
         choices=RESTRICTION_MODE_CHOICES,
-        default='NONE',
+        default='ALL_UNRESTRICT',
     )
 
     reason = models.TextField(

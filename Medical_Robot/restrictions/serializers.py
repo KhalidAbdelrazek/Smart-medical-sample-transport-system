@@ -13,24 +13,25 @@ class RestrictDoctorSamplesSerializer(serializers.Serializer):
     Validates the body of POST /api/restrictions/restrict-doctor-samples/
 
     Fields:
-        restriction_type : 'NONE' | 'GLOBAL' | 'PARTIAL'
-        doctor_ids       : list of doctor UUIDs — required when PARTIAL
+        restriction_type : ALL_UNRESTRICT | GLOBAL_RESTRICT | PARTIAL_RESTRICT | PARTIAL_UNRESTRICT
+        user_ids         : list of doctor UUIDs
         reason           : optional admin note
     """
 
     RESTRICTION_TYPE_CHOICES = [
-        ('NONE',    'None'),
-        ('GLOBAL',  'Global'),
-        ('PARTIAL', 'Partial'),
+        ('ALL_UNRESTRICT',    'None'),
+        ('GLOBAL_RESTRICT',  'Global'),
+        ('PARTIAL_RESTRICT', 'Partial'),
+        ('PARTIAL_UNRESTRICT', 'Partial Unrestrict'),
     ]
 
     restriction_type = serializers.ChoiceField(choices=RESTRICTION_TYPE_CHOICES)
 
-    doctor_ids = serializers.ListField(
+    user_ids = serializers.ListField(
         child=serializers.UUIDField(),
         required=False,
         default=list,
-        help_text="Required when restriction_type is PARTIAL.",
+        help_text="Required when restriction_type is PARTIAL_RESTRICT or PARTIAL_UNRESTRICT.",
     )
 
     reason = serializers.CharField(
@@ -41,10 +42,15 @@ class RestrictDoctorSamplesSerializer(serializers.Serializer):
     )
 
     def validate(self, data):
-        if data['restriction_type'] == 'PARTIAL' and not data.get('doctor_ids'):
+        rtype = data['restriction_type']
+        uids = data.get('user_ids', [])
+        
+        if rtype in ['PARTIAL_RESTRICT', 'PARTIAL_UNRESTRICT'] and not uids:
+            field_name = 'user_ids'
             raise serializers.ValidationError(
-                {"doctor_ids": "doctor_ids is required when restriction_type is PARTIAL."}
+                {field_name: f"{field_name} is required when restriction_type is {rtype}."}
             )
+            
         return data
 
 
@@ -53,24 +59,25 @@ class RestrictStorageSamplesSerializer(serializers.Serializer):
     Validates the body of POST /api/restrictions/restrict-storage-samples/
 
     Fields:
-        restriction_type : 'NONE' | 'GLOBAL' | 'PARTIAL'
-        employee_ids     : list of storage-employee UUIDs — required when PARTIAL
+        restriction_type : ALL_UNRESTRICT | GLOBAL_RESTRICT | PARTIAL_RESTRICT | PARTIAL_UNRESTRICT
+        user_ids         : list of storage-employee UUIDs
         reason           : optional admin note
     """
 
     RESTRICTION_TYPE_CHOICES = [
-        ('NONE',    'None'),
-        ('GLOBAL',  'Global'),
-        ('PARTIAL', 'Partial'),
+        ('ALL_UNRESTRICT',    'None'),
+        ('GLOBAL_RESTRICT',  'Global'),
+        ('PARTIAL_RESTRICT', 'Partial'),
+        ('PARTIAL_UNRESTRICT', 'Partial Unrestrict'),
     ]
 
     restriction_type = serializers.ChoiceField(choices=RESTRICTION_TYPE_CHOICES)
 
-    employee_ids = serializers.ListField(
+    user_ids = serializers.ListField(
         child=serializers.UUIDField(),
         required=False,
         default=list,
-        help_text="Required when restriction_type is PARTIAL.",
+        help_text="Required when restriction_type is PARTIAL_RESTRICT or PARTIAL_UNRESTRICT.",
     )
 
     reason = serializers.CharField(
@@ -81,10 +88,15 @@ class RestrictStorageSamplesSerializer(serializers.Serializer):
     )
 
     def validate(self, data):
-        if data['restriction_type'] == 'PARTIAL' and not data.get('employee_ids'):
+        rtype = data['restriction_type']
+        uids = data.get('user_ids', [])
+        
+        if rtype in ['PARTIAL_RESTRICT', 'PARTIAL_UNRESTRICT'] and not uids:
+            field_name = 'user_ids'
             raise serializers.ValidationError(
-                {"employee_ids": "employee_ids is required when restriction_type is PARTIAL."}
+                {field_name: f"{field_name} is required when restriction_type is {rtype}."}
             )
+            
         return data
 
 

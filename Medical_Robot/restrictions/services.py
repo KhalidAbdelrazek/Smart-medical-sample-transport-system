@@ -30,7 +30,7 @@ def _get_restriction(restriction_type: str) -> SystemRestriction:
         return SystemRestriction.objects.get(restriction_type=restriction_type)
     except SystemRestriction.DoesNotExist:
         # Fallback: if seed migration hasn't run yet, treat as unrestricted.
-        return SystemRestriction(restriction_type=restriction_type, mode='NONE')
+        return SystemRestriction(restriction_type=restriction_type, mode='ALL_UNRESTRICT')
 
 
 # ─────────────────────────────────────────────────────────────────
@@ -48,10 +48,10 @@ def check_doctor_samples_restriction(doctor) -> None:
     """
     restriction = _get_restriction('DOCTOR_SAMPLES')
 
-    if restriction.mode == 'NONE':
+    if restriction.mode == 'ALL_UNRESTRICT':
         return  # ✅ No restriction active
 
-    if restriction.mode == 'GLOBAL':
+    if restriction.mode == 'GLOBAL_RESTRICT':
         reason_text = restriction.reason or "A system-wide emergency restriction is active."
         raise PermissionDenied(
             f"Sample requests are currently disabled for all doctors. Reason: {reason_text}"
@@ -76,10 +76,10 @@ def check_storage_samples_restriction(employee) -> None:
     """
     restriction = _get_restriction('STORAGE_SAMPLES')
 
-    if restriction.mode == 'NONE':
+    if restriction.mode == 'ALL_UNRESTRICT':
         return  # ✅
 
-    if restriction.mode == 'GLOBAL':
+    if restriction.mode == 'GLOBAL_RESTRICT':
         reason_text = restriction.reason or "A system-wide emergency restriction is active."
         raise PermissionDenied(
             f"Sample loading is currently disabled for all storage employees. Reason: {reason_text}"
@@ -100,7 +100,7 @@ def check_transport_car_restriction() -> None:
     """
     restriction = _get_restriction('TRANSPORT_CAR')
 
-    if restriction.mode == 'GLOBAL':
+    if restriction.mode == 'GLOBAL_RESTRICT':
         reason_text = restriction.reason or "A system-wide emergency restriction is active."
         raise PermissionDenied(
             f"Car dispatch is currently disabled. Reason: {reason_text}"
@@ -114,51 +114,79 @@ def check_transport_car_restriction() -> None:
 def _apply_restriction(restriction_type: str, mode: str,
                        user_ids: list, reason: str, admin) -> dict:
     """
-    Atomically update a SystemRestriction row and rebuild its
-    RestrictedUser set.
+    Atomically update a SystemRestriction row.
 
-    Steps:
-      1. Update mode + reason + updated_by on the SystemRestriction row.
-      2. Delete all existing RestrictedUser rows for this restriction.
-      3. If mode == PARTIAL, bulk-create new RestrictedUser rows from user_ids.
-
-    Returns a summary dict suitable for the API response.
+    Modes:
+      ALL_UNRESTRICT    -> Lift all restrictions
+      GLOBAL_RESTRICT   -> Block everyone
+      PARTIAL_RESTRICT  -> Block specific users (requires user_ids)
+      PARTIAL_UNRESTRICT -> Unblock specific user (requires target_user_id)
     """
-    from accounts.models import User  # local import to avoid circular deps
+    from accounts.models import User
 
     with transaction.atomic():
         restriction = SystemRestriction.objects.select_for_update().get(
             restriction_type=restriction_type
         )
-        restriction.mode       = mode
-        restriction.reason     = reason
+
+        if mode == 'PARTIAL_UNRESTRICT':
+            if restriction.mode == 'GLOBAL_RESTRICT':
+                # Transition: block ALL users except those in user_ids
+                restriction.mode = 'PARTIAL_RESTRICT'
+                role_map = {
+                    'DOCTOR_SAMPLES': 'DOCTOR',
+                    'STORAGE_SAMPLES': 'STORAGE_EMPLOYEE'
+                }
+                role = role_map.get(restriction_type)
+                
+                if role:
+                    others = User.objects.filter(role=role, is_active=True).exclude(id__in=user_ids)
+                    RestrictedUser.objects.filter(restriction=restriction).delete()
+                    RestrictedUser.objects.bulk_create([
+                        RestrictedUser(restriction=restriction, user=u, restricted_by=admin)
+                        for u in others
+                    ])
+            else:
+                # Remove specific users from the restricted list
+                RestrictedUser.objects.filter(restriction=restriction, user_id__in=user_ids).delete()
+            
+            # Automatic Reset: If empty, switch to ALL_UNRESTRICT
+            remaining = RestrictedUser.objects.filter(restriction=restriction).count()
+            if remaining == 0:
+                restriction.mode = 'ALL_UNRESTRICT'
+            
+            if reason:
+                restriction.reason = reason
+        else:
+            # Standard modes
+            restriction.mode   = mode
+            restriction.reason = reason
+            
+            if mode != 'PARTIAL_RESTRICT':
+                RestrictedUser.objects.filter(restriction=restriction).delete()
+
         restriction.updated_by = admin
         restriction.save()
 
-        # Always wipe and rebuild the user list
-        RestrictedUser.objects.filter(restriction=restriction).delete()
+        # Rebuild list if setting PARTIAL_RESTRICT
+        if mode == 'PARTIAL_RESTRICT':
+            # Note: usually we wipe and rebuild for this mode
+            RestrictedUser.objects.filter(restriction=restriction).delete()
+            if user_ids:
+                users = User.objects.filter(id__in=user_ids)
+                RestrictedUser.objects.bulk_create([
+                    RestrictedUser(restriction=restriction, user=u, restricted_by=admin)
+                    for u in users
+                ])
 
-        blocked_count = 0
-        if mode == 'PARTIAL' and user_ids:
-            users = User.objects.filter(id__in=user_ids)
-            RestrictedUser.objects.bulk_create([
-                RestrictedUser(
-                    restriction=restriction,
-                    user=u,
-                    restricted_by=admin,
-                )
-                for u in users
-            ])
-            blocked_count = users.count()
+        blocked_count = RestrictedUser.objects.filter(restriction=restriction).count()
 
-    # Refresh to get the auto_now updated_at value
     restriction.refresh_from_db()
-
     return {
         'restriction_type': restriction_type,
-        'mode':             mode,
+        'mode':             restriction.mode,
         'restricted_count': blocked_count,
-        'reason':           reason,
+        'reason':           restriction.reason,
         'updated_at':       restriction.updated_at,
     }
 
@@ -169,12 +197,6 @@ def apply_doctor_samples_restriction(restriction_type: str,
                                      admin) -> dict:
     """
     Apply (or lift) the DOCTOR_SAMPLES restriction.
-
-    Args:
-        restriction_type: 'NONE' | 'GLOBAL' | 'PARTIAL'
-        user_ids:         List of doctor UUIDs (required when PARTIAL)
-        reason:           Admin note
-        admin:            The requesting admin User instance
     """
     return _apply_restriction('DOCTOR_SAMPLES', restriction_type,
                               user_ids, reason, admin)
@@ -186,12 +208,6 @@ def apply_storage_samples_restriction(restriction_type: str,
                                       admin) -> dict:
     """
     Apply (or lift) the STORAGE_SAMPLES restriction.
-
-    Args:
-        restriction_type: 'NONE' | 'GLOBAL' | 'PARTIAL'
-        user_ids:         List of storage-employee UUIDs (required when PARTIAL)
-        reason:           Admin note
-        admin:            The requesting admin User instance
     """
     return _apply_restriction('STORAGE_SAMPLES', restriction_type,
                               user_ids, reason, admin)
@@ -209,7 +225,7 @@ def apply_transport_car_restriction(enabled: bool,
         reason:  Admin note
         admin:   The requesting admin User instance
     """
-    mode = 'GLOBAL' if enabled else 'NONE'
+    mode = 'GLOBAL_RESTRICT' if enabled else 'ALL_UNRESTRICT'
     return _apply_restriction('TRANSPORT_CAR', mode, [], reason, admin)
 
 
@@ -225,7 +241,7 @@ def get_all_restriction_statuses() -> dict:
     def _entry(rtype):
         row = status_map.get(rtype)
         if not row:
-            return {'mode': 'NONE', 'reason': '', 'updated_at': None, 'restricted_users': []}
+            return {'mode': 'ALL_UNRESTRICT', 'reason': '', 'updated_at': None, 'restricted_users': []}
         
         data = {
             'mode':       row.mode,
@@ -234,7 +250,7 @@ def get_all_restriction_statuses() -> dict:
             'restricted_users': []
         }
 
-        if row.mode == 'PARTIAL':
+        if row.mode == 'PARTIAL_RESTRICT':
             # Collect ID and full_name of each restricted user
             data['restricted_users'] = [
                 {
@@ -280,11 +296,11 @@ def get_users_restriction_status(category: str):
 
     queryset = User.objects.filter(role=role, is_active=True)
 
-    if mode == 'GLOBAL':
+    if mode == 'GLOBAL_RESTRICT':
         queryset = queryset.annotate(
             _res=Value(True, output_field=BooleanField())
         )
-    elif mode == 'NONE':
+    elif mode == 'ALL_UNRESTRICT':
         queryset = queryset.annotate(
             _res=Value(False, output_field=BooleanField())
         )
