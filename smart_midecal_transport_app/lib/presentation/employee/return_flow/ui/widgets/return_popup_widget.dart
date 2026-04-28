@@ -31,7 +31,9 @@ class ReturnPopupWidget extends StatelessWidget {
               margin: EdgeInsets.all(16.w),
               padding: EdgeInsets.all(18.w),
               decoration: BoxDecoration(
-                color: isDark ? AppColors.cardDarkColor : AppColors.cardLightColor,
+                color: isDark
+                    ? AppColors.cardDarkColor
+                    : AppColors.cardLightColor,
                 borderRadius: BorderRadius.circular(18.r),
                 border: Border.all(
                   color: isDark
@@ -63,9 +65,8 @@ class ReturnPopupWidget extends StatelessWidget {
                         return Container(
                           padding: EdgeInsets.all(12.w),
                           decoration: BoxDecoration(
-                            color: isDark
-                                ? AppColors.backgroundDarkColor
-                                : AppColors.backgroundLightColor,
+                            color: theme.scaffoldBackgroundColor,
+
                             borderRadius: BorderRadius.circular(12.r),
                           ),
                           child: Text(
