@@ -64,7 +64,7 @@ class RequestsDataSourceImpl implements RequestsDataSource {
       if (!connectivityResult.contains(ConnectivityResult.none)) {
         var response = await apiManager.postData(
           path: ApiEndPoints.addToCar,
-          data: {"sample_code": sampleCode, "car_id": 1},
+          data: {"sample_code": sampleCode, "car_id": 3},
           options: Options(
             headers: {
               "Content-Type": "application/json",
@@ -102,7 +102,7 @@ class RequestsDataSourceImpl implements RequestsDataSource {
       if (!connectivityResult.contains(ConnectivityResult.none)) {
         var response = await apiManager.postData(
           path: ApiEndPoints.dispatchCar,
-          data: {"car_id": 1},
+          data: {"car_id": 3},
           options: Options(
             headers: {
               "Content-Type": "application/json",

@@ -123,6 +123,12 @@
     "retry": "Retry"
   },
   "requests": {
+    "patient_name": "Patient Name",
+    "created_at": "Created At",
+    "blood_type": "Blood Type",
+    "room": "Room",
+    "requested_by": "Requested By",
+    "urgency": "Urgency",
     "blood_bags": "Blood Bags",
     "blood_samples": "Samples",
     "transport_car": "Transport Car",
