@@ -102,6 +102,49 @@ class MyRequestsDataSourceImpl implements MyRequestsDataSource {
       return Left(ServerError(errorMessage: e.toString()));
     }
   }
-}
 
+  @override
+  Future<Either<Failures, bool>> requestReturn(String sampleId) async {
+    final connectivity = await Connectivity().checkConnectivity();
+    if (connectivity.contains(ConnectivityResult.none)) {
+      return Left(NetworkError(errorMessage: 'No internet connection'));
+    }
+    try {
+      final token = SharedPrefService.instance.getAccessToken();
+      final response = await apiManager.postData(
+        path: ApiEndPoints.requestReturn,
+        data: {
+          'sample_ids': [sampleId],
+        },
+        options: Options(
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': 'Bearer $token',
+          },
+          validateStatus: (status) => true,
+        ),
+      );
+
+      if (response.statusCode == 401) {
+        return Left(TokenExpiredFailure());
+      }
+
+      final body = response.data as Map<String, dynamic>?;
+      if (response.statusCode != null &&
+          response.statusCode! >= 200 &&
+          response.statusCode! < 300) {
+        return const Right(true);
+      }
+
+      return Left(
+        ServerError(
+          errorMessage:
+              body?['message']?.toString() ?? 'Could not request sample return',
+        ),
+      );
+    } catch (e) {
+      return Left(ServerError(errorMessage: e.toString()));
+    }
+  }
+}
 

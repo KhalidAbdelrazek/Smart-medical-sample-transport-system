@@ -23,7 +23,9 @@ class MyRequestsView extends StatelessWidget {
       listenWhen: (_, curr) =>
           curr is MyRequestsTokenExpired ||
           curr is MyRequestsCancelSuccess ||
-          curr is MyRequestsCancelError,
+          curr is MyRequestsCancelError ||
+          curr is MyRequestsReturnSuccess ||
+          curr is MyRequestsReturnError,
       listener: (context, state) {
         if (state is MyRequestsTokenExpired) {
           _showSessionExpiredAndLogout(context);
@@ -35,6 +37,14 @@ class MyRequestsView extends StatelessWidget {
           );
         } else if (state is MyRequestsCancelError) {
           _showSnackBar(context, state.message, AppColors.error);
+        } else if (state is MyRequestsReturnSuccess) {
+          _showSnackBar(
+            context,
+            'my_requests.return_requested_success'.tr(),
+            AppColors.success,
+          );
+        } else if (state is MyRequestsReturnError) {
+          _showSnackBar(context, state.message, AppColors.error);
         }
       },
       buildWhen: (_, curr) =>
@@ -43,7 +53,9 @@ class MyRequestsView extends StatelessWidget {
           curr is MyRequestsLoaded ||
           curr is MyRequestsEmpty ||
           curr is MyRequestsCancelling ||
+          curr is MyRequestsReturning ||
           curr is MyRequestsCancelError ||
+          curr is MyRequestsReturnError ||
           curr is MyRequestsError,
       builder: (context, state) {
         return RefreshIndicator(
@@ -92,13 +104,19 @@ class MyRequestsView extends StatelessWidget {
     // Extract list + cancelling ID from the relevant states
     List<TransportMyRequestEntity> requests = [];
     String? cancellingId;
+    String? returningId;
 
     if (state is MyRequestsLoaded) {
       requests = state.requests;
     } else if (state is MyRequestsCancelling) {
       requests = state.requests;
       cancellingId = state.cancellingId;
+    } else if (state is MyRequestsReturning) {
+      requests = state.requests;
+      returningId = state.requestId;
     } else if (state is MyRequestsCancelError) {
+      requests = state.requests;
+    } else if (state is MyRequestsReturnError) {
       requests = state.requests;
     }
 
@@ -116,15 +134,29 @@ class MyRequestsView extends StatelessWidget {
       itemBuilder: (_, i) {
         final req = requests[i];
         final isCancelling = cancellingId == req.requestId;
+        final isReturning = returningId == req.requestId;
         final isPending =
             (req.requestStatus ?? '').toUpperCase() == 'PENDING';
+        final isDelivered =
+            (req.requestStatus ?? '').toUpperCase() == 'DELIVERED';
 
         return TransportRequestCard(
           key: ValueKey(req.requestId),
           request: req ,
           isCancelling: isCancelling,
-          onCancel: isPending && !isCancelling
+          isReturning: isReturning,
+          onCancel: isPending && !isCancelling && !isReturning
               ? () => _showCancelDialog(context, cubit, req.requestId!)
+              : null,
+          onRequestReturn: isDelivered &&
+                  !isCancelling &&
+                  !isReturning &&
+                  req.requestId != null &&
+                  req.sampleId != null
+              ? () => cubit.requestReturn(
+                    requestId: req.requestId!,
+                    sampleId: req.sampleId!,
+                  )
               : null,
         );
       },

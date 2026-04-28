@@ -10,6 +10,11 @@ from .views import (
     CompleteTransportRequestView,
     FailTransportRequestView,
     DoctorReturnRequestView,
+    RequestReturnView,
+    ReturnRequestsView,
+    ApproveReturnView,
+    ReturnStatusView,
+    ConfirmReturnView,
     ListPendingReturnsView,
     StartReturnCollectionView,
     ConfirmReturnedSamplesView,
@@ -45,6 +50,21 @@ urlpatterns = [
     
     # POST /api/transport/return-request/ - Doctor requests sample return
     path('return-request/', DoctorReturnRequestView.as_view(), name='return-request'),
+
+    # POST /api/transport/request-return/ - Doctor requests return for multiple samples
+    path('request-return/', RequestReturnView.as_view(), name='request-return'),
+
+    # GET /api/transport/return-requests/ - Storage views grouped return requests
+    path('return-requests/', ReturnRequestsView.as_view(), name='return-requests'),
+
+    # POST /api/transport/approve-return/ - Storage approves selected samples and dispatches
+    path('approve-return/', ApproveReturnView.as_view(), name='approve-return'),
+
+    # GET /api/transport/return-status/ - Doctor polls for arrived return batches
+    path('return-status/', ReturnStatusView.as_view(), name='return-status'),
+
+    # POST /api/transport/confirm-return/ - Doctor confirms handoff for arrived return batch
+    path('confirm-return/', ConfirmReturnView.as_view(), name='confirm-return'),
     
     # GET /api/transport/pending-returns/ - Storage views pending returns
     path('pending-returns/', ListPendingReturnsView.as_view(), name='pending-returns'),

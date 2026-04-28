@@ -35,15 +35,21 @@ class TransportRequest(models.Model):
     ]
 
     STATUS_CHOICES = [
-        ('PENDING', 'Pending'),       # Waiting for next action (load/select)
-        ('LOADED', 'Loaded'),          # Sample is loaded into a car
-        ('DISPATCHED', 'Dispatched'),  # Car has been dispatched
-        ('DELIVERED', 'Delivered'),    # DELIVERY: successfully delivered to doctor
-        ('RETURNED', 'Returned'),      # RETURN: successfully returned to storage
-        ('CANCELLED', 'Cancelled'),    # Request was cancelled
-        ('FAILED', 'Failed'),          # Transport failed
-        ('SUCCESSFUL', 'Successful'),  # Legacy: Delivery completed successfully
-        ('EXECUTED', 'Executed'),      # Legacy: Request has been executed/processed
+        ('PENDING', 'Pending'),                          # Legacy waiting for load
+        ('LOADED', 'Loaded'),                            # Legacy loaded
+        ('DISPATCHED', 'Dispatched'),                    # Car dispatched
+        ('DELIVERED', 'Delivered'),                      # DELIVERY completed
+        ('RETURNED', 'Returned'),                        # Legacy RETURN completed
+        ('CANCELLED', 'Cancelled'),                      # Request cancelled
+        ('FAILED', 'Failed'),                            # Transport failed
+        ('SUCCESSFUL', 'Successful'),                    # Legacy
+        ('EXECUTED', 'Executed'),                        # Legacy
+        # Return flow states (batched workflow)
+        ('RETURN_REQUESTED', 'Return Requested'),        # Doctor requested return
+        ('APPROVED_BY_STORAGE', 'Approved By Storage'),  # Storage approved request
+        ('LOADED_FOR_RETURN', 'Loaded For Return'),      # Loaded for return collection
+        ('ARRIVED_AT_DOCTOR', 'Arrived At Doctor'),      # Car reached doctor room
+        ('RETURN_CONFIRMED', 'Return Confirmed'),        # Doctor confirmed handoff
     ]
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
@@ -83,7 +89,13 @@ class TransportRequest(models.Model):
         help_text="The car assigned to carry this sample",
     )
 
-    status = models.CharField(max_length=15, choices=STATUS_CHOICES, default='PENDING')
+    status = models.CharField(max_length=30, choices=STATUS_CHOICES, default='PENDING')
+    batch_id = models.UUIDField(
+        null=True,
+        blank=True,
+        db_index=True,
+        help_text="Groups multiple sample transport requests into one batch",
+    )
 
     created_at = models.DateTimeField(auto_now_add=True)
     
@@ -109,6 +121,7 @@ class TransportRequest(models.Model):
             models.Index(fields=['request_type', 'status']),
             models.Index(fields=['requested_by', 'created_at']),
             models.Index(fields=['assigned_car', 'created_at']),
+            models.Index(fields=['batch_id', 'created_at']),
         ]
 
     def __str__(self):

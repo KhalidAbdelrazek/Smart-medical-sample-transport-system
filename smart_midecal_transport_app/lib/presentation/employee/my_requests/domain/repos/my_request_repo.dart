@@ -8,4 +8,5 @@ abstract class MyRequestsRepository {
   // ── My Requests ──────────────────────────────────────────────────────────
   Future<Either<Failures, List<TransportMyRequestEntity>>> getMyRequests();
   Future<Either<Failures, bool>> cancelRequest(String requestId);
+  Future<Either<Failures, bool>> requestReturn(String sampleId);
 }

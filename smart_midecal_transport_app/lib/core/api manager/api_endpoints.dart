@@ -36,6 +36,13 @@ abstract class ApiEndPoints {
   static String cancelTransportRequest(String id) =>
       '${ApiConstants.baseUrl}api/transport/requests/$id/cancel/';
 
+  // ── Return Flow ────────────────────────────────────────────────────────────
+  static const requestReturn = '${ApiConstants.baseUrl}api/transport/request-return/';
+  static const returnRequests = '${ApiConstants.baseUrl}api/transport/return-requests/';
+  static const approveReturn = '${ApiConstants.baseUrl}api/transport/approve-return/';
+  static const returnStatus = '${ApiConstants.baseUrl}api/transport/return-status/';
+  static const confirmReturn = '${ApiConstants.baseUrl}api/transport/confirm-return/';
+
   // todo : chatbot =>
   // static const chatbot = '${ApiConstants.chatbotUrl}/chat';
 

@@ -6,6 +6,7 @@ import 'package:smart_midecal_transport_app/presentation/employee/my_requests/do
 class TransportMyRequestModel extends TransportMyRequestEntity {
   const TransportMyRequestModel({
     super.requestId,
+    super.sampleId,
     super.sampleCode,
     super.patientName,
     super.bloodType,
@@ -20,6 +21,7 @@ class TransportMyRequestModel extends TransportMyRequestEntity {
     final sample = json['sample'] as Map<String, dynamic>?;
     return TransportMyRequestModel(
       requestId: json['id']?.toString(),
+      sampleId: sample?['id']?.toString(),
       sampleCode: sample?['sample_code']?.toString(),
       patientName: sample?['patient_name']?.toString(),
       bloodType: sample?['blood_type']?.toString(),
