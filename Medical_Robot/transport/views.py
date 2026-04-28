@@ -12,6 +12,9 @@ from .serializers import (
     DispatchCarSerializer,
     AllTransportRequestsSerializer,
     DoctorReturnRequestSerializer,
+    RequestReturnSerializer,
+    ApproveReturnSerializer,
+    ConfirmReturnSerializer,
     StartReturnCollectionSerializer,
     ConfirmReturnedSamplesSerializer,
 )
@@ -25,6 +28,11 @@ from .services import (
 )
 from .return_services import (
     request_sample_return,
+    request_return_batch,
+    get_grouped_return_requests,
+    approve_return_batch,
+    get_doctor_return_arrivals,
+    confirm_return_batch,
     list_pending_returns,
     start_return_collection,
     confirm_returned_samples,
@@ -399,6 +407,195 @@ class DoctorReturnRequestView(APIView):
                 status=status.HTTP_404_NOT_FOUND,
             )
         except ValidationError as e:
+            return unified_response(
+                success=False,
+                message=format_error_message(e),
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+
+class RequestReturnView(APIView):
+    """
+    POST /api/transport/request-return/
+    Doctor requests returns for one or many samples using sample UUIDs.
+    """
+    permission_classes = [IsAuthenticated, IsDoctor]
+
+    @extend_schema(
+        tags=['Transport - Return'],
+        summary='Request Return (Batch)',
+        description='Create one RETURN transport request per sample using a shared batch_id.',
+        request=RequestReturnSerializer,
+        responses={201: TransportRequestSerializer(many=True)},
+    )
+    def post(self, request):
+        serializer = RequestReturnSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        try:
+            batch_id, return_requests = request_return_batch(
+                sample_ids=serializer.validated_data['sample_ids'],
+                doctor=request.user,
+            )
+            return unified_response(
+                success=True,
+                message=f"Created return batch with {len(return_requests)} sample(s)",
+                data={
+                    'batch_id': str(batch_id),
+                    'requests': TransportRequestSerializer(return_requests, many=True).data,
+                },
+                status=status.HTTP_201_CREATED,
+            )
+        except (NotFound, ValidationError) as e:
+            return unified_response(
+                success=False,
+                message=format_error_message(e),
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+
+class ReturnRequestsView(APIView):
+    """
+    GET /api/transport/return-requests/
+    Storage views grouped return requests by batch.
+    """
+    permission_classes = [IsAuthenticated, IsStorageEmployee]
+
+    @extend_schema(
+        tags=['Transport - Return'],
+        summary='List Return Requests',
+        description='Returns return requests grouped by batch_id.',
+    )
+    def get(self, request):
+        grouped = get_grouped_return_requests()
+        return unified_response(
+            success=True,
+            message=f"Found {len(grouped)} return batch(es)",
+            data=grouped,
+            status=status.HTTP_200_OK,
+        )
+
+
+class ApproveReturnView(APIView):
+    """
+    POST /api/transport/approve-return/
+    Storage approves selected samples in a batch and dispatches using existing flow.
+    """
+    permission_classes = [IsAuthenticated, IsStorageEmployee]
+
+    @extend_schema(
+        tags=['Transport - Return'],
+        summary='Approve Return Batch',
+        description='Approve selected samples from a batch and dispatch assigned car.',
+        request=ApproveReturnSerializer,
+        responses={200: TransportRequestSerializer(many=True)},
+    )
+    def post(self, request):
+        serializer = ApproveReturnSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        try:
+            dispatched_requests, car = approve_return_batch(
+                batch_id=serializer.validated_data['batch_id'],
+                selected_sample_ids=serializer.validated_data['selected_sample_ids'],
+                actor=request.user,
+            )
+            return unified_response(
+                success=True,
+                message=(
+                    "Selected return requests are already processed"
+                    if car is None
+                    else f"Approved and dispatched {len(dispatched_requests)} sample(s)"
+                ),
+                data={
+                    'batch_id': str(serializer.validated_data['batch_id']),
+                    'car_id': car.id if car else None,
+                    'dispatched_requests': TransportRequestSerializer(
+                        dispatched_requests, many=True
+                    ).data,
+                },
+                status=status.HTTP_200_OK,
+            )
+        except (NotFound, ValidationError) as e:
+            return unified_response(
+                success=False,
+                message=format_error_message(e),
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+
+class ReturnStatusView(APIView):
+    """
+    GET /api/transport/return-status/
+    Doctor polls return statuses to show blocking arrival popup.
+    """
+    permission_classes = [IsAuthenticated, IsDoctor]
+
+    @extend_schema(
+        tags=['Transport - Return'],
+        summary='Get Return Arrival Status',
+        description='Returns doctor return requests that reached ARRIVED_AT_DOCTOR.',
+    )
+    def get(self, request):
+        arrivals = get_doctor_return_arrivals(doctor=request.user)
+        response_rows = [
+            {
+                "request_id": str(transport_request.id),
+                "batch_id": (
+                    str(transport_request.batch_id)
+                    if transport_request.batch_id
+                    else None
+                ),
+                "sample_id": str(transport_request.sample_id),
+                "sample_name": transport_request.sample.patient_name,
+                "status": transport_request.status,
+            }
+            for transport_request in arrivals
+        ]
+        return unified_response(
+            success=True,
+            message=f"Found {len(response_rows)} return arrival update(s)",
+            data=response_rows,
+            status=status.HTTP_200_OK,
+        )
+
+
+class ConfirmReturnView(APIView):
+    """
+    POST /api/transport/confirm-return/
+    Doctor confirms return handoff for arrived batch.
+    """
+    permission_classes = [IsAuthenticated, IsDoctor]
+
+    @extend_schema(
+        tags=['Transport - Return'],
+        summary='Confirm Return Handoff',
+        description='Confirm arrived return batch and mark samples back to storage.',
+        request=ConfirmReturnSerializer,
+        responses={200: TransportRequestSerializer(many=True)},
+    )
+    def post(self, request):
+        serializer = ConfirmReturnSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        try:
+            updated_requests = confirm_return_batch(
+                batch_id=serializer.validated_data['batch_id'],
+                doctor=request.user,
+                actor=request.user,
+            )
+            return unified_response(
+                success=True,
+                message="Return handoff confirmed successfully",
+                data={
+                    'batch_id': str(serializer.validated_data['batch_id']),
+                    'updated_requests': TransportRequestSerializer(
+                        updated_requests, many=True
+                    ).data,
+                },
+                status=status.HTTP_200_OK,
+            )
+        except (NotFound, ValidationError) as e:
             return unified_response(
                 success=False,
                 message=format_error_message(e),

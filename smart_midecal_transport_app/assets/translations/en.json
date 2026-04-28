@@ -241,12 +241,15 @@
     "cancel_confirm_yes": "Yes, Cancel",
     "cancel_confirm_no": "Keep Request",
     "cancelled_success": "Request cancelled successfully",
+    "request_return": "Request Return",
+    "return_requested_success": "Return request submitted successfully",
     "error_title": "Something went wrong",
     "session_expired": "Session expired. Please log in again.",
     "retry": "Retry",
     "status_pending": "Pending",
     "status_in_transit": "In Transit",
     "status_delivered": "Delivered",
+    "status_return_flow": "Return In Progress",
     "status_cancelled": "Cancelled",
     "sample_code": "Sample",
     "patient": "Patient",
@@ -254,5 +257,12 @@
     "room": "Room",
     "created": "Created",
     "assigned_car": "Car"
+  },
+  "return_popup": {
+    "title": "Robot Arrived for Return",
+    "subtitle": "Please confirm handoff for the following samples.",
+    "sample_id": "Sample ID",
+    "confirm_button": "Confirm Handoff",
+    "confirm_success": "Return handoff confirmed successfully"
   }
 }

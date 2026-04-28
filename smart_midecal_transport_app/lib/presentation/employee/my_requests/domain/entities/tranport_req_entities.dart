@@ -1,5 +1,6 @@
 class TransportMyRequestEntity {
   final String? requestId;
+  final String? sampleId;
   final String? sampleCode;
   final String? patientName;
   final String? bloodType;
@@ -10,6 +11,7 @@ class TransportMyRequestEntity {
 
   const TransportMyRequestEntity({
     this.requestId,
+    this.sampleId,
     this.sampleCode,
     this.patientName,
     this.bloodType,

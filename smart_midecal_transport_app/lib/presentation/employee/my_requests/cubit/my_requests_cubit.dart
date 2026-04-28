@@ -75,4 +75,36 @@ class MyRequestsCubit extends Cubit<MyRequestsState> {
       },
     );
   }
+
+  Future<void> requestReturn({
+    required String requestId,
+    required String sampleId,
+  }) async {
+    emit(
+      MyRequestsReturning(
+        requestId: requestId,
+        requests: List.unmodifiable(_requests),
+      ),
+    );
+
+    final result = await _repository.requestReturn(sampleId);
+    result.fold(
+      (failure) {
+        if (failure is TokenExpiredFailure) {
+          emit(MyRequestsTokenExpired());
+          return;
+        }
+        emit(
+          MyRequestsReturnError(
+            message: failure.errorMessage,
+            requests: List.unmodifiable(_requests),
+          ),
+        );
+      },
+      (_) async {
+        emit(MyRequestsReturnSuccess(requests: List.unmodifiable(_requests)));
+        await loadMyRequests();
+      },
+    );
+  }
 }

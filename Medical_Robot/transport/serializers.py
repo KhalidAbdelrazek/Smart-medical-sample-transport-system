@@ -14,11 +14,12 @@ class TransportRequestSerializer(serializers.ModelSerializer):
     sample = BloodSampleSerializer(read_only=True)
     assigned_car = CarSerializer(read_only=True)
     requested_by_name = serializers.CharField(source='requested_by.full_name', read_only=True)
+    type = serializers.CharField(source='request_type', read_only=True)
 
     class Meta:
         model = TransportRequest
         fields = [
-            'id', 'request_type', 'sample', 'requested_by_name',
+            'id', 'type', 'request_type', 'batch_id', 'sample', 'requested_by_name',
             'room_number', 'assigned_car', 'status', 'created_at',
         ]
 
@@ -44,6 +45,28 @@ class RemoveFromCartSerializer(serializers.Serializer):
 class DoctorReturnRequestSerializer(serializers.Serializer):
     """Body for doctor requesting sample return."""
     sample_code = serializers.CharField()
+
+
+class RequestReturnSerializer(serializers.Serializer):
+    """Doctor requests return for one or many samples (UUID IDs)."""
+    sample_ids = serializers.ListField(
+        child=serializers.UUIDField(),
+        allow_empty=False,
+    )
+
+
+class ApproveReturnSerializer(serializers.Serializer):
+    """Storage approves full/partial batch return and triggers dispatch."""
+    batch_id = serializers.UUIDField()
+    selected_sample_ids = serializers.ListField(
+        child=serializers.UUIDField(),
+        allow_empty=False,
+    )
+
+
+class ConfirmReturnSerializer(serializers.Serializer):
+    """Doctor confirms return handoff for a batch."""
+    batch_id = serializers.UUIDField()
 
 
 class StartReturnCollectionSerializer(serializers.Serializer):
@@ -95,6 +118,7 @@ class AllTransportRequestsSerializer(serializers.ModelSerializer):
         model = TransportRequest
         fields = [
             "id",
+            "batch_id",
             "request_type",
             "status",
             "room_number",

@@ -8,4 +8,5 @@ abstract class MyRequestsDataSource {
   // ── My Requests ──────────────────────────────────────────────────────────
   Future<Either<Failures, List<TransportMyRequestEntity>>> fetchMyRequests();
   Future<Either<Failures, bool>> cancelRequest(String requestId);
+  Future<Either<Failures, bool>> requestReturn(String sampleId);
 }

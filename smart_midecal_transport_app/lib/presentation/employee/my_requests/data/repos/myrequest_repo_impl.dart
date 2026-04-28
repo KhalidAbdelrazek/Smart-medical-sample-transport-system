@@ -26,4 +26,9 @@ class MyRequestsRepositoryImpl implements MyRequestsRepository {
   Future<Either<Failures, bool>> cancelRequest(String requestId) {
     return myRequestsDataSource.cancelRequest(requestId);
   }
+
+  @override
+  Future<Either<Failures, bool>> requestReturn(String sampleId) {
+    return myRequestsDataSource.requestReturn(sampleId);
+  }
 }

@@ -105,10 +105,10 @@ def dispatch_car(car_id, actor=None):
     except Car.DoesNotExist:
         raise NotFound(f"No car found with ID: {car_id}")
 
-    # Get all LOADED transport requests for this car
+    # Get all loaded transport requests for this car (legacy + return flow)
     loaded_requests = TransportRequest.objects.filter(
         assigned_car=car,
-        status='LOADED',
+        status__in=['LOADED', 'LOADED_FOR_RETURN'],
     ).select_related('sample')
 
     if not loaded_requests.exists():
@@ -122,8 +122,13 @@ def dispatch_car(car_id, actor=None):
         for transport_request in loaded_requests:
             # Update the blood sample
             sample = transport_request.sample
-            sample.status = 'OUT_FOR_DELIVERY'
-            sample.is_in_storage = False
+            if transport_request.request_type == 'DELIVERY':
+                sample.status = 'OUT_FOR_DELIVERY'
+                sample.is_in_storage = False
+            else:
+                # Return flow: sample remains with doctor until handoff is confirmed.
+                sample.status = 'WITH_DOCTOR'
+                sample.is_in_storage = False
             sample.save()
 
             # Update the transport request with timestamp
@@ -222,29 +227,36 @@ def remove_sample_from_cart(request_id, actor=None):
     except TransportRequest.DoesNotExist:
         raise NotFound(f"No transport request found with ID: {request_id}")
 
-    if transport_request.status != "LOADED":
+    if transport_request.status not in ("LOADED", "LOADED_FOR_RETURN"):
         raise ValidationError(
             f"Cannot remove a sample that is {transport_request.status}. "
             "You can only remove samples from carts that have not yet been dispatched."
         )
 
     with transaction.atomic():
-        # Revert the blood sample's status back to REQUESTED
+        # Revert the blood sample to the expected pre-loaded state.
         sample = transport_request.sample
-        sample.status = "REQUESTED"
+        if transport_request.request_type == 'RETURN':
+            sample.status = "WITH_DOCTOR"
+            sample.is_in_storage = False
+        else:
+            sample.status = "REQUESTED"
+            sample.is_in_storage = True
         sample.save()
 
-        # Revert the transport request back to PENDING
+        # Revert the transport request back to the correct pre-loaded state.
         car = transport_request.assigned_car
         transport_request.assigned_car = None
-        transport_request.status = "PENDING"
+        transport_request.status = (
+            "APPROVED_BY_STORAGE" if transport_request.request_type == "RETURN" else "PENDING"
+        )
         transport_request.loaded_at = None  # Clear the loaded timestamp
         transport_request.save()
 
-        # Revert car status to IDLE if no other LOADED requests exist for this car
+        # Revert car status to IDLE if no other loaded requests exist for this car.
         other_loaded_requests = TransportRequest.objects.filter(
             assigned_car=car,
-            status="LOADED",
+            status__in=["LOADED", "LOADED_FOR_RETURN"],
         ).exists()
 
         if not other_loaded_requests:
@@ -295,11 +307,14 @@ def complete_transport_request(request_id, actor=None):
             sample.is_in_storage = False
             description = f"Completed delivery of sample {sample.sample_code} to room {transport_request.room_number}"
         else:  # RETURN
-            # Return completion: sample back to storage
-            transport_request.status = "RETURNED"
-            sample.status = "IN_STORAGE"
-            sample.is_in_storage = True
-            description = f"Completed return of sample {sample.sample_code} from room {transport_request.room_number}"
+            # Return completion signal in existing mechanism means "robot arrived at doctor".
+            transport_request.status = "ARRIVED_AT_DOCTOR"
+            sample.status = "WITH_DOCTOR"
+            sample.is_in_storage = False
+            description = (
+                f"Return robot arrived for sample {sample.sample_code} at room "
+                f"{transport_request.room_number}; awaiting doctor confirmation"
+            )
         
         transport_request.completed_at = timezone.now()
         transport_request.save()
@@ -310,7 +325,19 @@ def complete_transport_request(request_id, actor=None):
         if car:
             other_active = (
                 TransportRequest.objects.filter(assigned_car=car)
-                .exclude(status__in=["DELIVERED", "RETURNED", "FAILED", "CANCELLED", "PENDING"])
+                .exclude(
+                    status__in=[
+                        "DELIVERED",
+                        "RETURNED",
+                        "FAILED",
+                        "CANCELLED",
+                        "PENDING",
+                        "RETURN_REQUESTED",
+                        "APPROVED_BY_STORAGE",
+                        "ARRIVED_AT_DOCTOR",
+                        "RETURN_CONFIRMED",
+                    ]
+                )
                 .exclude(id=request_id)
                 .exists()
             )

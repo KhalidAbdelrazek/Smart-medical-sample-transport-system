@@ -241,12 +241,15 @@
     "cancel_confirm_yes": "نعم، إلغاء",
     "cancel_confirm_no": "الاحتفاظ بالطلب",
     "cancelled_success": "تم إلغاء الطلب بنجاح",
+    "request_return": "طلب استرجاع",
+    "return_requested_success": "تم إرسال طلب الاسترجاع بنجاح",
     "error_title": "حدث خطأ ما",
     "session_expired": "انتهت الجلسة. يرجى تسجيل الدخول مجدداً.",
     "retry": "إعادة المحاولة",
     "status_pending": "قيد الانتظار",
     "status_in_transit": "في الطريق",
     "status_delivered": "تم التسليم",
+    "status_return_flow": "الاسترجاع قيد التنفيذ",
     "status_cancelled": "ملغي",
     "sample_code": "العينة",
     "patient": "المريض",
@@ -254,5 +257,12 @@
     "room": "الغرفة",
     "created": "أُنشئ",
     "assigned_car": "السيارة"
+  },
+  "return_popup": {
+    "title": "وصل الروبوت لاسترجاع العينات",
+    "subtitle": "يرجى تأكيد التسليم للعينات التالية.",
+    "sample_id": "رقم العينة",
+    "confirm_button": "تأكيد التسليم",
+    "confirm_success": "تم تأكيد تسليم العينات بنجاح"
   }
 }

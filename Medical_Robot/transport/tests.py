@@ -154,7 +154,7 @@ class ReturnFlowTests(TestCase):
         )
 
         self.assertEqual(return_request.request_type, "RETURN")
-        self.assertEqual(return_request.status, "PENDING")
+        self.assertEqual(return_request.status, "RETURN_REQUESTED")
         self.assertEqual(return_request.sample.id, self.sample.id)
         self.assertEqual(return_request.room_number, "Room-101")
 
@@ -219,7 +219,7 @@ class ReturnFlowTests(TestCase):
             request_type="RETURN",
         )
 
-        with patch("transport.return_services.publish_dispatch_event", return_value=True):
+        with patch("transport.services.publish_dispatch_event", return_value=True):
             dispatched_requests, car = start_return_collection(
                 car_id=self.car.id,
                 selected_request_ids=[str(req.id)],
@@ -235,7 +235,7 @@ class ReturnFlowTests(TestCase):
 
         self.assertEqual(req.status, "DISPATCHED")
         self.assertEqual(req.assigned_car_id, self.car.id)
-        self.assertEqual(self.sample.status, "OUT_FOR_DELIVERY")
+        self.assertEqual(self.sample.status, "WITH_DOCTOR")
         self.assertFalse(self.sample.is_in_storage)
         self.assertEqual(self.car.status, "DISPATCHED")
 
@@ -268,8 +268,8 @@ class ReturnFlowTests(TestCase):
         self.assertEqual(sample.status, "WITH_DOCTOR")
         self.assertEqual(sample.is_in_storage, False)
 
-    def test_return_completion_moves_sample_back_to_in_storage(self):
-        """Completing a RETURN request moves sample back to IN_STORAGE."""
+    def test_return_completion_marks_arrived_at_doctor(self):
+        """Completing a RETURN request marks arrival and waits for doctor confirmation."""
         from transport.services import complete_transport_request
 
         sample = BloodSample.objects.create(
@@ -293,10 +293,10 @@ class ReturnFlowTests(TestCase):
                 actor=self.storage,
             )
 
-        self.assertEqual(completed_req.status, "RETURNED")
+        self.assertEqual(completed_req.status, "ARRIVED_AT_DOCTOR")
         sample.refresh_from_db()
-        self.assertEqual(sample.status, "IN_STORAGE")
-        self.assertEqual(sample.is_in_storage, True)
+        self.assertEqual(sample.status, "WITH_DOCTOR")
+        self.assertEqual(sample.is_in_storage, False)
 
     def test_confirm_returned_samples_marks_samples_in_storage(self):
         from transport.return_services import confirm_returned_samples
@@ -328,10 +328,167 @@ class ReturnFlowTests(TestCase):
         sample.refresh_from_db()
         self.car.refresh_from_db()
 
-        self.assertEqual(req.status, "DELIVERED")
+        self.assertEqual(req.status, "RETURN_CONFIRMED")
         self.assertEqual(sample.status, "IN_STORAGE")
         self.assertTrue(sample.is_in_storage)
         self.assertEqual(self.car.status, "IDLE")
+
+
+class ReturnBatchApiTests(TestCase):
+    def setUp(self):
+        self.client = APIClient()
+        self.storage = User.objects.create_user(
+            email="storage.batch@test.com",
+            password="testpass123",
+            full_name="Storage Batch",
+            role="STORAGE_EMPLOYEE",
+        )
+        self.doctor = User.objects.create_user(
+            email="doctor.batch@test.com",
+            password="testpass123",
+            full_name="Dr. Batch",
+            role="DOCTOR",
+        )
+        self.car = Car.objects.create(
+            car_number="CAR-BATCH-01",
+            status="IDLE",
+            capacity=5,
+        )
+
+        self.sample_1 = BloodSample.objects.create(
+            patient_name="Batch Patient 1",
+            blood_type="A+",
+            status="WITH_DOCTOR",
+            is_in_storage=False,
+        )
+        self.sample_2 = BloodSample.objects.create(
+            patient_name="Batch Patient 2",
+            blood_type="B+",
+            status="WITH_DOCTOR",
+            is_in_storage=False,
+        )
+
+        for sample in [self.sample_1, self.sample_2]:
+            TransportRequest.objects.create(
+                sample=sample,
+                requested_by=self.doctor,
+                room_number="Room-500",
+                status="DELIVERED",
+                request_type="DELIVERY",
+            )
+
+    def test_request_return_creates_same_batch_for_many_samples(self):
+        self.client.force_authenticate(user=self.doctor)
+        response = self.client.post(
+            "/api/transport/request-return/",
+            {"sample_ids": [str(self.sample_1.id), str(self.sample_2.id)]},
+            format="json",
+        )
+
+        self.assertEqual(response.status_code, 201)
+        payload = response.json()["data"]
+        self.assertIsNotNone(payload["batch_id"])
+        self.assertEqual(len(payload["requests"]), 2)
+
+        batch_ids = {request["batch_id"] for request in payload["requests"]}
+        statuses = {request["status"] for request in payload["requests"]}
+        self.assertEqual(len(batch_ids), 1)
+        self.assertEqual(statuses, {"RETURN_REQUESTED"})
+
+    def test_storage_can_view_grouped_return_requests(self):
+        self.client.force_authenticate(user=self.doctor)
+        create_response = self.client.post(
+            "/api/transport/request-return/",
+            {"sample_ids": [str(self.sample_1.id), str(self.sample_2.id)]},
+            format="json",
+        )
+        self.assertEqual(create_response.status_code, 201)
+
+        self.client.force_authenticate(user=self.storage)
+        response = self.client.get("/api/transport/return-requests/")
+        self.assertEqual(response.status_code, 200)
+
+        groups = response.json()["data"]
+        self.assertEqual(len(groups), 1)
+        self.assertEqual(groups[0]["room"], "Room-500")
+        self.assertEqual(len(groups[0]["samples"]), 2)
+
+    def test_storage_can_partially_approve_and_dispatch_batch(self):
+        self.client.force_authenticate(user=self.doctor)
+        create_response = self.client.post(
+            "/api/transport/request-return/",
+            {"sample_ids": [str(self.sample_1.id), str(self.sample_2.id)]},
+            format="json",
+        )
+        batch_id = create_response.json()["data"]["batch_id"]
+
+        self.client.force_authenticate(user=self.storage)
+        with patch("transport.services.publish_dispatch_event", return_value=True):
+            response = self.client.post(
+                "/api/transport/approve-return/",
+                {
+                    "batch_id": batch_id,
+                    "selected_sample_ids": [str(self.sample_1.id)],
+                },
+                format="json",
+            )
+        self.assertEqual(response.status_code, 200)
+
+        request_one = TransportRequest.objects.get(
+            sample=self.sample_1,
+            batch_id=batch_id,
+            request_type="RETURN",
+        )
+        request_two = TransportRequest.objects.get(
+            sample=self.sample_2,
+            batch_id=batch_id,
+            request_type="RETURN",
+        )
+        self.assertEqual(request_one.status, "DISPATCHED")
+        self.assertEqual(request_two.status, "RETURN_REQUESTED")
+
+    def test_doctor_polls_arrived_status_and_confirms_idempotently(self):
+        self.client.force_authenticate(user=self.doctor)
+        create_response = self.client.post(
+            "/api/transport/request-return/",
+            {"sample_ids": [str(self.sample_1.id)]},
+            format="json",
+        )
+        batch_id = create_response.json()["data"]["batch_id"]
+        return_request = TransportRequest.objects.get(
+            sample=self.sample_1,
+            batch_id=batch_id,
+            request_type="RETURN",
+        )
+        return_request.status = "ARRIVED_AT_DOCTOR"
+        return_request.assigned_car = self.car
+        return_request.save(update_fields=["status", "assigned_car"])
+
+        status_response = self.client.get("/api/transport/return-status/")
+        self.assertEqual(status_response.status_code, 200)
+        rows = status_response.json()["data"]
+        self.assertEqual(len(rows), 1)
+        self.assertEqual(rows[0]["status"], "ARRIVED_AT_DOCTOR")
+
+        confirm_response = self.client.post(
+            "/api/transport/confirm-return/",
+            {"batch_id": batch_id},
+            format="json",
+        )
+        self.assertEqual(confirm_response.status_code, 200)
+
+        return_request.refresh_from_db()
+        self.sample_1.refresh_from_db()
+        self.assertEqual(return_request.status, "RETURN_CONFIRMED")
+        self.assertEqual(self.sample_1.status, "IN_STORAGE")
+        self.assertTrue(self.sample_1.is_in_storage)
+
+        second_confirm = self.client.post(
+            "/api/transport/confirm-return/",
+            {"batch_id": batch_id},
+            format="json",
+        )
+        self.assertEqual(second_confirm.status_code, 200)
 
     def test_confirm_returned_samples_api_updates_by_sample_code_list(self):
         sample = BloodSample.objects.create(
@@ -364,7 +521,7 @@ class ReturnFlowTests(TestCase):
         sample.refresh_from_db()
         self.car.refresh_from_db()
 
-        self.assertEqual(req.status, "DELIVERED")
+        self.assertEqual(req.status, "RETURN_CONFIRMED")
         self.assertEqual(sample.status, "IN_STORAGE")
         self.assertTrue(sample.is_in_storage)
         self.assertEqual(self.car.status, "IDLE")

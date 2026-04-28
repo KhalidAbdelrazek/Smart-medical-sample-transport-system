@@ -29,6 +29,16 @@ class MyRequestsCancelling extends MyRequestsState {
   });
 }
 
+class MyRequestsReturning extends MyRequestsState {
+  final String requestId;
+  final List<TransportMyRequestEntity> requests;
+
+  MyRequestsReturning({
+    required this.requestId,
+    required this.requests,
+  });
+}
+
 /// Cancel succeeded — carries the old list so the UI can stay visible
 /// while the subsequent reload is in progress.
 class MyRequestsCancelSuccess extends MyRequestsState {
@@ -42,6 +52,17 @@ class MyRequestsCancelError extends MyRequestsState {
   final String message;
   final List<TransportMyRequestEntity> requests;
   MyRequestsCancelError({required this.message, required this.requests});
+}
+
+class MyRequestsReturnSuccess extends MyRequestsState {
+  final List<TransportMyRequestEntity> requests;
+  MyRequestsReturnSuccess({required this.requests});
+}
+
+class MyRequestsReturnError extends MyRequestsState {
+  final String message;
+  final List<TransportMyRequestEntity> requests;
+  MyRequestsReturnError({required this.message, required this.requests});
 }
 
 /// Token invalid — triggers logout / re-auth in the UI listener.

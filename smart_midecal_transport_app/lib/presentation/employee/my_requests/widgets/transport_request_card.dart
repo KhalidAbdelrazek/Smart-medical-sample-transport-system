@@ -12,13 +12,17 @@ import 'package:smart_midecal_transport_app/presentation/employee/my_requests/do
 class TransportRequestCard extends StatelessWidget {
   final TransportMyRequestEntity request;
   final bool isCancelling;
+  final bool isReturning;
   final VoidCallback? onCancel;
+  final VoidCallback? onRequestReturn;
 
   const TransportRequestCard({
     super.key,
     required this.request,
     required this.isCancelling,
+    required this.isReturning,
     this.onCancel,
+    this.onRequestReturn,
   });
 
   @override
@@ -28,6 +32,7 @@ class TransportRequestCard extends StatelessWidget {
 
     final status = (request.requestStatus ?? '').toUpperCase();
     final isPending = status == 'PENDING';
+    final isDelivered = status == 'DELIVERED';
     final statusColor = _statusColor(status);
 
     return Container(
@@ -124,7 +129,7 @@ class TransportRequestCard extends StatelessWidget {
                       ],
                     ),
 
-                    // Row 4 – Cancel button (PENDING only)
+                    // Row 4 – Pending/Delivered actions
                     if (isPending) ...[
                       SizedBox(height: 10.h),
                       Align(
@@ -164,6 +169,42 @@ class TransportRequestCard extends StatelessWidget {
                                 ),
                         ),
                       ),
+                    ] else if (isDelivered) ...[
+                      SizedBox(height: 10.h),
+                      Align(
+                        alignment: AlignmentDirectional.centerEnd,
+                        child: SizedBox(
+                          height: 34.h,
+                          child: isReturning
+                              ? Padding(
+                                  padding: EdgeInsets.symmetric(horizontal: 4.w),
+                                  child: SizedBox(
+                                    width: 22.w,
+                                    height: 22.w,
+                                    child: CircularProgressIndicator(
+                                      strokeWidth: 2.5,
+                                      color: AppColors.primaryLight,
+                                    ),
+                                  ),
+                                )
+                              : FilledButton.icon(
+                                  onPressed: onRequestReturn,
+                                  icon: Icon(Icons.assignment_return, size: 15.sp),
+                                  label: Text(
+                                    'my_requests.request_return'.tr(),
+                                    style: TextStyle(fontSize: 12.sp),
+                                  ),
+                                  style: FilledButton.styleFrom(
+                                    backgroundColor: AppColors.primaryLight,
+                                    foregroundColor: Colors.white,
+                                    padding: EdgeInsets.symmetric(horizontal: 12.w),
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(8.r),
+                                    ),
+                                  ),
+                                ),
+                        ),
+                      ),
                     ],
                   ],
                 ),
@@ -187,6 +228,12 @@ class TransportRequestCard extends StatelessWidget {
       case 'DELIVERED':
       case 'COMPLETED':
         return AppColors.success;
+      case 'RETURN_REQUESTED':
+      case 'APPROVED_BY_STORAGE':
+      case 'LOADED_FOR_RETURN':
+      case 'ARRIVED_AT_DOCTOR':
+      case 'RETURN_CONFIRMED':
+        return AppColors.info;
       case 'CANCELLED':
         return AppColors.error;
       default:
@@ -247,6 +294,12 @@ class _StatusBadge extends StatelessWidget {
         return 'my_requests.status_delivered'.tr();
       case 'CANCELLED':
         return 'my_requests.status_cancelled'.tr();
+      case 'RETURN_REQUESTED':
+      case 'APPROVED_BY_STORAGE':
+      case 'LOADED_FOR_RETURN':
+      case 'ARRIVED_AT_DOCTOR':
+      case 'RETURN_CONFIRMED':
+        return 'my_requests.status_return_flow'.tr();
       default:
         return status;
     }
