@@ -3,7 +3,7 @@ restrictions/models.py
 
 Two models power the entire Restrictions System:
   - SystemRestriction : one row per restriction type (DOCTOR_SAMPLES,
-                        STORAGE_SAMPLES, TRANSPORT_CAR).  Holds the
+                        STORAGE_SAMPLES, TRANSPORT_ROBOT).  Holds the
                         current mode (NONE / GLOBAL / PARTIAL).
   - RestrictedUser    : per-user block records, only meaningful when
                         the parent SystemRestriction.mode == 'PARTIAL'.
@@ -19,7 +19,7 @@ class SystemRestriction(models.Model):
     Exactly three rows exist (seeded by data migration):
         - DOCTOR_SAMPLES
         - STORAGE_SAMPLES
-        - TRANSPORT_CAR
+        - TRANSPORT_ROBOT
 
     mode choices:
         NONE    → no restriction active
@@ -30,7 +30,7 @@ class SystemRestriction(models.Model):
     RESTRICTION_TYPE_CHOICES = [
         ('DOCTOR_SAMPLES',  'Doctor Sample Requests'),
         ('STORAGE_SAMPLES', 'Storage Sample Loading'),
-        ('TRANSPORT_CAR',   'Car Dispatch'),
+        ('TRANSPORT_ROBOT',   'Robot Dispatch'),
     ]
 
     RESTRICTION_MODE_CHOICES = [

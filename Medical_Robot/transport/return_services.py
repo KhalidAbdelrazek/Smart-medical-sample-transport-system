@@ -13,7 +13,7 @@ from cars.models import Car
 from healthcare.mqtt_dispatch import build_dispatch_payload, publish_dispatch_event
 from .models import TransportRequest
 from analytics.services import log_storage_employee_action
-from restrictions.services import check_transport_car_restriction
+from restrictions.services import check_transport_robot_restriction
 
 logger = logging.getLogger(__name__)
 
@@ -117,7 +117,7 @@ def start_return_collection(car_id, selected_request_ids, actor=None):
         (dispatched_requests, car)
     """
     # ── RESTRICTION CHECK ──────────────────────────────
-    check_transport_car_restriction()
+    check_transport_robot_restriction()
     # ──────────────────────────────────────────────────
     
     if not selected_request_ids:

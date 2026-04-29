@@ -13,7 +13,7 @@ from analytics.services import log_storage_employee_action
 from django.core.exceptions import PermissionDenied
 from restrictions.services import (
     check_storage_samples_restriction,
-    check_transport_car_restriction,
+    check_transport_robot_restriction,
 )
 
 
@@ -97,7 +97,7 @@ def dispatch_car(car_id, actor=None):
     - Car status is set to DISPATCHED
     """
     # ── RESTRICTION CHECK ──────────────────────────────
-    check_transport_car_restriction()
+    check_transport_robot_restriction()
     # ──────────────────────────────────────────────────
 
     try:

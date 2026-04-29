@@ -100,12 +100,12 @@ class RestrictStorageSamplesSerializer(serializers.Serializer):
         return data
 
 
-class RestrictTransportCarSerializer(serializers.Serializer):
+class RestrictTransportRobotSerializer(serializers.Serializer):
     """
-    Validates the body of POST /api/restrictions/restrict-transport-car/
+    Validates the body of POST /api/restrictions/restrict-transport-robot/
 
     Fields:
-        status : True  → enable restriction (cars cannot be dispatched)
+        status : True  → enable restriction (robots cannot be dispatched)
                  False → disable restriction (dispatch allowed again)
         reason : optional admin note
     """

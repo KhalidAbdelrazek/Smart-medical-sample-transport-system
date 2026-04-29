@@ -14,12 +14,12 @@ from common.utils.response import unified_response
 from .serializers import (
     RestrictDoctorSamplesSerializer,
     RestrictStorageSamplesSerializer,
-    RestrictTransportCarSerializer,
+    RestrictTransportRobotSerializer,
 )
 from .services import (
     apply_doctor_samples_restriction,
     apply_storage_samples_restriction,
-    apply_transport_car_restriction,
+    apply_transport_robot_restriction,
     get_all_restriction_statuses,
     get_users_restriction_status,
 )
@@ -113,24 +113,24 @@ class RestrictStorageSamplesView(APIView):
         )
 
 
-class RestrictTransportCarView(APIView):
+class RestrictTransportRobotView(APIView):
     """
-    POST /api/restrictions/restrict-transport-car/
-    Enable or disable a global restriction on car dispatch.
+    POST /api/restrictions/restrict-transport-robot/
+    Enable or disable a global restriction on robot dispatch.
     Accessible by Admin only.
     """
     permission_classes = [IsAuthenticated, IsAdminRole]
 
     @extend_schema(
         tags=['Restrictions'],
-        summary='Restrict Transport Car Dispatch',
-        description='Set a global restriction on the "Dispatch" process to prevent any car from leaving.',
-        request=RestrictTransportCarSerializer,
+        summary='Restrict Transport Robot Dispatch',
+        description='Set a global restriction on the "Dispatch" process to prevent any robot from leaving.',
+        request=RestrictTransportRobotSerializer,
         responses={200: OpenApiExample('Success Response', value={
             "success": True,
-            "message": "Transport car dispatch restriction updated.",
+            "message": "Transport robot dispatch restriction updated.",
             "data": {
-                "restriction_type": "TRANSPORT_CAR",
+                "restriction_type": "TRANSPORT_ROBOT",
                 "mode": "GLOBAL",
                 "restricted_count": 0,
                 "reason": "Inclement weather",
@@ -139,10 +139,10 @@ class RestrictTransportCarView(APIView):
         })},
     )
     def post(self, request):
-        serializer = RestrictTransportCarSerializer(data=request.data)
+        serializer = RestrictTransportRobotSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
 
-        result = apply_transport_car_restriction(
+        result = apply_transport_robot_restriction(
             enabled=serializer.validated_data['status'],
             reason=serializer.validated_data.get('reason', ''),
             admin=request.user,
@@ -151,7 +151,7 @@ class RestrictTransportCarView(APIView):
         status_msg = "enabled" if serializer.validated_data['status'] else "lifted"
         return unified_response(
             success=True,
-            message=f"Transport car dispatch restriction {status_msg}.",
+            message=f"Transport robot dispatch restriction {status_msg}.",
             data=result,
             status=status.HTTP_200_OK
         )
@@ -169,39 +169,64 @@ class RestrictionStatusView(APIView):
         tags=['Restrictions'],
         summary='Get Restrictions Status',
         description=(
-            'Returns current system restrictions. '
-            'Pass ?type=doctor or ?type=storage to get an alphabetical list of users '
-            'in that category with their individual "is_restricted" status.'
+            'Returns current system restrictions for specified categories. '
+            'Pass ?type=doctor, ?type=storage, or ?type=robot to filter results. '
+            'Multiple categories can be requested at once.'
         ),
         parameters=[
             OpenApiParameter(
                 name='type',
                 type=str,
                 location=OpenApiParameter.QUERY,
-                description='Category of users to list (doctor or storage)',
-                required=False,
-                enum=['doctor', 'storage']
+                description='Categories to include (doctor, storage, robot)',
+                required=True,
+                enum=['doctor', 'storage', 'robot']
             ),
         ],
         responses={200: OpenApiExample('Status Response', value={
             "success": True,
             "message": "Current system restrictions fetched successfully.",
             "data": {
-                "doctor_samples": {"mode": "NONE", "reason": "", "updated_at": "..."},
-                "storage_samples": {"mode": "GLOBAL", "reason": "...", "updated_at": "..."},
-                "transport_car": {"mode": "NONE", "reason": "", "updated_at": "..."}
+                "doctor_samples": {
+                    "mode": "PARTIAL_RESTRICT",
+                    "reason": "Maintenance",
+                    "updated_at": "2026-04-23T20:00:00Z",
+                    "users": [
+                        {"id": "...", "name": "Dr. Smith", "is_restricted": True, "updated_at": "..."}
+                    ]
+                },
+                "transport_robot": {
+                    "mode": "ALL_UNRESTRICT",
+                    "is_restricted": False,
+                    "updated_at": "...",
+                    "reason": ""
+                },
+                "robot_restriction": "ALL_UNRESTRICT"
             }
         })},
     )
     def get(self, request):
-        category = request.query_params.get('type')
+        categories = request.query_params.getlist('type')
 
-        if category in ['doctor', 'storage']:
-            data = get_users_restriction_status(category)
-            msg = f"List of {category}s with restriction status fetched successfully."
-        else:
-            data = get_all_restriction_statuses()
-            msg = "Current system restrictions fetched successfully."
+        if not categories:
+            return unified_response(
+                success=False,
+                message="The query parameter is mandatory. Please select at least one category (doctor, storage, or robot).",
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        # Validate categories
+        valid_categories = ['doctor', 'storage', 'robot']
+        for cat in categories:
+            if cat not in valid_categories:
+                return unified_response(
+                    success=False,
+                    message=f"Invalid category: {cat}. Please select from doctor, storage, or robot.",
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+
+        data = get_all_restriction_statuses(categories)
+        msg = "Current system restrictions fetched successfully."
 
         return unified_response(
             success=True,
