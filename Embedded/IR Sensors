@@ -1,0 +1,238 @@
+import time
+import logging
+import serial
+import paho.mqtt.client as mqtt
+import threading
+
+# =========================
+# SAFE GPIO IMPORT (FIX FOR RPi ERROR)
+# =========================
+try:
+    import RPi.GPIO as GPIO
+    print("✅ Raspberry Pi GPIO detected")
+    REAL_GPIO = True
+
+except ModuleNotFoundError:
+    print("⚠️ RPi.GPIO not found → SIMULATION MODE (no crash)")
+    REAL_GPIO = False
+
+    class GPIO:
+        BCM = None
+        IN = None
+
+        @staticmethod
+        def setwarnings(x): pass
+
+        @staticmethod
+        def setmode(x): pass
+
+        @staticmethod
+        def setup(pin, mode): pass
+
+        @staticmethod
+        def input(pin):
+            return 1  # simulate WHITE surface
+
+        @staticmethod
+        def cleanup(): pass
+
+
+# =========================
+# CONFIGURATION
+# =========================
+
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - [%(levelname)s] - %(message)s'
+)
+
+LEFT_IR_PIN = 17
+RIGHT_IR_PIN = 27
+
+UART_PORT = '/dev/serial0'
+UART_BAUD = 9600
+
+MQTT_BROKER = "81758f399b5b46b9875ac5e5f1e3ef1e.s1.eu.hivemq.cloud"
+MQTT_PORT = 8883
+MQTT_TOPIC = "car/commands"
+MQTT_USERNAME = "hivemq.webclient.1764285829577"
+MQTT_PASSWORD = "bNtHo2#E,9>w18<CcOfF"
+
+
+# =========================
+# GLOBAL STATE
+# =========================
+is_running = False
+last_command_sent = None
+
+
+# =========================
+# HARDWARE SETUP
+# =========================
+GPIO.setwarnings(False)
+GPIO.setmode(GPIO.BCM)
+GPIO.setup(LEFT_IR_PIN, GPIO.IN)
+GPIO.setup(RIGHT_IR_PIN, GPIO.IN)
+
+try:
+    ser = serial.Serial(
+        port=UART_PORT,
+        baudrate=UART_BAUD,
+        timeout=1.0
+    )
+    ser.reset_input_buffer()
+    ser.reset_output_buffer()
+    logging.info("UART initialized")
+except Exception as e:
+    logging.error(f"UART error: {e}")
+    ser = None
+
+
+# =========================
+# CORE FUNCTIONS
+# =========================
+
+def send_command(cmd):
+    global last_command_sent
+
+    if cmd == last_command_sent:
+        return
+
+    if ser:
+        try:
+            ser.write((cmd + '\n').encode())
+            logging.info(f"[UART] {cmd}")
+        except Exception as e:
+            logging.error(f"UART send error: {e}")
+    else:
+        logging.info(f"[SIM UART] {cmd}")
+
+    last_command_sent = cmd
+
+
+def read_sensors():
+    left = GPIO.input(LEFT_IR_PIN)
+    right = GPIO.input(RIGHT_IR_PIN)
+    return left, right
+
+
+def decide_action(left, right):
+    # 1 = WHITE, 0 = BLACK
+
+    if left == 1 and right == 1:
+        return 'F'
+    elif left == 0 and right == 1:
+        return 'R'
+    elif left == 1 and right == 0:
+        return 'L'
+    elif left == 0 and right == 0:
+        return 'S'
+
+    return 'S'
+
+
+# =========================
+# CONTROL
+# =========================
+
+def start_robot():
+    global is_running
+    if not is_running:
+        is_running = True
+        logging.info("🚀 Robot STARTED")
+        send_command('F')
+
+
+def stop_robot():
+    global is_running
+    if is_running:
+        is_running = False
+        logging.info("🛑 Robot STOPPED")
+        send_command('S')
+
+
+# =========================
+# TERMINAL CONTROL
+# =========================
+
+def terminal_listener():
+    while True:
+        cmd = input().strip().lower()
+        if cmd == 'f':
+            start_robot()
+        elif cmd == 's':
+            stop_robot()
+
+
+# =========================
+# MQTT CALLBACKS
+# =========================
+
+def on_connect(client, userdata, flags, rc):
+    if rc == 0:
+        logging.info("[MQTT] Connected")
+        client.subscribe(MQTT_TOPIC)
+
+
+def on_disconnect(client, userdata, rc):
+    logging.warning("[MQTT] Disconnected")
+    stop_robot()
+
+
+def on_message(client, userdata, msg):
+    payload = msg.payload.decode().strip().upper()
+    logging.info(f"[MQTT] {payload}")
+
+    if payload in ["F", "START", "AUTO"]:
+        start_robot()
+    elif payload in ["S", "STOP", "MANUAL"]:
+        stop_robot()
+
+
+# =========================
+# MAIN LOOP
+# =========================
+
+def main():
+
+    # terminal thread
+    threading.Thread(target=terminal_listener, daemon=True).start()
+
+    # MQTT setup
+    client = mqtt.Client()
+    client.tls_set()
+    client.username_pw_set(MQTT_USERNAME, MQTT_PASSWORD)
+    client.on_connect = on_connect
+    client.on_disconnect = on_disconnect
+    client.on_message = on_message
+
+    client.connect(MQTT_BROKER, MQTT_PORT, 60)
+    client.loop_start()
+
+    logging.info("System ready")
+
+    try:
+        while True:
+
+            if is_running:
+                left, right = read_sensors()
+                cmd = decide_action(left, right)
+                send_command(cmd)
+
+            time.sleep(0.05)
+
+    except KeyboardInterrupt:
+        logging.info("Stopping...")
+
+    finally:
+        send_command('S')
+        client.loop_stop()
+        client.disconnect()
+        if ser:
+            ser.close()
+        GPIO.cleanup()
+        logging.info("Shutdown complete")
+
+
+if __name__ == "__main__":
+    main()
