@@ -65,7 +65,7 @@ def _use_tls():
 
 
 def _ack_timeout():
-    return int(getattr(settings, "MQTT_ACK_TIMEOUT_SECONDS", 5))
+    return int(getattr(settings, "MQTT_ACK_TIMEOUT_SECONDS", 300))
 
 
 def _ack_retries():

@@ -56,7 +56,7 @@ def publish_dispatch_event(payload):
     password = getattr(settings, "MQTT_BROKER_PASSWORD", getattr(settings, "MQTT_PASSWORD", ""))
     topic = getattr(settings, "TOPIC", "carts/1/command")
     qos = int(getattr(settings, "MQTT_DISPATCH_QOS", 1))
-    timeout_seconds = int(getattr(settings, "MQTT_DISPATCH_TIMEOUT_SECONDS", 5))
+    timeout_seconds = int(getattr(settings, "MQTT_DISPATCH_TIMEOUT_SECONDS", 300))
     use_tls = bool(getattr(settings, "MQTT_BROKER_USE_TLS", True))
 
     if not broker_host:
