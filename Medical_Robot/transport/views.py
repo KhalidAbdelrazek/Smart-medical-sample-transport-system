@@ -17,6 +17,7 @@ from .serializers import (
     ConfirmReturnSerializer,
     StartReturnCollectionSerializer,
     ConfirmReturnedSamplesSerializer,
+    RejectDeliverySerializer,
 )
 from .services import (
     add_sample_to_car, 
@@ -24,7 +25,9 @@ from .services import (
     cancel_transport_request, 
     remove_sample_from_cart,
     complete_transport_request,
-    fail_transport_request
+    fail_transport_request,
+    confirm_delivery,
+    reject_delivery,
 )
 from .return_services import (
     request_sample_return,
@@ -759,6 +762,134 @@ class ConfirmReturnedSamplesView(APIView):
                 status=status.HTTP_404_NOT_FOUND,
             )
         except ValidationError as e:
+            return unified_response(
+                success=False,
+                message=format_error_message(e),
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+
+class DeliveryArrivalsView(APIView):
+    """
+    GET /api/transport/arrivals/
+    Doctor polls for delivery arrivals — samples that have physically arrived
+    at their room and are waiting for confirmation.
+    """
+    permission_classes = [IsAuthenticated, IsDoctor]
+
+    @extend_schema(
+        tags=['Transport'],
+        summary='Poll Delivery Arrivals',
+        description=(
+            'Returns samples with status ARRIVED_AT_DOCTOR_DELIVERY for the '
+            'authenticated doctor. Intended for ~5s polling by the frontend.'
+        ),
+    )
+    def get(self, request):
+        arrivals = (
+            TransportRequest.objects.filter(
+                requested_by=request.user,
+                request_type='DELIVERY',
+                status='ARRIVED_AT_DOCTOR_DELIVERY',
+            )
+            .select_related('sample')
+            .order_by('arrived_at')
+        )
+        response_rows = [
+            {
+                "request_id": str(tr.id),
+                "sample_id": str(tr.sample_id),
+                "sample_name": tr.sample.patient_name,
+                "sample_code": tr.sample.sample_code,
+                "status": tr.status,
+                "room": tr.room_number,
+            }
+            for tr in arrivals
+        ]
+        return unified_response(
+            success=True,
+            message=f"Found {len(response_rows)} delivery arrival(s)",
+            data=response_rows,
+            status=status.HTTP_200_OK,
+        )
+
+
+class ConfirmDeliveryView(APIView):
+    """
+    POST /api/transport/requests/{request_id}/confirm-delivery/
+    Doctor confirms receipt of a delivered sample.
+    """
+    permission_classes = [IsAuthenticated, IsDoctor]
+
+    @extend_schema(
+        tags=['Transport'],
+        summary='Confirm Delivery',
+        description='Doctor confirms a sample that has arrived at their room.',
+        responses={200: TransportRequestSerializer},
+    )
+    def post(self, request, request_id):
+        try:
+            transport_request = confirm_delivery(
+                request_id=request_id,
+                doctor=request.user,
+            )
+            return unified_response(
+                success=True,
+                message="Delivery confirmed successfully",
+                data=TransportRequestSerializer(transport_request).data,
+                status=status.HTTP_200_OK,
+            )
+        except PermissionDenied as e:
+            return unified_response(
+                success=False,
+                message=format_error_message(e),
+                status=status.HTTP_403_FORBIDDEN,
+            )
+        except (NotFound, ValidationError) as e:
+            return unified_response(
+                success=False,
+                message=format_error_message(e),
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+
+class RejectDeliveryView(APIView):
+    """
+    POST /api/transport/requests/{request_id}/reject-delivery/
+    Doctor rejects a delivered sample (e.g. wrong sample, damaged).
+    """
+    permission_classes = [IsAuthenticated, IsDoctor]
+
+    @extend_schema(
+        tags=['Transport'],
+        summary='Reject Delivery',
+        description='Doctor rejects a sample. Marks request as FAILED and may trigger car to proceed.',
+        request=RejectDeliverySerializer,
+        responses={200: TransportRequestSerializer},
+    )
+    def post(self, request, request_id):
+        serializer = RejectDeliverySerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        try:
+            transport_request = reject_delivery(
+                request_id=request_id,
+                doctor=request.user,
+                reason=serializer.validated_data.get('reason', ''),
+            )
+            return unified_response(
+                success=True,
+                message="Delivery rejected",
+                data=TransportRequestSerializer(transport_request).data,
+                status=status.HTTP_200_OK,
+            )
+        except PermissionDenied as e:
+            return unified_response(
+                success=False,
+                message=format_error_message(e),
+                status=status.HTTP_403_FORBIDDEN,
+            )
+        except (NotFound, ValidationError) as e:
             return unified_response(
                 success=False,
                 message=format_error_message(e),
