@@ -123,6 +123,17 @@
     "retry": "Retry"
   },
   "requests": {
+    "dispatch_car": "Dispatch Car",
+    "transport_requests": "Transport Request",
+    "return_approval": "Return Approval",
+    "samples_ready": "Sample Ready",
+    "loaded_in_car": "loaded in car",
+    "patient_name": "Patient Name",
+    "blood_type": "Blood Type",
+    "room": "Room",
+    "requested_by": "Requested By",
+    "created_at": "Created At",
+
     "blood_bags": "Blood Bags",
     "blood_samples": "Samples",
     "transport_car": "Transport Car",

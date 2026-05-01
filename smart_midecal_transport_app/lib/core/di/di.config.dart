@@ -53,26 +53,26 @@ import '../../presentation/employee/requests/domain/repository/requests_reposito
     as _i960;
 import '../../presentation/employee/requests/ui/cubit/blood_sample_cubit.dart'
     as _i497;
-import '../../presentation/employer/restrictions_tab/ui/cubit/restrictions_cubit.dart'
-    as _i963;
 import '../../presentation/employer/restrictions_tab/data/data_source/impl/restrictions_data_source_impl.dart'
-    as _i_rdsi;
+    as _i131;
 import '../../presentation/employer/restrictions_tab/data/data_source/restrictions_data_source.dart'
-    as _i_rds;
+    as _i504;
 import '../../presentation/employer/restrictions_tab/data/repos/restrictions_repository_impl.dart'
-    as _i_rri;
+    as _i626;
 import '../../presentation/employer/restrictions_tab/domain/repos/restrictions_repository.dart'
-    as _i_rr;
+    as _i192;
+import '../../presentation/employer/restrictions_tab/ui/cubit/restrictions_cubit.dart'
+    as _i762;
 import '../../presentation/employer/statistics_tab/data/data_source/admin_stats_data_source.dart'
-    as _i_asds;
+    as _i392;
 import '../../presentation/employer/statistics_tab/data/data_source/impl/admin_stats_data_source_impl.dart'
-    as _i_asdsi;
+    as _i171;
 import '../../presentation/employer/statistics_tab/data/repos/admin_stats_repository_impl.dart'
-    as _i_asri;
+    as _i340;
 import '../../presentation/employer/statistics_tab/domain/repos/admin_stats_repository.dart'
-    as _i_asr;
+    as _i154;
 import '../../presentation/employer/statistics_tab/ui/cubit/statistics_cubit.dart'
-    as _i327;
+    as _i72;
 import '../../presentation/storage/home_tab/data/data_source/impl/static_storage_remote_ds_impl.dart'
     as _i304;
 import '../../presentation/storage/home_tab/data/data_source/static_storage_remote_ds.dart'
@@ -102,6 +102,8 @@ import '../../presentation/storage/requests_tab/domain/repository/requests_repos
     as _i459;
 import '../../presentation/storage/requests_tab/ui/cubit/blood_samples_cubit.dart'
     as _i6;
+import '../../presentation/storage/requests_tab/ui/cubit/return_approval_cubit.dart'
+    as _i834;
 import '../api%20manager/api_manager.dart' as _i949;
 
 extension GetItInjectableX on _i174.GetIt {
@@ -111,32 +113,7 @@ extension GetItInjectableX on _i174.GetIt {
     _i526.EnvironmentFilter? environmentFilter,
   }) {
     final gh = _i526.GetItHelper(this, environment, environmentFilter);
-    gh.factory<_i_rds.RestrictionsDataSource>(
-      () => _i_rdsi.RestrictionsDataSourceImpl(
-        apiManager: gh<_i949.ApiManager>(),
-      ),
-    );
-    gh.factory<_i_rr.RestrictionsRepository>(
-      () => _i_rri.RestrictionsRepositoryImpl(
-        gh<_i_rds.RestrictionsDataSource>(),
-      ),
-    );
-    gh.factory<_i963.RestrictionsCubit>(
-      () => _i963.RestrictionsCubit(gh<_i_rr.RestrictionsRepository>()),
-    );
-    gh.factory<_i_asds.AdminStatsDataSource>(
-      () => _i_asdsi.AdminStatsDataSourceImpl(
-        apiManager: gh<_i949.ApiManager>(),
-      ),
-    );
-    gh.factory<_i_asr.AdminStatsRepository>(
-      () => _i_asri.AdminStatsRepositoryImpl(
-        gh<_i_asds.AdminStatsDataSource>(),
-      ),
-    );
-    gh.factory<_i327.StatisticsCubit>(
-      () => _i327.StatisticsCubit(gh<_i_asr.AdminStatsRepository>()),
-    );
+    gh.factory<_i834.ReturnApprovalCubit>(() => _i834.ReturnApprovalCubit());
     gh.singleton<_i949.ApiManager>(() => _i949.ApiManager());
     gh.factory<_i274.MyRequestsDataSource>(
       () => _i1059.MyRequestsDataSourceImpl(apiManager: gh<_i949.ApiManager>()),
@@ -186,6 +163,16 @@ extension GetItInjectableX on _i174.GetIt {
         gh<_i966.EmploeeStatisticsRemoteDataSource>(),
       ),
     );
+    gh.factory<_i392.AdminStatsDataSource>(
+      () => _i171.AdminStatsDataSourceImpl(apiManager: gh<_i949.ApiManager>()),
+    );
+    gh.factory<_i504.RestrictionsDataSource>(
+      () =>
+          _i131.RestrictionsDataSourceImpl(apiManager: gh<_i949.ApiManager>()),
+    );
+    gh.factory<_i154.AdminStatsRepository>(
+      () => _i340.AdminStatsRepositoryImpl(gh<_i392.AdminStatsDataSource>()),
+    );
     gh.factory<_i981.MyRequestsRepository>(
       () => _i1070.MyRequestsRepositoryImpl(
         myRequestsDataSource: gh<_i274.MyRequestsDataSource>(),
@@ -196,6 +183,9 @@ extension GetItInjectableX on _i174.GetIt {
     );
     gh.factory<_i600.EmployeeLoginViewModel>(
       () => _i600.EmployeeLoginViewModel(gh<_i471.AuthRepository>()),
+    );
+    gh.factory<_i72.StatisticsCubit>(
+      () => _i72.StatisticsCubit(gh<_i154.AdminStatsRepository>()),
     );
     gh.factory<_i960.RequestsRepository>(
       () => _i1020.RequestsRepositoryImpl(
@@ -221,8 +211,15 @@ extension GetItInjectableX on _i174.GetIt {
         gh<_i545.StorageStatisticsRemoteDataSource>(),
       ),
     );
+    gh.factory<_i192.RestrictionsRepository>(
+      () =>
+          _i626.RestrictionsRepositoryImpl(gh<_i504.RestrictionsDataSource>()),
+    );
     gh.factory<_i592.HomeCubit>(
       () => _i592.HomeCubit(gh<_i771.StorageStatisticsRepo>()),
+    );
+    gh.factory<_i762.RestrictionsCubit>(
+      () => _i762.RestrictionsCubit(gh<_i192.RestrictionsRepository>()),
     );
     return this;
   }

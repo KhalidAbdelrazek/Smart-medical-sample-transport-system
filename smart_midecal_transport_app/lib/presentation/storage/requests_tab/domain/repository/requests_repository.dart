@@ -8,4 +8,5 @@ abstract class RequestsRepository {
   Future<Either<Failures, GetRequestsResponseEntity>> getRequests();
   Future<Either<Failures, AddToCarResponseEntity>> addToCar(String sampleCode);
   Future<Either<Failures, DispatchCarResponseEntity>> dispatchCar();
+  Future<Either<Failures, void>> removeFromCar(String requestId);
 } 

@@ -35,6 +35,8 @@ abstract class ApiEndPoints {
       '${ApiConstants.baseUrl}api/transport/my-requests/';
   static String cancelTransportRequest(String id) =>
       '${ApiConstants.baseUrl}api/transport/requests/$id/cancel/';
+  static String removeFromCar(String id) =>
+  '${ApiConstants.baseUrl}/api/transport/requests/$id/remove-from-cart/';
 
   // todo : chatbot =>
   // static const chatbot = '${ApiConstants.chatbotUrl}/chat';

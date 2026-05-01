@@ -57,6 +57,7 @@ class RestrictionsDataSourceImpl implements RestrictionsDataSource {
         path: '${ApiEndPoints.restrictionsStatus}?type=$type',
         options: _authOptions(),
       );
+      print(response.data);
       final code = response.statusCode ?? 0;
       if (code >= 200 && code < 300) {
         final data = response.data;
