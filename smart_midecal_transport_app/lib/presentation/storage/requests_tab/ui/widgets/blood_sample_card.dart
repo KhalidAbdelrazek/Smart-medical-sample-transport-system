@@ -25,6 +25,13 @@ _StatusConfig _statusConfig(String? status) {
         icon: Icons.hourglass_empty_rounded,
         label: status ?? 'Unknown',
       );
+    case 'LOADED':
+    case 'LOADED_FOR_RETURN':
+      return _StatusConfig(
+        color: AppColors.primaryLight,
+        icon: Icons.inventory_2_rounded,
+        label: status ?? 'Unknown',
+      );
     case 'APPROVED':
     case 'OUT_FOR_DELIVERY':
     case 'IN_TRANSIT':
@@ -59,6 +66,10 @@ class BloodSampleCard extends StatelessWidget {
   /// Null when car is full, request is already in transit, or action is loading.
   final VoidCallback? onAddToCar;
 
+  /// Called when storage removes a LOADED sample from the car.
+  /// Null when the sample is not in LOADED status.
+  final VoidCallback? onRemoveFromCar;
+
   final int index;
 
   const BloodSampleCard({
@@ -66,6 +77,7 @@ class BloodSampleCard extends StatelessWidget {
     required this.request,
     this.isActionLoading = false,
     this.onAddToCar,
+    this.onRemoveFromCar,
     this.index = 0,
   });
 
@@ -77,6 +89,9 @@ class BloodSampleCard extends StatelessWidget {
     final isPending =
         request.status?.toUpperCase() == 'PENDING' ||
         request.status?.toUpperCase() == 'REQUESTED';
+    final isLoaded =
+        request.status?.toUpperCase() == 'LOADED' ||
+        request.status?.toUpperCase() == 'LOADED_FOR_RETURN';
 
     return TweenAnimationBuilder<double>(
       tween: Tween(begin: 0.0, end: 1.0),
@@ -106,7 +121,9 @@ class BloodSampleCard extends StatelessWidget {
             Container(
               padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 12.h),
               decoration: BoxDecoration(
-                color: AppColors.info.withValues(alpha: 0.08),
+                color: isLoaded
+                    ? AppColors.primaryLight.withValues(alpha: 0.08)
+                    : AppColors.info.withValues(alpha: 0.08),
                 borderRadius: BorderRadius.vertical(top: Radius.circular(18.r)),
               ),
               child: Row(
@@ -114,11 +131,13 @@ class BloodSampleCard extends StatelessWidget {
                   Container(
                     padding: EdgeInsets.all(8.w),
                     decoration: BoxDecoration(
-                      color: AppColors.info,
+                      color: isLoaded ? AppColors.primaryLight : AppColors.info,
                       borderRadius: BorderRadius.circular(10.r),
                     ),
                     child: Icon(
-                      Icons.science_rounded,
+                      isLoaded
+                          ? Icons.inventory_2_rounded
+                          : Icons.science_rounded,
                       color: Colors.white,
                       size: 18.sp,
                     ),
@@ -244,13 +263,16 @@ class BloodSampleCard extends StatelessWidget {
                     ),
                   ],
 
-                  // ── Action Button ────────────────────────────────────────
+                  // ── Add to Car Button (PENDING only) ─────────────────────
                   if (isPending) ...[
                     SizedBox(height: 14.h),
                     SizedBox(
                       width: double.infinity,
                       child: isActionLoading
-                          ? const _LoadingButton()
+                          ? const _LoadingButton(
+                              color: AppColors.success,
+                              labelKey: 'requests.adding',
+                            )
                           : FilledButton.icon(
                               onPressed: onAddToCar,
                               icon: Icon(
@@ -265,7 +287,43 @@ class BloodSampleCard extends StatelessWidget {
                                       )
                                     : AppColors.success,
                                 foregroundColor: Colors.white,
-                                padding: EdgeInsets.symmetric(vertical: 13.h),
+                                padding:
+                                    EdgeInsets.symmetric(vertical: 13.h),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(12.r),
+                                ),
+                              ),
+                            ),
+                    ),
+                  ],
+
+                  // ── Remove from Car Button (LOADED only) ─────────────────
+                  if (isLoaded) ...[
+                    SizedBox(height: 14.h),
+                    SizedBox(
+                      width: double.infinity,
+                      child: isActionLoading
+                          ? const _LoadingButton(
+                              color: AppColors.error,
+                              labelKey: 'requests.removing',
+                            )
+                          : OutlinedButton.icon(
+                              onPressed: onRemoveFromCar,
+                              icon: Icon(
+                                Icons.remove_circle_outline_rounded,
+                                size: 18.sp,
+                                color: AppColors.error,
+                              ),
+                              label: Text(
+                                'requests.remove_from_car'.tr(),
+                                style: TextStyle(color: AppColors.error),
+                              ),
+                              style: OutlinedButton.styleFrom(
+                                side: BorderSide(
+                                  color: AppColors.error.withValues(alpha: 0.6),
+                                ),
+                                padding:
+                                    EdgeInsets.symmetric(vertical: 13.h),
                                 shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(12.r),
                                 ),
@@ -323,16 +381,22 @@ class BloodSampleCard extends StatelessWidget {
   }
 }
 
-/// Small loading indicator shown in the button while addToCar is running.
+/// Small loading indicator shown in the button while an action is running.
 class _LoadingButton extends StatelessWidget {
-  const _LoadingButton();
+  final Color color;
+  final String labelKey;
+
+  const _LoadingButton({
+    required this.color,
+    required this.labelKey,
+  });
 
   @override
   Widget build(BuildContext context) {
     return Container(
       height: 48.h,
       decoration: BoxDecoration(
-        color: AppColors.success.withValues(alpha: 0.6),
+        color: color.withValues(alpha: 0.6),
         borderRadius: BorderRadius.circular(12.r),
       ),
       child: Row(
@@ -348,7 +412,7 @@ class _LoadingButton extends StatelessWidget {
           ),
           SizedBox(width: 10.w),
           Text(
-            'requests.adding'.tr(),
+            labelKey.tr(),
             style: TextStyle(
               color: Colors.white,
               fontWeight: FontWeight.w600,

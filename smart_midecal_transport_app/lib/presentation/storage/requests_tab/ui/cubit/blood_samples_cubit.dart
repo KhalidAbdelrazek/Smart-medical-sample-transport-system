@@ -81,6 +81,30 @@ class BloodSamplesCubit extends Cubit<BloodSamplesState> {
     );
   }
 
+  /// Remove a loaded sample from the car via the API.
+  Future<void> removeFromCar(String requestId) async {
+    // Show per-card loading spinner
+    emit(
+      BloodSamplesLoaded(
+        requests: List.unmodifiable(_requests),
+        actionLoadingId: requestId,
+      ),
+    );
+
+    final result = await _repository.removeFromCar(requestId);
+    result.fold(
+      (failure) => emit(
+        BloodSamplesActionError(
+          message: failure.errorMessage,
+          requests: List.unmodifiable(_requests),
+        ),
+      ),
+      (_) {
+        _refreshAfterAction('Sample removed from car successfully');
+      },
+    );
+  }
+
   // ── Private helpers ───────────────────────────────────────────────────────
 
   Future<void> _refreshAfterAction(String successMessage) async {

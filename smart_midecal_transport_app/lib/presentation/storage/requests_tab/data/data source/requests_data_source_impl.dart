@@ -126,4 +126,37 @@ class RequestsDataSourceImpl implements RequestsDataSource {
       return Left(ServerError(errorMessage: e.toString()));
     }
   }
+
+  @override
+  Future<Either<Failures, void>> removeFromCar(String requestId) async {
+    final List<ConnectivityResult> connectivityResult = await Connectivity()
+        .checkConnectivity();
+    try {
+      String? token = SharedPrefService.instance.getAccessToken();
+      if (!connectivityResult.contains(ConnectivityResult.none)) {
+        var response = await apiManager.deleteData(
+          path: ApiEndPoints.removeFromCar(requestId),
+          options: Options(
+            headers: {
+              "Content-Type": "application/json",
+              "Authorization": "Bearer $token",
+            },
+            validateStatus: (status) => true,
+          ),
+        );
+        if (response.statusCode! >= 200 && response.statusCode! < 300) {
+          return const Right(null);
+        }
+        final errorMsg =
+            (response.data is Map && response.data['message'] != null)
+            ? response.data['message'].toString()
+            : 'Failed to remove sample from car';
+        return Left(ServerError(errorMessage: errorMsg));
+      } else {
+        return Left(NetworkError(errorMessage: "Network Error"));
+      }
+    } catch (e) {
+      return Left(ServerError(errorMessage: e.toString()));
+    }
+  }
 }
