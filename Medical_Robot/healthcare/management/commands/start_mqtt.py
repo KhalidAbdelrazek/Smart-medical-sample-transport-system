@@ -3,71 +3,80 @@ import ssl
 import paho.mqtt.client as mqtt
 from django.core.management.base import BaseCommand
 from django.conf import settings
-from django.utils import timezone
-from datetime import timedelta
-from healthcare.models import SensorReading
 
-# 1. Configuration (Move these to settings.py in production)
 
 class Command(BaseCommand):
-    help = 'Starts the MQTT Listener'
+    help = 'Starts the MQTT Listener (subscriber to all topics)'
 
     def handle(self, *args, **options):
+        # Broker configuration (reuse the same keys as mqtt_dispatch)
+        broker_host = getattr(settings, "MQTT_BROKER_HOST", getattr(settings, "BROKER_URL", None))
+        broker_port = int(getattr(settings, "MQTT_BROKER_PORT", getattr(settings, "BROKER_PORT", 1883)))
+        username = getattr(settings, "MQTT_BROKER_USERNAME", getattr(settings, "MQTT_USERNAME", ""))
+        password = getattr(settings, "MQTT_BROKER_PASSWORD", getattr(settings, "MQTT_PASSWORD", ""))
+        use_tls = bool(getattr(settings, "MQTT_BROKER_USE_TLS", True))
+        qos = int(getattr(settings, "MQTT_DISPATCH_QOS", 1))
+
+        if not broker_host:
+            self.stdout.write(self.style.ERROR("MQTT listener skipped: broker host is not configured."))
+            return
+
         # 2. Define what happens when we connect
         def on_connect(client, userdata, flags, rc):
             if rc == 0:
-                self.stdout.write(self.style.SUCCESS('Successfully connected to HiveMQ!'))
-                client.subscribe(settings.TOPIC)
+                self.stdout.write(self.style.SUCCESS(f"Connected to MQTT broker {broker_host}:{broker_port} (subscribing to all topics)"))
+                # subscribe to all topics
+                client.subscribe("#", qos=qos)
             else:
-                self.stdout.write(self.style.ERROR(f'Connection failed with code {rc}'))
+                self.stdout.write(self.style.ERROR(f"Connection failed with code {rc}"))
+
+        def on_subscribe(client, userdata, mid, granted_qos):
+            self.stdout.write(f"Subscribed (mid={mid}) granted_qos={granted_qos}")
 
         # 3. Define what happens when a message arrives
         def on_message(client, userdata, msg):
             try:
-                # Payload comes as bytes, decode to string
-                payload = msg.payload.decode('utf-8')
-                data = json.loads(payload)
-                
-                # Save to Django Database
-                reading = SensorReading.objects.create(
-                    cart=data.get('cart'),
-                    position=data.get('position'),
-                    load=data.get('load'),
-                    state=data.get('state'),
-                    time=data.get('time')
-                )
-                print(f"Saved: {reading}")
-                
-                # Automatically delete readings older than 1 hour
-                cutoff_date = timezone.now() - timedelta(hours=1)
-                deleted_count, _ = SensorReading.objects.filter(
-                    time__lt=cutoff_date
-                ).delete()
-                
-                if deleted_count > 0:
-                    print(f"Cleaned up {deleted_count} old readings")
-                
+                payload = msg.payload.decode('utf-8', errors='replace')
+            except Exception:
+                payload = str(msg.payload)
+
+            # Print topic and raw payload
+            self.stdout.write(f"Received on topic '{msg.topic}': {payload}")
+
+            # Try to parse JSON and pretty-print
+            try:
+                parsed = json.loads(payload)
+                pretty = json.dumps(parsed, indent=2, sort_keys=True, ensure_ascii=False)
+                self.stdout.write("Parsed JSON payload:\n" + pretty)
             except json.JSONDecodeError:
-                print("Error: Message was not valid JSON")
-            except Exception as e:
-                print(f"Error saving to DB: {e}")
+                self.stdout.write("Payload is not valid JSON (raw printed above)")
 
         # 4. Setup the Client
         client = mqtt.Client()
         client.on_connect = on_connect
         client.on_message = on_message
+        client.on_subscribe = on_subscribe
 
-        # 5. Security (Crucial for HiveMQ Cloud)
-        client.username_pw_set(settings.MQTT_USERNAME, settings.MQTT_PASSWORD)
-        client.tls_set(cert_reqs=ssl.CERT_REQUIRED, tls_version=ssl.PROTOCOL_TLS)
+        if username:
+            client.username_pw_set(username, password)
 
-        # 6. Connect and Loop Forever
-        self.stdout.write('Connecting to broker...')
+        if use_tls:
+            client.tls_set(cert_reqs=ssl.CERT_REQUIRED, tls_version=ssl.PROTOCOL_TLS)
+
+        # 5. Connect and Loop Forever
+        self.stdout.write(f"Connecting to broker {broker_host}:{broker_port} ...")
         try:
-            client.connect(settings.BROKER_URL, settings.BROKER_PORT, 60)
-            client.loop_forever() # This blocks the script and runs forever
+            client.connect(broker_host, broker_port, keepalive=60)
+            client.loop_forever()  # This blocks the script and runs callbacks
         except KeyboardInterrupt:
-            self.stdout.write(self.style.SUCCESS('Stopped.'))
-            client.disconnect()
-            
-            
+            self.stdout.write(self.style.SUCCESS('Stopped by user. Disconnecting...'))
+            try:
+                client.disconnect()
+            except Exception:
+                pass
+        except Exception as e:
+            self.stdout.write(self.style.ERROR(f"MQTT listener error: {e}"))
+            try:
+                client.disconnect()
+            except Exception:
+                pass
