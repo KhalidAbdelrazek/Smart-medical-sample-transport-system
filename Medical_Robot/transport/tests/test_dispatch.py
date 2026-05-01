@@ -263,6 +263,17 @@ class TestArrivalHandling(TestCase):
         )
         self.assertEqual(count, 0)  # Not updated because request is on different car
 
+    def test_arrival_rejects_wrong_room(self):
+        """Request IDs with wrong room are not marked as arrived (Fix #3)."""
+        count = handle_arrival_event(
+            car_id=self.car.id,
+            room="Room-WRONG",  # self.request is in Room-A
+            arrived_request_ids=[str(self.request.id)],
+        )
+        self.assertEqual(count, 0)
+        self.request.refresh_from_db()
+        self.assertEqual(self.request.status, "DISPATCHED")  # unchanged
+
     def test_arrival_handles_return_type(self):
         """Return requests transition to ARRIVED_AT_DOCTOR (not DELIVERY)."""
         return_sample = _create_sample("Return P", status="WITH_DOCTOR")
