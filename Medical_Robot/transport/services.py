@@ -1,4 +1,5 @@
 import logging
+import uuid
 
 from django.db import transaction
 from django.utils import timezone
@@ -6,7 +7,6 @@ from rest_framework.exceptions import NotFound, ValidationError
 
 from samples.models import BloodSample
 from cars.models import Car
-from healthcare.mqtt_dispatch import build_dispatch_payload, publish_dispatch_event
 from .models import TransportRequest
 from analytics.services import log_storage_employee_action
 
@@ -19,6 +19,58 @@ from restrictions.services import (
 
 logger = logging.getLogger(__name__)
 
+
+# ---------------------------------------------------------------------------
+# Grouped-by-room payload builder
+# ---------------------------------------------------------------------------
+
+def build_grouped_dispatch_payload(car, loaded_requests):
+    """
+    Build the dispatch payload grouped by destination room.
+
+    Returns dict:
+    {
+        "car_id": int,
+        "batch_id": "uuid...",
+        "grouped_by_room": {
+            "Room A": [{"request_id": "...", "sample_id": "...", "doctor_id": "..."}],
+            "Room B": [...],
+        }
+    }
+    """
+    batch_id = str(uuid.uuid4())
+    grouped = {}
+
+    for transport_request in loaded_requests:
+        room = transport_request.room_number
+        if room not in grouped:
+            grouped[room] = []
+        grouped[room].append({
+            "request_id": str(transport_request.id),
+            "sample_id": str(transport_request.sample_id),
+            "doctor_id": str(transport_request.requested_by_id) if transport_request.requested_by_id else None,
+        })
+
+    return {
+        "car_id": car.id,
+        "batch_id": batch_id,
+        "grouped_by_room": grouped,
+    }
+
+
+# ---------------------------------------------------------------------------
+# Legacy payload builder (kept for backward compatibility with existing code)
+# ---------------------------------------------------------------------------
+
+def _build_legacy_dispatch_payload(car, dispatched_requests):
+    """Build the legacy payload format used by healthcare.mqtt_dispatch."""
+    from healthcare.mqtt_dispatch import build_dispatch_payload
+    return build_dispatch_payload(car=car, dispatched_requests=dispatched_requests)
+
+
+# ---------------------------------------------------------------------------
+# Core transport services
+# ---------------------------------------------------------------------------
 
 def add_sample_to_car(sample_code, car_id, actor=None):
     """
@@ -89,12 +141,15 @@ def dispatch_car(car_id, actor=None):
     """
     Storage employee dispatches a car, sending all loaded samples for delivery.
 
+    ACK-gated flow:
+    1. Build grouped-by-room dispatch payload
+    2. Publish to MQTT and wait for device ACK
+    3. Only on "OK" ACK: mark requests DISPATCHED, samples OUT_FOR_DELIVERY, car DISPATCHED
+    4. On timeout/error: leave everything unchanged and raise ValidationError
+
     Rules:
     - Car must exist
     - Car must have at least one LOADED transport request
-    - All LOADED samples are set to OUT_FOR_DELIVERY and is_in_storage=False
-    - All LOADED transport requests are set to DISPATCHED and dispatched_at is set
-    - Car status is set to DISPATCHED
     """
     # ── RESTRICTION CHECK ──────────────────────────────
     check_transport_car_restriction()
@@ -106,16 +161,36 @@ def dispatch_car(car_id, actor=None):
         raise NotFound(f"No car found with ID: {car_id}")
 
     # Get all loaded transport requests for this car (legacy + return flow)
-    loaded_requests = TransportRequest.objects.filter(
-        assigned_car=car,
-        status__in=['LOADED', 'LOADED_FOR_RETURN'],
-    ).select_related('sample')
+    loaded_requests = list(
+        TransportRequest.objects.filter(
+            assigned_car=car,
+            status__in=['LOADED', 'LOADED_FOR_RETURN'],
+        ).select_related('sample', 'requested_by')
+    )
 
-    if not loaded_requests.exists():
+    if not loaded_requests:
         raise ValidationError(
             "Cannot dispatch an empty car. Please add at least one sample before dispatching."
         )
 
+    # ── STEP 1: Build grouped payload ──────────────────
+    payload = build_grouped_dispatch_payload(car, loaded_requests)
+
+    # ── STEP 2: Publish and wait for ACK ───────────────
+    from .mqtt_client import publish_and_wait_for_ack
+
+    ack_success, ack_error = publish_and_wait_for_ack(car_id=car.id, payload=payload)
+
+    if not ack_success:
+        logger.error(
+            "Dispatch ACK failed for car_id=%s: %s. Leaving requests unchanged.",
+            car.id, ack_error,
+        )
+        raise ValidationError(
+            f"Dispatch failed: device did not acknowledge. {ack_error}"
+        )
+
+    # ── STEP 3: ACK received — commit the dispatch ─────
     with transaction.atomic():
         dispatched_requests = []
 
@@ -150,22 +225,6 @@ def dispatch_car(car_id, actor=None):
                 description=f"Dispatched car {car.car_number} with {len(dispatched_requests)} sample(s)",
                 car=car,
             )
-
-    try:
-        payload = build_dispatch_payload(car=car, dispatched_requests=dispatched_requests)
-        published = publish_dispatch_event(payload)
-        if not published:
-            logger.error(
-                "Dispatch MQTT publish failed but dispatch completed. car_id=%s sample_count=%s",
-                car.id,
-                len(dispatched_requests),
-            )
-    except Exception:
-        logger.exception(
-            "Unexpected MQTT dispatch integration error. car_id=%s sample_count=%s",
-            car.id,
-            len(dispatched_requests),
-        )
 
     return dispatched_requests, car
 
@@ -282,6 +341,7 @@ def complete_transport_request(request_id, actor=None):
     
     Transitions:
     - DELIVERY (DISPATCHED -> DELIVERED): sample moves to WITH_DOCTOR (stays with doctor, not in storage)
+    - DELIVERY (ARRIVED_AT_DOCTOR_DELIVERY -> DELIVERED): same as above (after arrival event)
     - RETURN (DISPATCHED -> RETURNED): sample returns to IN_STORAGE
     
     Car becomes IDLE if all its requests are completed.
@@ -291,9 +351,9 @@ def complete_transport_request(request_id, actor=None):
     except TransportRequest.DoesNotExist:
         raise NotFound(f"No transport request found with ID: {request_id}")
 
-    if transport_request.status != "DISPATCHED":
+    if transport_request.status not in ("DISPATCHED", "ARRIVED_AT_DOCTOR_DELIVERY"):
         raise ValidationError(
-            f"Only dispatched requests can be completed. Current status: {transport_request.status}"
+            f"Only dispatched or arrived requests can be completed. Current status: {transport_request.status}"
         )
 
     with transaction.atomic():
@@ -336,6 +396,7 @@ def complete_transport_request(request_id, actor=None):
                         "APPROVED_BY_STORAGE",
                         "ARRIVED_AT_DOCTOR",
                         "RETURN_CONFIRMED",
+                        "ARRIVED_AT_DOCTOR_DELIVERY",
                     ]
                 )
                 .exclude(id=request_id)
@@ -403,6 +464,239 @@ def fail_transport_request(request_id, actor=None):
                 description=f"Failed {transport_request.request_type.lower()} of sample {sample.sample_code}. Reason: {transport_request.status_note}",
                 transport_request=transport_request,
                 car=car,
+            )
+
+    return transport_request
+
+
+# ---------------------------------------------------------------------------
+# Arrival event handling (called by MQTT subscriber)
+# ---------------------------------------------------------------------------
+
+def handle_arrival_event(car_id, room, arrived_request_ids, timestamp=None):
+    """
+    Process an arrival event from the Raspberry Pi device.
+
+    When the car arrives at a room, mark matching TransportRequest rows
+    as ARRIVED_AT_DOCTOR_DELIVERY (for delivery) or ARRIVED_AT_DOCTOR (for return).
+
+    Idempotent: skips requests already in an arrived or later state.
+
+    Args:
+        car_id: The car that arrived
+        room: The room the car arrived at
+        arrived_request_ids: List of TransportRequest UUIDs that arrived
+        timestamp: Optional ISO timestamp from device
+    """
+    # Validate car exists
+    try:
+        car = Car.objects.get(id=car_id)
+    except Car.DoesNotExist:
+        logger.error("Arrival event for unknown car_id=%s", car_id)
+        raise ValidationError(f"Unknown car_id: {car_id}")
+
+    arrival_time = timezone.now()
+    if timestamp:
+        try:
+            from django.utils.dateparse import parse_datetime
+            parsed = parse_datetime(timestamp)
+            if parsed:
+                arrival_time = parsed
+        except Exception:
+            pass  # Use server time as fallback
+
+    updated_count = 0
+
+    with transaction.atomic():
+        requests = list(
+            TransportRequest.objects.select_for_update()
+            .select_related('sample')
+            .filter(
+                id__in=arrived_request_ids,
+                assigned_car=car,
+            )
+        )
+
+        # Validate all request_ids belong to this car
+        found_ids = {str(r.id) for r in requests}
+        for req_id in arrived_request_ids:
+            if str(req_id) not in found_ids:
+                logger.warning(
+                    "Arrival event references unknown request_id=%s for car_id=%s",
+                    req_id, car_id,
+                )
+
+        for transport_request in requests:
+            # Idempotent: skip if already arrived or in a terminal state
+            if transport_request.status in (
+                "ARRIVED_AT_DOCTOR_DELIVERY",
+                "ARRIVED_AT_DOCTOR",
+                "DELIVERED",
+                "RETURNED",
+                "RETURN_CONFIRMED",
+                "FAILED",
+                "CANCELLED",
+            ):
+                logger.info(
+                    "Skipping arrival for request %s — already in status %s",
+                    transport_request.id, transport_request.status,
+                )
+                continue
+
+            # Only DISPATCHED requests can transition to arrived
+            if transport_request.status != "DISPATCHED":
+                logger.warning(
+                    "Cannot mark request %s as arrived — current status %s",
+                    transport_request.id, transport_request.status,
+                )
+                continue
+
+            if transport_request.request_type == "DELIVERY":
+                transport_request.status = "ARRIVED_AT_DOCTOR_DELIVERY"
+            else:
+                transport_request.status = "ARRIVED_AT_DOCTOR"
+
+            transport_request.arrived_at = arrival_time
+            transport_request.save(update_fields=["status", "arrived_at"])
+            updated_count += 1
+
+            logger.info(
+                "Request %s marked as %s (car_id=%s, room=%s)",
+                transport_request.id, transport_request.status, car_id, room,
+            )
+
+    logger.info(
+        "Arrival event processed. car_id=%s room=%s updated=%d/%d",
+        car_id, room, updated_count, len(arrived_request_ids),
+    )
+    return updated_count
+
+
+# ---------------------------------------------------------------------------
+# Doctor confirm / reject delivery
+# ---------------------------------------------------------------------------
+
+def _should_proceed_from_room(car, room):
+    """
+    Check whether the car should proceed from a room.
+    Returns True if no requests with status ARRIVED_AT_DOCTOR_DELIVERY
+    remain for the given (car, room).
+    """
+    waiting = TransportRequest.objects.filter(
+        assigned_car=car,
+        room_number=room,
+        status="ARRIVED_AT_DOCTOR_DELIVERY",
+    ).exists()
+    return not waiting
+
+
+def confirm_delivery(request_id, doctor):
+    """
+    Doctor confirms receipt of a delivered sample.
+
+    Transitions: ARRIVED_AT_DOCTOR_DELIVERY -> DELIVERED
+    After confirming, if no other doctors in the room are waiting,
+    publishes a 'proceed' command to the car.
+    """
+    try:
+        transport_request = TransportRequest.objects.select_related(
+            'sample', 'assigned_car'
+        ).get(id=request_id)
+    except TransportRequest.DoesNotExist:
+        raise NotFound(f"No transport request found with ID: {request_id}")
+
+    if transport_request.requested_by_id != doctor.id:
+        raise PermissionDenied("You do not have permission to confirm this delivery.")
+
+    if transport_request.status != "ARRIVED_AT_DOCTOR_DELIVERY":
+        raise ValidationError(
+            f"Only arrived deliveries can be confirmed. Current status: {transport_request.status}"
+        )
+
+    car = transport_request.assigned_car
+    room = transport_request.room_number
+
+    with transaction.atomic():
+        sample = transport_request.sample
+        transport_request.status = "DELIVERED"
+        transport_request.completed_at = timezone.now()
+        sample.status = "WITH_DOCTOR"
+        sample.is_in_storage = False
+        transport_request.save(update_fields=["status", "completed_at"])
+        sample.save(update_fields=["status", "is_in_storage", "updated_at"])
+
+    logger.info(
+        "Delivery confirmed. request_id=%s sample=%s room=%s",
+        request_id, sample.sample_code, room,
+    )
+
+    # Check if car should proceed from this room
+    if car and _should_proceed_from_room(car, room):
+        try:
+            from .mqtt_client import publish_proceed_command
+            publish_proceed_command(car_id=car.id, room=room)
+            logger.info("Proceed command sent for car_id=%s room=%s", car.id, room)
+        except Exception:
+            logger.exception(
+                "Failed to send proceed command. car_id=%s room=%s", car.id, room,
+            )
+
+    return transport_request
+
+
+def reject_delivery(request_id, doctor, reason=""):
+    """
+    Doctor rejects a delivered sample.
+
+    Transitions: ARRIVED_AT_DOCTOR_DELIVERY -> FAILED
+    Uses fail_transport_request to mark the request as failed.
+    After rejecting, if no other doctors in the room are waiting,
+    publishes a 'proceed' command to the car.
+    """
+    try:
+        transport_request = TransportRequest.objects.select_related(
+            'sample', 'assigned_car'
+        ).get(id=request_id)
+    except TransportRequest.DoesNotExist:
+        raise NotFound(f"No transport request found with ID: {request_id}")
+
+    if transport_request.requested_by_id != doctor.id:
+        raise PermissionDenied("You do not have permission to reject this delivery.")
+
+    if transport_request.status != "ARRIVED_AT_DOCTOR_DELIVERY":
+        raise ValidationError(
+            f"Only arrived deliveries can be rejected. Current status: {transport_request.status}"
+        )
+
+    car = transport_request.assigned_car
+    room = transport_request.room_number
+
+    # Use fail_transport_request to mark as FAILED
+    with transaction.atomic():
+        transport_request.status = "FAILED"
+        transport_request.failed_at = timezone.now()
+        transport_request.status_note = reason or "Rejected by doctor"
+        transport_request.save(update_fields=["status", "failed_at", "status_note"])
+
+        sample = transport_request.sample
+        sample.status = "IN_STORAGE"
+        sample.is_in_storage = True
+        sample.save(update_fields=["status", "is_in_storage", "updated_at"])
+
+    logger.info(
+        "Delivery rejected. request_id=%s sample=%s room=%s reason=%s",
+        request_id, sample.sample_code, room, reason,
+    )
+
+    # Check if car should proceed from this room
+    if car and _should_proceed_from_room(car, room):
+        try:
+            from .mqtt_client import publish_proceed_command
+            publish_proceed_command(car_id=car.id, room=room)
+            logger.info("Proceed command sent for car_id=%s room=%s", car.id, room)
+        except Exception:
+            logger.exception(
+                "Failed to send proceed command. car_id=%s room=%s", car.id, room,
             )
 
     return transport_request

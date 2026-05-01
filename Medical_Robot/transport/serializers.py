@@ -87,6 +87,11 @@ class ConfirmReturnedSamplesSerializer(serializers.Serializer):
     )
 
 
+class RejectDeliverySerializer(serializers.Serializer):
+    """Body for doctor rejecting a delivered sample."""
+    reason = serializers.CharField(required=False, default="", allow_blank=True)
+
+
 class AllTransportRequestsSerializer(serializers.ModelSerializer):
     """Detailed serializer showing all request information."""
 

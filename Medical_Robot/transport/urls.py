@@ -18,6 +18,9 @@ from .views import (
     ListPendingReturnsView,
     StartReturnCollectionView,
     ConfirmReturnedSamplesView,
+    DeliveryArrivalsView,
+    ConfirmDeliveryView,
+    RejectDeliveryView,
 )
 
 urlpatterns = [
@@ -74,4 +77,13 @@ urlpatterns = [
 
     # POST /api/transport/confirm-returned-samples/ - Storage confirms returned sample codes
     path('confirm-returned-samples/', ConfirmReturnedSamplesView.as_view(), name='confirm-returned-samples'),
+
+    # GET /api/transport/arrivals/ - Doctor polls for delivery arrivals
+    path('arrivals/', DeliveryArrivalsView.as_view(), name='delivery-arrivals'),
+
+    # POST /api/transport/requests/{uuid}/confirm-delivery/ - Doctor confirms delivery
+    path('requests/<uuid:request_id>/confirm-delivery/', ConfirmDeliveryView.as_view(), name='confirm-delivery'),
+
+    # POST /api/transport/requests/{uuid}/reject-delivery/ - Doctor rejects delivery
+    path('requests/<uuid:request_id>/reject-delivery/', RejectDeliveryView.as_view(), name='reject-delivery'),
 ]

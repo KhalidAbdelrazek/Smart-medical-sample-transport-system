@@ -42,6 +42,11 @@ MQTT_BROKER_PASSWORD = MQTT_PASSWORD
 MQTT_DISPATCH_TOPIC = TOPIC
 MQTT_DISPATCH_QOS = 1
 MQTT_DISPATCH_TIMEOUT_SECONDS = 5
+MQTT_BROKER_USE_TLS = True
+
+# MQTT ACK-gated dispatch settings
+MQTT_ACK_TIMEOUT_SECONDS = 5        # Seconds to wait for device ACK per attempt
+MQTT_ACK_RETRY_COUNT = 1            # Number of retries on ACK timeout (total = 1 + retries)
 
 # Application definition
 INSTALLED_APPS = [

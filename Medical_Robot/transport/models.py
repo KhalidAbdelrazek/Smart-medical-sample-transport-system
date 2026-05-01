@@ -50,6 +50,8 @@ class TransportRequest(models.Model):
         ('LOADED_FOR_RETURN', 'Loaded For Return'),      # Loaded for return collection
         ('ARRIVED_AT_DOCTOR', 'Arrived At Doctor'),      # Car reached doctor room
         ('RETURN_CONFIRMED', 'Return Confirmed'),        # Doctor confirmed handoff
+        # Delivery arrival state (ACK-gated dispatch)
+        ('ARRIVED_AT_DOCTOR_DELIVERY', 'Arrived At Doctor (Delivery)'),  # Car reached doctor room (delivery)
     ]
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
@@ -105,6 +107,7 @@ class TransportRequest(models.Model):
     completed_at = models.DateTimeField(null=True, blank=True, help_text="When delivery was completed")
     cancelled_at = models.DateTimeField(null=True, blank=True, help_text="When request was cancelled")
     failed_at = models.DateTimeField(null=True, blank=True, help_text="When delivery failed")
+    arrived_at = models.DateTimeField(null=True, blank=True, help_text="When car arrived at doctor's room")
     
     status_note = models.TextField(
         blank=True,

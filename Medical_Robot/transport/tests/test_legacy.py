@@ -50,27 +50,43 @@ class DispatchCarMqttIntegrationTests(TestCase):
             status="LOADED",
         )
 
-    def test_dispatch_car_publishes_payload_with_sample_room_pairs(self):
-        with patch("transport.services.publish_dispatch_event", return_value=True) as publish_mock:
+    def test_dispatch_car_publishes_grouped_payload(self):
+        with patch("transport.mqtt_client.publish_and_wait_for_ack", return_value=(True, None)) as mock_ack:
             dispatched_requests, dispatched_car = dispatch_car(self.car.id)
 
         self.assertEqual(len(dispatched_requests), 2)
         self.assertEqual(dispatched_car.status, "DISPATCHED")
-        publish_mock.assert_called_once()
+        mock_ack.assert_called_once()
 
-        payload = publish_mock.call_args.args[0]
-        self.assertIn("data", payload)
-        self.assertEqual(len(payload["data"]), 2)
+        # Verify the new grouped payload format
+        payload = mock_ack.call_args.kwargs.get("payload") or mock_ack.call_args[1].get("payload") or mock_ack.call_args[0][1]
+        self.assertIn("grouped_by_room", payload)
+        self.assertIn("Room-101", payload["grouped_by_room"])
+        self.assertIn("Room-202", payload["grouped_by_room"])
 
-        # Verify payload structure: data should have items grouped by room with sample codes
-        room_data = {item["roomNumber"]: item["samples"] for item in payload["data"]}
-        self.assertIn("Room-101", room_data)
-        self.assertIn("Room-202", room_data)
-        self.assertIn(self.sample_1.sample_code, room_data["Room-101"])
-        self.assertIn(self.sample_2.sample_code, room_data["Room-202"])
+    def test_dispatch_car_fails_when_ack_returns_false(self):
+        """When ACK fails, dispatch should raise and leave requests unchanged."""
+        from rest_framework.exceptions import ValidationError
 
-    def test_dispatch_car_continues_when_mqtt_publish_returns_false(self):
-        with patch("transport.services.publish_dispatch_event", return_value=False):
+        with patch("transport.mqtt_client.publish_and_wait_for_ack", return_value=(False, "No ACK")):
+            with self.assertRaises(ValidationError):
+                dispatch_car(self.car.id)
+
+        self.car.refresh_from_db()
+        self.request_1.refresh_from_db()
+        self.request_2.refresh_from_db()
+        self.sample_1.refresh_from_db()
+        self.sample_2.refresh_from_db()
+
+        # Everything should remain unchanged
+        self.assertEqual(self.car.status, "LOADING")
+        self.assertEqual(self.request_1.status, "LOADED")
+        self.assertEqual(self.request_2.status, "LOADED")
+        self.assertEqual(self.sample_1.status, "REQUESTED")
+        self.assertEqual(self.sample_2.status, "REQUESTED")
+
+    def test_dispatch_car_succeeds_on_ok_ack(self):
+        with patch("transport.mqtt_client.publish_and_wait_for_ack", return_value=(True, None)):
             dispatched_requests, dispatched_car = dispatch_car(self.car.id)
 
         self.assertEqual(len(dispatched_requests), 2)
@@ -87,21 +103,6 @@ class DispatchCarMqttIntegrationTests(TestCase):
         self.assertEqual(self.request_2.status, "DISPATCHED")
         self.assertEqual(self.sample_1.status, "OUT_FOR_DELIVERY")
         self.assertEqual(self.sample_2.status, "OUT_FOR_DELIVERY")
-
-    def test_dispatch_car_continues_when_mqtt_publish_raises(self):
-        with patch("transport.services.publish_dispatch_event", side_effect=RuntimeError("MQTT down")):
-            dispatched_requests, dispatched_car = dispatch_car(self.car.id)
-
-        self.assertEqual(len(dispatched_requests), 2)
-        self.assertEqual(dispatched_car.status, "DISPATCHED")
-
-        self.car.refresh_from_db()
-        self.request_1.refresh_from_db()
-        self.request_2.refresh_from_db()
-
-        self.assertEqual(self.car.status, "DISPATCHED")
-        self.assertEqual(self.request_1.status, "DISPATCHED")
-        self.assertEqual(self.request_2.status, "DISPATCHED")
 
 
 class ReturnFlowTests(TestCase):
@@ -219,7 +220,7 @@ class ReturnFlowTests(TestCase):
             request_type="RETURN",
         )
 
-        with patch("transport.services.publish_dispatch_event", return_value=True):
+        with patch("transport.mqtt_client.publish_and_wait_for_ack", return_value=(True, None)):
             dispatched_requests, car = start_return_collection(
                 car_id=self.car.id,
                 selected_request_ids=[str(req.id)],
@@ -257,11 +258,10 @@ class ReturnFlowTests(TestCase):
             request_type="DELIVERY",
         )
 
-        with patch("transport.services.publish_dispatch_event", return_value=True):
-            completed_req = complete_transport_request(
-                request_id=req.id,
-                actor=self.storage,
-            )
+        completed_req = complete_transport_request(
+            request_id=req.id,
+            actor=self.storage,
+        )
 
         self.assertEqual(completed_req.status, "DELIVERED")
         sample.refresh_from_db()
@@ -287,11 +287,10 @@ class ReturnFlowTests(TestCase):
             request_type="RETURN",
         )
 
-        with patch("transport.services.publish_dispatch_event", return_value=True):
-            completed_req = complete_transport_request(
-                request_id=req.id,
-                actor=self.storage,
-            )
+        completed_req = complete_transport_request(
+            request_id=req.id,
+            actor=self.storage,
+        )
 
         self.assertEqual(completed_req.status, "ARRIVED_AT_DOCTOR")
         sample.refresh_from_db()
@@ -423,7 +422,7 @@ class ReturnBatchApiTests(TestCase):
         batch_id = create_response.json()["data"]["batch_id"]
 
         self.client.force_authenticate(user=self.storage)
-        with patch("transport.services.publish_dispatch_event", return_value=True):
+        with patch("transport.mqtt_client.publish_and_wait_for_ack", return_value=(True, None)):
             response = self.client.post(
                 "/api/transport/approve-return/",
                 {
