@@ -514,16 +514,18 @@ def handle_arrival_event(car_id, room, arrived_request_ids, timestamp=None):
             .filter(
                 id__in=arrived_request_ids,
                 assigned_car=car,
+                room_number=room,  # Fix #3: enforce room match
             )
         )
 
-        # Validate all request_ids belong to this car
+        # Warn about request_ids that didn't match (wrong car OR wrong room)
         found_ids = {str(r.id) for r in requests}
         for req_id in arrived_request_ids:
             if str(req_id) not in found_ids:
                 logger.warning(
-                    "Arrival event references unknown request_id=%s for car_id=%s",
-                    req_id, car_id,
+                    "Arrival event references request_id=%s that does not match "
+                    "car_id=%s and room=%s",
+                    req_id, car_id, room,
                 )
 
         for transport_request in requests:
@@ -597,6 +599,9 @@ def confirm_delivery(request_id, doctor):
     Transitions: ARRIVED_AT_DOCTOR_DELIVERY -> DELIVERED
     After confirming, if no other doctors in the room are waiting,
     publishes a 'proceed' command to the car.
+
+    Fix #4: the proceed-check is inside the same atomic block with
+    select_for_update to prevent duplicate proceed commands.
     """
     try:
         transport_request = TransportRequest.objects.select_related(
@@ -615,8 +620,19 @@ def confirm_delivery(request_id, doctor):
 
     car = transport_request.assigned_car
     room = transport_request.room_number
+    should_proceed = False
 
     with transaction.atomic():
+        # Re-fetch with row lock to prevent concurrent proceed races
+        transport_request = (
+            TransportRequest.objects.select_for_update()
+            .select_related('sample')
+            .get(id=request_id)
+        )
+        if transport_request.status != "ARRIVED_AT_DOCTOR_DELIVERY":
+            # Another concurrent call already handled this request
+            return transport_request
+
         sample = transport_request.sample
         transport_request.status = "DELIVERED"
         transport_request.completed_at = timezone.now()
@@ -625,13 +641,15 @@ def confirm_delivery(request_id, doctor):
         transport_request.save(update_fields=["status", "completed_at"])
         sample.save(update_fields=["status", "is_in_storage", "updated_at"])
 
+        # Check proceed while still holding the row locks
+        should_proceed = car is not None and _should_proceed_from_room(car, room)
+
     logger.info(
         "Delivery confirmed. request_id=%s sample=%s room=%s",
         request_id, sample.sample_code, room,
     )
 
-    # Check if car should proceed from this room
-    if car and _should_proceed_from_room(car, room):
+    if should_proceed:
         try:
             from .mqtt_client import publish_proceed_command
             publish_proceed_command(car_id=car.id, room=room)
@@ -652,6 +670,9 @@ def reject_delivery(request_id, doctor, reason=""):
     Uses fail_transport_request to mark the request as failed.
     After rejecting, if no other doctors in the room are waiting,
     publishes a 'proceed' command to the car.
+
+    Fix #4: the proceed-check is inside the same atomic block with
+    select_for_update to prevent duplicate proceed commands.
     """
     try:
         transport_request = TransportRequest.objects.select_related(
@@ -670,9 +691,18 @@ def reject_delivery(request_id, doctor, reason=""):
 
     car = transport_request.assigned_car
     room = transport_request.room_number
+    should_proceed = False
 
-    # Use fail_transport_request to mark as FAILED
     with transaction.atomic():
+        # Re-fetch with row lock to prevent concurrent proceed races
+        transport_request = (
+            TransportRequest.objects.select_for_update()
+            .select_related('sample')
+            .get(id=request_id)
+        )
+        if transport_request.status != "ARRIVED_AT_DOCTOR_DELIVERY":
+            return transport_request
+
         transport_request.status = "FAILED"
         transport_request.failed_at = timezone.now()
         transport_request.status_note = reason or "Rejected by doctor"
@@ -683,13 +713,15 @@ def reject_delivery(request_id, doctor, reason=""):
         sample.is_in_storage = True
         sample.save(update_fields=["status", "is_in_storage", "updated_at"])
 
+        # Check proceed while still holding the row locks
+        should_proceed = car is not None and _should_proceed_from_room(car, room)
+
     logger.info(
         "Delivery rejected. request_id=%s sample=%s room=%s reason=%s",
         request_id, sample.sample_code, room, reason,
     )
 
-    # Check if car should proceed from this room
-    if car and _should_proceed_from_room(car, room):
+    if should_proceed:
         try:
             from .mqtt_client import publish_proceed_command
             publish_proceed_command(car_id=car.id, room=room)

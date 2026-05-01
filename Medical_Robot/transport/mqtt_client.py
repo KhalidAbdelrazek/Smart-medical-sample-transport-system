@@ -93,6 +93,10 @@ def publish_and_wait_for_ack(car_id, payload, timeout=None, retries=None):
     """
     Publish a dispatch command and block until an ACK is received from the device.
 
+    The ACK must contain a matching batch_id to prevent stale ACKs from being
+    accepted.  Publishing is deferred until the ACK-topic subscription is
+    confirmed to avoid missing fast responses.
+
     Returns:
         (success: bool, error_message: str | None)
     """
@@ -109,8 +113,11 @@ def publish_and_wait_for_ack(car_id, payload, timeout=None, retries=None):
     ack_tp = _ack_topic(car_id)
     qos = _qos()
 
+    expected_batch_id = payload.get("batch_id")
+
     # Shared state for the ACK callback
     ack_event = threading.Event()
+    subscribed_event = threading.Event()
     ack_result = {"status": None, "message": None}
 
     def on_connect(client, userdata, flags, reason_code, properties=None):
@@ -120,16 +127,30 @@ def publish_and_wait_for_ack(car_id, payload, timeout=None, retries=None):
         )
         client.subscribe(ack_tp, qos=qos)
 
+    def on_subscribe(client, userdata, mid, reason_codes, properties=None):
+        logger.info("ACK-wait subscription confirmed. mid=%s", mid)
+        subscribed_event.set()
+
     def on_message(client, userdata, msg):
         try:
             data = json.loads(msg.payload.decode("utf-8"))
-            ack_result["status"] = data.get("status", "ERROR")
-            ack_result["message"] = data.get("message", "")
-            logger.info("ACK received on %s: %s", msg.topic, data)
         except Exception:
-            ack_result["status"] = "ERROR"
-            ack_result["message"] = "Malformed ACK payload"
             logger.exception("Failed to parse ACK message on %s", msg.topic)
+            # Don't set event — wait for a valid ACK
+            return
+
+        # ── Fix #1: validate batch_id to reject stale ACKs ──
+        ack_batch_id = data.get("batch_id")
+        if expected_batch_id and ack_batch_id != expected_batch_id:
+            logger.warning(
+                "Ignoring stale ACK: expected batch_id=%s, got batch_id=%s",
+                expected_batch_id, ack_batch_id,
+            )
+            return
+
+        ack_result["status"] = data.get("status", "ERROR")
+        ack_result["message"] = data.get("message", "")
+        logger.info("ACK received on %s: %s", msg.topic, data)
         ack_event.set()
 
     client = mqtt.Client(
@@ -138,6 +159,7 @@ def publish_and_wait_for_ack(car_id, payload, timeout=None, retries=None):
     )
     _configure_client(client)
     client.on_connect = on_connect
+    client.on_subscribe = on_subscribe
     client.on_message = on_message
 
     loop_started = False
@@ -145,6 +167,10 @@ def publish_and_wait_for_ack(car_id, payload, timeout=None, retries=None):
         client.connect(broker_host, _broker_port(), keepalive=60)
         client.loop_start()
         loop_started = True
+
+        # ── Fix #2: wait until subscription is active before publishing ──
+        if not subscribed_event.wait(timeout=timeout):
+            return False, "Timed out waiting for ACK-topic subscription"
 
         attempts = 1 + retries  # initial attempt + retries
         for attempt in range(1, attempts + 1):
