@@ -1,18 +1,18 @@
 import logging
 import threading
+import json
 import time
+
 import paho.mqtt.client as mqtt
 from uart_controller import UARTCarController
+from functions import get_rooms
 
-# =========================
-# MQTT Controller
-# =========================
 
 # =========================
 # Logging Setup
 # =========================
 logging.basicConfig(
-    level=logging.DEBUG,  # Set to DEBUG for detailed UART traces
+    level=logging.DEBUG,
     format='%(asctime)s - [%(levelname)s] - %(message)s'
 )
 
@@ -20,13 +20,19 @@ logging.basicConfig(
 class MQTTController:
     def __init__(self, car_controller: UARTCarController):
         self.car = car_controller
+        self.car_id = "3"
+
         self.broker = "81758f399b5b46b9875ac5e5f1e3ef1e.s1.eu.hivemq.cloud"
         self.port = 8883
-        self.topic = "carts/1/command"
+
         self.username = "hivemq.webclient.1764285829577"
         self.password = "bNtHo2#E,9>w18<CcOfF"
-        
-        # Initialize MQTT client
+
+        self.topics = [
+            (f"transport/commands/{self.car_id}/dispatch", 0)
+        ]
+
+        # MQTT client
         self.client = mqtt.Client()
         
         # Enable TLS for secure connection
@@ -34,17 +40,23 @@ class MQTTController:
         
         # Set username and password
         self.client.username_pw_set(self.username, self.password)
-        
-        # Attach callbacks
+
+        # Callbacks
         self.client.on_connect = self.on_connect
         self.client.on_message = self.on_message
         self.client.on_disconnect = self.on_disconnect
 
+    # =========================
+    # MQTT Callbacks
+    # =========================
     def on_connect(self, client, userdata, flags, rc):
         if rc == 0:
-            logging.info(f"[MQTT] Connected successfully to {self.broker}:{self.port}")
-            self.client.subscribe(self.topic)
-            logging.info(f"[MQTT] Subscribed to topic: {self.topic}")
+            logging.info(f"[MQTT] Connected to {self.broker}:{self.port}")
+
+            # Safe subscription
+            for topic, qos in self.topics:
+                self.client.subscribe(topic, qos)
+                logging.info(f"[MQTT] Subscribed to: {topic}")
         else:
             logging.error(f"[MQTT] Failed to connect, return code {rc}")
 
@@ -55,21 +67,28 @@ class MQTTController:
 
     def on_message(self, client, userdata, msg):
         try:
-            payload = msg.payload.decode('utf-8')
-            logging.info(f"[MQTT] Received message on {msg.topic}: {payload}")
-            
-            # Trigger movement in a separate thread to avoid blocking MQTT loop
-            threading.Thread(target=self._trigger_movement, daemon=True).start()
+            topic = msg.topic
+            payload = json.loads(msg.payload.decode("utf-8"))
+
+            logging.info(f"[MQTT] {topic}: {payload}")
+
+            if topic == f"transport/commands/{self.car_id}/dispatch":
+                # Run dispatch in separate thread (IMPORTANT)
+                threading.Thread(
+                    target=self.handle_dispatch,
+                    args=(payload,),
+                    daemon=True
+                ).start()
+
+            else:
+                logging.warning(f"[MQTT] Unknown topic: {topic}")
+
         except Exception as e:
-            logging.error(f"[MQTT] Error processing message: {e}")
+            logging.error(f"[MQTT] Message handling error: {e}")
 
-    def _trigger_movement(self):
-        logging.info("[MQTT Action] Moving car forward for 2 seconds.")
-        self.car.forward()
-        time.sleep(2)
-        logging.info("[MQTT Action] Stopping car.")
-        self.car.stop()
-
+    # =========================
+    # Lifecycle
+    # =========================
     def start(self):
         logging.info(f"[MQTT] Connecting to broker {self.broker}...")
         try:
@@ -79,7 +98,28 @@ class MQTTController:
             logging.error(f"[MQTT] Connection failed: {e}")
 
     def stop(self):
-        logging.info("[MQTT] Stopping client...")
+        logging.info("[MQTT] Stopping MQTT client...")
         self.client.loop_stop()
         self.client.disconnect()
 
+    # =========================
+    # Robot Logic
+    # =========================
+    def handle_dispatch(self, payload: dict):
+        self.car.state = "DISPATCH"
+
+        rooms, batch_id = get_rooms(payload)
+
+        logging.info(f"[ROBOT] Batch ID: {batch_id}")
+        logging.info(f"[ROBOT] Rooms: {rooms}")
+
+        for room in rooms:
+            logging.info(f"[ROBOT] Moving to room {room}")
+
+            self.car.forward()
+            time.sleep(2)   # simulate movement
+            self.car.stop()
+
+        logging.info("[ROBOT] Dispatch complete, returning to idle state")
+
+        self.car.state = "SLEEP"

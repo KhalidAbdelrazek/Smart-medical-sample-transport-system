@@ -1,26 +1,15 @@
 import logging
 import serial
-# =========================
-# UART Car Controller
-# =========================
+import time
 
-# =========================
-# Logging Setup
-# =========================
+
 logging.basicConfig(
-    level=logging.DEBUG,  # Set to DEBUG for detailed UART traces
+    level=logging.DEBUG,
     format='%(asctime)s - [%(levelname)s] - %(message)s'
 )
 
-class UARTCarController:
-    """
-    Controls ATmega via Raspberry Pi UART with reliable message delivery.
-    Protocol:
-    - Sends 1-character commands (F, B, L, R, S, T)
-    - Waits for "ACK" or "ERR"
-    - Retries on timeout or error
-    """
 
+class UARTCarController:
     def __init__(self, port='/dev/serial0', baudrate=9600, timeout=1.0):
         try:
             self.ser = serial.Serial(
@@ -31,114 +20,99 @@ class UARTCarController:
                 bytesize=serial.EIGHTBITS,
                 timeout=timeout
             )
-            logging.info(f"UART initialized on {port} at {baudrate} baud.")
+
+            self.state = "SLEEP"
+
+            logging.info(f"[UART] Initialized on {port} @ {baudrate}")
+
         except Exception as e:
-            logging.error(f"Failed to initialize UART: {e}")
+            logging.error(f"[UART] Init failed: {e}")
             raise e
 
-        # Clear buffers
         self.ser.reset_input_buffer()
         self.ser.reset_output_buffer()
 
+    # =========================
+    # Core Send Function
+    # =========================
     def send_command(self, command: str, max_retries=3):
-        """
-        Sends a command and waits for ACK with retry mechanism.
-        """
         attempt = 0
 
         while attempt < max_retries:
             attempt += 1
-            logging.info(f"[TX] Attempt {attempt}/{max_retries}: Sending '{command}'")
-            logging.info(f"[TX] Sent: '{command}' (ASCII: {ord(command)})")
-            
-            # Clear input buffer to avoid reading stale data
+
+            logging.info(f"[UART TX] Attempt {attempt}: {command}")
+
             self.ser.reset_input_buffer()
-            
-            # Send command
-            self.ser.write(command.encode('ascii'))
+
+            self.ser.write(command.encode("ascii"))
             self.ser.flush()
 
-            # Wait for response
             response = self._wait_for_response()
 
             if response == "ACK":
-                logging.info(f"[SUCCESS] Received ACK for '{command}'")
+                logging.info(f"[UART] ACK received for {command}")
                 return True
-            elif response == "ERR":
-                logging.warning(f"[ERROR] Received ERR from ATmega for '{command}'")
-                # Immediate retry
-                continue
-            elif response is None:
-                logging.error(f"[TIMEOUT] No response for '{command}' within timeout")
-                # Retry
-                continue
-            else:
-                logging.warning(f"[RX] Received garbage/unknown: {response}")
-                # Retry
-                continue
 
-        logging.critical(f"[FAILURE] Failed to send '{command}' after {max_retries} attempts.")
+            elif response == "ERR":
+                logging.warning(f"[UART] ERR received for {command}")
+
+            elif response is None:
+                logging.error(f"[UART] Timeout for {command}")
+
+            else:
+                logging.warning(f"[UART] Unknown response: {response}")
+
+        logging.critical(f"[UART] Failed command: {command}")
         return False
 
+    # =========================
+    # Response Handler
+    # =========================
     def _wait_for_response(self):
-        """
-        Reads from UART until 'ACK' or 'ERR' is found, logging debug messages.
-        """
-        start_time = time.time()
-        timeout = self.ser.timeout or 1.0
+        start = time.time()
 
-        buffer = ""
-        while (time.time() - start_time) < timeout:
+        while (time.time() - start) < self.ser.timeout:
             if self.ser.in_waiting > 0:
-                # Read line-by-line or char-by-char? ATmega sends strings ending with \r\n
                 try:
-                    line = self.ser.readline().decode('ascii', errors='replace').strip()
+                    line = self.ser.readline().decode("ascii", errors="ignore").strip()
+
                     if not line:
                         continue
-                    
-                    logging.debug(f"[RAW RX] {line}")
 
-                    # Process the line
+                    logging.debug(f"[UART RX RAW] {line}")
+
                     if line == "ACK":
                         return "ACK"
                     elif line == "ERR":
                         return "ERR"
-                    elif "[DEBUG]" in line or "[RX]" in line or "[ERROR]" in line:
-                        # Log ATmega debug output
-                        logging.info(f"[ATmega] {line}")
-                    else:
-                        # Might be partial or combined message
-                        if "ACK" in line: return "ACK"
-                        if "ERR" in line: return "ERR"
+
                 except Exception as e:
-                    logging.error(f"Read error: {e}")
+                    logging.error(f"[UART RX ERROR] {e}")
                     break
-            
-            time.sleep(0.01) # Small sleep to prevent CPU hogging
+
+            time.sleep(0.01)
 
         return None
 
     # =========================
-    # High-level Movement API
+    # Movement API
     # =========================
-
     def forward(self):
-        return self.send_command('F')
+        return self.send_command("F")
 
     def backward(self):
-        return self.send_command('B')
+        return self.send_command("B")
 
     def left(self):
-        return self.send_command('L')
+        return self.send_command("L")
 
     def right(self):
-        return self.send_command('R')
+        return self.send_command("R")
 
     def stop(self):
-        return self.send_command('S')
+        return self.send_command("S")
 
     def test(self):
-        """Important: Test communication without moving motors."""
-        logging.info("Testing communication link...")
-        return self.send_command('T')
-
+        logging.info("[UART] Testing connection...")
+        return self.send_command("T")
