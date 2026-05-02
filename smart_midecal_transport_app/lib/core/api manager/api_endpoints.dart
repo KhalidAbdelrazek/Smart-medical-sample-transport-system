@@ -37,7 +37,7 @@ abstract class ApiEndPoints {
   static const notifications =
       '${ApiConstants.baseUrl}/api/transport/arrivals/';
   static String confirmDelivery(String requestId) =>
-      '${ApiConstants.baseUrl}/api/transport/requests/{$requestId}/confirm-delivery/';
+      '${ApiConstants.baseUrl}api/transport/requests/$requestId/confirm-delivery/';
   static String rejectDelivery(String requestId) =>
-      '${ApiConstants.baseUrl}/api/transport/requests/{$requestId}/reject-delivery/';
+      '${ApiConstants.baseUrl}api/transport/requests/$requestId/reject-delivery/';
 }
