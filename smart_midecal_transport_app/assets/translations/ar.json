@@ -107,7 +107,18 @@
     "settings": "الإعدادات",
     "language": "اللغة",
     "theme": "المظهر",
-    "logout": "تسجيل الخروج"
+    "logout": "تسجيل الخروج",
+    "notifications_title": "الإشعارات",
+    "notifications_delivery_title": "طلب تسليم",
+    "notifications_empty_title": "لا توجد تنبيهات",
+    "notifications_empty_subtitle": "ستظهر هنا العينات الجديدة عند وصولها",
+    "notifications_accept": "قبول",
+    "notifications_reject": "رفض",
+    "notifications_room": "غرفة {}",
+    "notifications_just_now": "الآن",
+    "notifications_minutes_ago": "منذ {} د",
+    "notifications_hours_ago": "منذ {} س",
+    "notifications_days_ago": "منذ {} يوم"
   },
   "nav": {
     "home": "الرئيسية",
