@@ -107,7 +107,18 @@
     "settings": "Settings",
     "language": "Language",
     "theme": "Theme",
-    "logout": "Logout"
+    "logout": "Logout",
+    "notifications_title": "Notifications",
+    "notifications_delivery_title": "Delivery request",
+    "notifications_empty_title": "You're all caught up",
+    "notifications_empty_subtitle": "New sample arrivals will appear here",
+    "notifications_accept": "Accept",
+    "notifications_reject": "Reject",
+    "notifications_room": "Room {}",
+    "notifications_just_now": "Just now",
+    "notifications_minutes_ago": "{} min ago",
+    "notifications_hours_ago": "{} h ago",
+    "notifications_days_ago": "{} d ago"
   },
   "nav": {
     "home": "Home",
