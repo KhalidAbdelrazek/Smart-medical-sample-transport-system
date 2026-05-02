@@ -33,86 +33,77 @@ class UARTCarController:
         self.ser.reset_output_buffer()
 
     # =========================
-    # Core Send Function
+    # Core Send Function (Non-blocking)
     # =========================
-    def send_command(self, command: str, max_retries=3):
-        attempt = 0
-
-        while attempt < max_retries:
-            attempt += 1
-
-            logging.info(f"[UART TX] Attempt {attempt}: {command}")
-
-            self.ser.reset_input_buffer()
-
-            self.ser.write(command.encode("ascii"))
-            self.ser.flush()
-
-            response = self._wait_for_response()
-
-            if response == "ACK":
-                logging.info(f"[UART] ACK received for {command}")
+    def send_command(self, command: str) -> bool:
+        if self.ser is not None and self.ser.is_open:
+            try:
+                # IMPORTANT: Do NOT clear the input buffer here!
+                # If the ATmega sent an ACK while we were reading sensors,
+                # clearing the buffer will delete the ACK and we will freeze!
+                data = command.encode('ascii')
+                
+                logging.debug(f"[UART TX] RAW: {repr(command)}")
+                self.ser.write(data)
                 return True
-
-            elif response == "ERR":
-                logging.warning(f"[UART] ERR received for {command}")
-
-            elif response is None:
-                logging.error(f"[UART] Timeout for {command}")
-
-            else:
-                logging.warning(f"[UART] Unknown response: {response}")
-
-        logging.critical(f"[UART] Failed command: {command}")
-        return False
+            except serial.SerialTimeoutException:
+                logging.error("[UART ERROR] Timeout writing to UART.")
+                return False
+            except serial.SerialException as e:
+                logging.error(f"[UART ERROR] Serial exception: {e}")
+                return False
+        else:
+            logging.error("[UART ERROR] UART not open. Cannot send command.")
+            return False
 
     # =========================
-    # Response Handler
+    # Response Handler (Non-blocking)
     # =========================
-    def _wait_for_response(self):
-        start = time.time()
-
-        while (time.time() - start) < self.ser.timeout:
-            if self.ser.in_waiting > 0:
-                try:
-                    line = self.ser.readline().decode("ascii", errors="ignore").strip()
-
-                    if not line:
-                        continue
-
-                    logging.debug(f"[UART RX RAW] {line}")
-
-                    if line == "ACK":
-                        return "ACK"
-                    elif line == "ERR":
-                        return "ERR"
-
-                except Exception as e:
-                    logging.error(f"[UART RX ERROR] {e}")
-                    break
-
-            time.sleep(0.01)
-
-        return None
+    def read_uart_response(self) -> str:
+        """
+        Reads ALL available response bytes from the ATmega.
+        Using ser.in_waiting avoids blocking indefinitely.
+        """
+        if self.ser is not None and self.ser.is_open:
+            try:
+                # Wait a tiny bit to allow ATmega to respond if it hasn't yet
+                time.sleep(0.01) 
+                
+                response_bytes = b""
+                # Read everything currently in the buffer
+                while self.ser.in_waiting > 0:
+                    response_bytes += self.ser.read(self.ser.in_waiting)
+                    time.sleep(0.01) # Allow trailing bytes to arrive
+                
+                if response_bytes:
+                    decoded = response_bytes.decode('ascii', errors='ignore').strip()
+                    logging.debug(f"[UART RX] {repr(decoded)}")
+                    return decoded
+                else:
+                    return ""
+            except Exception as e:
+                logging.error(f"[UART RX ERROR] {e}")
+                return ""
+        return ""
 
     # =========================
     # Movement API
     # =========================
     def forward(self):
-        return self.send_command("F")
+        return self.send_command("F\n")
 
     def backward(self):
-        return self.send_command("B")
+        return self.send_command("B\n")
 
     def left(self):
-        return self.send_command("L")
+        return self.send_command("L\n")
 
     def right(self):
-        return self.send_command("R")
+        return self.send_command("R\n")
 
     def stop(self):
-        return self.send_command("S")
+        return self.send_command("S\n")
 
     def test(self):
         logging.info("[UART] Testing connection...")
-        return self.send_command("T")
+        return self.send_command("T\n")
