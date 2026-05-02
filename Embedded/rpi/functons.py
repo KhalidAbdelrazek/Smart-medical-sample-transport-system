@@ -1,4 +1,3 @@
-
 # {
 #   "car_id": 3,
 #   "batch_id": "8c280158-f062-47bb-b4ca-2e9f35a228fe",
@@ -14,25 +13,61 @@
 #         "sample_id": "ead830d5-04e5-4ba1-ad6f-bf661c07ab2e",
 #         "doctor_id": "d5b81c1e-b102-4110-94f0-7ead7ce7e774"
 #       }
-#     ],
-#     "102": [
-#       {
-#         "request_id": "44103a9f-9272-4866-a51d-7a99db077f32",
-#         "sample_id": "8fafbbd7-72e1-462e-a0ed-e99e87b88b4f",
-#         "doctor_id": "efecd6bb-7e1e-4d11-8da2-8a858279344a"
-#       },
-#       {
-#         "request_id": "fb0960ab-4229-4b70-80ac-61c55f5ef148",
-#         "sample_id": "fef0b62c-716a-45bb-837e-b12625c3a7b6",
-#         "doctor_id": "efecd6bb-7e1e-4d11-8da2-8a858279344a"
-#       }
 #     ]
 #   }
 # }
 
-
-
 def get_rooms(json_dispatch_data: dict):
-    rooms = list(json_dispatch_data["grouped_by_room"].keys())
-    return rooms, json_dispatch_data["batch_id"]
+    """
+    Extracts the list of rooms and the batch_id from the dispatch payload.
+    """
+    rooms = list(json_dispatch_data.get("grouped_by_room", {}).keys())
+    return rooms, json_dispatch_data.get("batch_id")
 
+def get_request_ids_for_room(json_dispatch_data: dict, room: str) -> list[str]:
+    """
+    Extracts all request IDs for a given room.
+    """
+    room_data = json_dispatch_data.get("grouped_by_room", {}).get(room, [])
+    return [req.get("request_id") for req in room_data if req.get("request_id")]
+
+def filter_sensors(left_samples: list[int], right_samples: list[int]):
+    """
+    Reads sensors multiple times and returns the majority value for stability.
+    """
+    if not left_samples or not right_samples:
+        return None, None
+        
+    # Calculate majority
+    left_majority = max(set(left_samples), key=left_samples.count)
+    right_majority = max(set(right_samples), key=right_samples.count)
+    
+    return left_majority, right_majority
+
+def decide_movement(left: int, right: int):
+    """
+    Decides movement logic based on sensor readings.
+    LEFT=0 and RIGHT=0 -> MOVE FORWARD
+    LEFT=0 and RIGHT=1 -> TURN LEFT
+    LEFT=1 and RIGHT=0 -> TURN RIGHT
+    LEFT=1 and RIGHT=1 -> STOP
+    
+    Returns (action_name, command_string)
+    """
+    if left == 0 and right == 0:
+        action = "FORWARD"
+        cmd = "F\n"
+    elif left == 0 and right == 1:
+        action = "TURN LEFT"
+        cmd = "L\n"
+    elif left == 1 and right == 0:
+        action = "TURN RIGHT"
+        cmd = "R\n"
+    elif left == 1 and right == 1:
+        action = "STOP"
+        cmd = "S\n"
+    else:
+        action = "UNKNOWN"
+        cmd = "S\n"
+        
+    return action, cmd
