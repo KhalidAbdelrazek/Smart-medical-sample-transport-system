@@ -31,8 +31,8 @@ char last_cmd = 0;   // prevent duplicate execution
 void handle_command(char cmd) {
  
     // -------- Debug: show ASCII value --------
-    char buffer[50];
-    sprintf(buffer, "[RX] Received: '%c' (ASCII: %d)\r\n", cmd, cmd);
+    char buffer[60];
+    sprintf(buffer, "[RX] Raw Byte: '%c' (Hex: 0x%02X, Dec: %d)\r\n", cmd, cmd, cmd);
     UART_Send_string(buffer);
  
     // -------- Ignore newline chars --------
@@ -42,10 +42,13 @@ void handle_command(char cmd) {
  
     // -------- Prevent duplicate execution --------
     if (cmd == last_cmd) {
-        UART_Send_string("[DEBUG] Duplicate command ignored\r\n");
+        UART_Send_string("[DEBUG] Duplicate command ignored, motor state unchanged\r\n");
         UART_Send_string("<ACK>\r\n");
         return;
     }
+    
+    sprintf(buffer, "[STATE] Updating last_cmd from '%c' to '%c'\r\n", last_cmd ? last_cmd : '0', cmd);
+    UART_Send_string(buffer);
     last_cmd = cmd;
  
     // -------- Command Processing --------
@@ -132,15 +135,9 @@ int main(void)
     {
         received_byte = UART_Receive_data();
         handle_command(received_byte);
-		if(received_byte == 'k')
-		{
-			LED_On('D', 7);
-			_delay_ms(2000);
-		}
-		else
-		{
-			LED_Off('D', 7);
-	
-		}
+		// Fast activity LED blink instead of blocking
+		LED_On('D', 7);
+		_delay_ms(5);
+		LED_Off('D', 7);
     }
 }
