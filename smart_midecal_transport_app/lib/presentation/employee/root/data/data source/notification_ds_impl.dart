@@ -1,6 +1,7 @@
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:dio/dio.dart';
 import 'package:either_dart/either.dart';
+import 'package:injectable/injectable.dart';
 import 'package:smart_midecal_transport_app/core/api%20manager/api_endpoints.dart';
 import 'package:smart_midecal_transport_app/core/api%20manager/api_manager.dart';
 import 'package:smart_midecal_transport_app/core/error/failures.dart';
@@ -8,9 +9,10 @@ import 'package:smart_midecal_transport_app/core/utils/shared_pref_services.dart
 import 'package:smart_midecal_transport_app/presentation/employee/root/data/model/notification_response_dm.dart';
 import 'package:smart_midecal_transport_app/presentation/employee/root/data/data source/notification_ds.dart';
 
+@Injectable(as: NotificationDataSource)
 class NotificationDsImpl implements NotificationDataSource {
   final ApiManager apiManager;
-  NotificationDsImpl(this.apiManager);
+  NotificationDsImpl({required this.apiManager});
 
   @override
   Future<Either<Failures, NotificationResponseDm>> getNotifications() async{
@@ -36,7 +38,7 @@ final List<ConnectivityResult> connectivityResult =
         }
         return Left(
           ServerError(
-            errorMessage: notificationResponseDm.errors.toString() ?? "Server Error",
+            errorMessage: notificationResponseDm.errors.toString(),
           ),
         );
       } else {
@@ -64,6 +66,7 @@ final List<ConnectivityResult> connectivityResult =
             validateStatus: (status) => true,
           ),
         );
+        print(response.data);
         if (response.statusCode! >= 200 && response.statusCode! < 300) {
           return Right("Delivery confirmed successfully");
         }
@@ -97,6 +100,7 @@ final List<ConnectivityResult> connectivityResult =
             validateStatus: (status) => true,
           ),
         );
+        print(response.data);
         if (response.statusCode! >= 200 && response.statusCode! < 300) {
           return Right("Delivery rejected successfully");
         }
