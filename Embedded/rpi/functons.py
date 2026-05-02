@@ -1,0 +1,38 @@
+
+# {
+#   "car_id": 3,
+#   "batch_id": "8c280158-f062-47bb-b4ca-2e9f35a228fe",
+#   "grouped_by_room": {
+#     "101": [
+#       {
+#         "request_id": "ff8cf112-0204-43ed-851c-186ac21d3201",
+#         "sample_id": "052d4ceb-5434-4ea3-8dac-7bedfabe2945",
+#         "doctor_id": "d5b81c1e-b102-4110-94f0-7ead7ce7e774"
+#       },
+#       {
+#         "request_id": "df6383aa-19a2-48d8-8c00-4127e50e80b9",
+#         "sample_id": "ead830d5-04e5-4ba1-ad6f-bf661c07ab2e",
+#         "doctor_id": "d5b81c1e-b102-4110-94f0-7ead7ce7e774"
+#       }
+#     ],
+#     "102": [
+#       {
+#         "request_id": "44103a9f-9272-4866-a51d-7a99db077f32",
+#         "sample_id": "8fafbbd7-72e1-462e-a0ed-e99e87b88b4f",
+#         "doctor_id": "efecd6bb-7e1e-4d11-8da2-8a858279344a"
+#       },
+#       {
+#         "request_id": "fb0960ab-4229-4b70-80ac-61c55f5ef148",
+#         "sample_id": "fef0b62c-716a-45bb-837e-b12625c3a7b6",
+#         "doctor_id": "efecd6bb-7e1e-4d11-8da2-8a858279344a"
+#       }
+#     ]
+#   }
+# }
+
+
+
+def get_rooms(json_dispatch_data: dict):
+    rooms = list(json_dispatch_data["grouped_by_room"].keys())
+    return rooms, json_dispatch_data["batch_id"]
+
