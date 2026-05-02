@@ -9,22 +9,11 @@ Real-world Testing Instructions:
 
 2. Run:
    python3 rpi_line_follower_uart_v2.py
-
-3. Testing:
-   - Place robot on black line
-   - Observe:
-     - Movement correctness
-     - UART logs + ACK responses
-
-4. Troubleshooting:
-   - Wrong direction -> swap LEFT/RIGHT logic
-   - Always same reading -> check wiring or sensor calibration
-   - No ACK -> UART wiring issue
-   - Robot shaking -> reduce loop speed or add filtering
 """
 
 import time
 import sys
+import datetime
 
 # STRICT REAL HARDWARE IMPORT - CRASHES IF NOT AVAILABLE
 import RPi.GPIO as GPIO
@@ -60,20 +49,23 @@ FILTER_SAMPLES = 3
 # Global serial object
 ser = None
 
+def get_timestamp():
+    return datetime.datetime.now().strftime("%H:%M:%S.%f")[:-3]
+
 def setup_gpio():
-    print("[INIT] Setting up GPIO...")
+    print(f"[{get_timestamp()}] [INIT] Setting up GPIO...")
     GPIO.setwarnings(False)
     GPIO.setmode(GPIO.BCM)
     GPIO.setup(SENSOR_LEFT_PIN, GPIO.IN)
     GPIO.setup(SENSOR_RIGHT_PIN, GPIO.IN)
-    print(f"[INIT] LEFT SENSOR PIN (BCM): {SENSOR_LEFT_PIN}")
-    print(f"[INIT] RIGHT SENSOR PIN (BCM): {SENSOR_RIGHT_PIN}")
-    print("[INIT] GPIO initialized successfully")
-    print("[INIT] Using REAL GPIO (no mock mode)")
+    print(f"[{get_timestamp()}] [INIT] LEFT SENSOR PIN (BCM): {SENSOR_LEFT_PIN}")
+    print(f"[{get_timestamp()}] [INIT] RIGHT SENSOR PIN (BCM): {SENSOR_RIGHT_PIN}")
+    print(f"[{get_timestamp()}] [INIT] GPIO initialized successfully")
+    print(f"[{get_timestamp()}] [INIT] Using REAL GPIO (no mock mode)")
 
 def setup_uart():
     global ser
-    print(f"[INIT] Setting up UART on port {UART_PORT} at {BAUD_RATE} baud...")
+    print(f"[{get_timestamp()}] [INIT] Setting up UART on port {UART_PORT} at {BAUD_RATE} baud...")
     try:
         ser = serial.Serial(
             port=UART_PORT,
@@ -81,10 +73,10 @@ def setup_uart():
             timeout=TIMEOUT
         )
         if ser.is_open:
-            print("[INIT] UART successfully opened and ready.")
+            print(f"[{get_timestamp()}] [INIT] UART successfully opened and ready.")
     except serial.SerialException as e:
-        print(f"[ERROR] Failed to open UART port: {e}")
-        print("[ERROR] Please check the UART_PORT configuration, permissions, and connections.")
+        print(f"[{get_timestamp()}] [ERROR] Failed to open UART port: {e}")
+        print(f"[{get_timestamp()}] [ERROR] Please check the UART_PORT configuration, permissions, and connections.")
         sys.exit(1)
 
 # ==========================================
@@ -99,7 +91,7 @@ def read_sensors():
     """
     left_val = GPIO.input(SENSOR_LEFT_PIN)
     right_val = GPIO.input(SENSOR_RIGHT_PIN)
-    print(f"[SENSOR] LEFT={left_val} RIGHT={right_val}")
+    # Removed print here to avoid spamming the console 30 times a second during filtering
     return left_val, right_val
 
 def filter_sensors():
@@ -115,7 +107,7 @@ def filter_sensors():
             left_samples.append(l)
             right_samples.append(r)
         except Exception as e:
-            print(f"[ERROR] Exception during sensor read: {e}")
+            print(f"[{get_timestamp()}] [ERROR] Exception during sensor read: {e}")
             return None, None
         time.sleep(0.01) # Small delay between samples
         
@@ -130,39 +122,65 @@ def filter_sensors():
 
 def send_command(command):
     """
-    Sends a string command over UART to the ATmega.
+    Sends a string command over UART to the ATmega with debug logs.
     """
     if ser is not None and ser.is_open:
         try:
-            # Clear input buffer before sending to avoid reading old ACKs
-            ser.reset_input_buffer()
-            # Encode string to bytes and send
-            ser.write(command.encode('utf-8'))
+            # IMPORTANT: Do NOT clear the input buffer here!
+            # If the ATmega sent an ACK while we were reading sensors,
+            # clearing the buffer will delete the ACK and we will freeze!
+            # ser.reset_input_buffer()
+
+            # Encode command
+            data = command.encode('utf-8')
+
+            # DEBUG PRINT (TX)
+            print("--------------------------------------")
+            print(f"[{get_timestamp()}] [UART TX] RAW COMMAND  : {repr(command)}")
+            print(f"[{get_timestamp()}] [UART TX] BYTES        : {data}")
+            print(f"[{get_timestamp()}] [UART TX] HEX BYTES    : {[hex(b) for b in data]}")
+
+            # Send
+            ser.write(data)
+
             return True
+
         except serial.SerialTimeoutException:
-            print(f"[ERROR] Timeout writing to UART.")
+            print(f"[{get_timestamp()}] [UART ERROR] Timeout writing to UART.")
             return False
+
         except serial.SerialException as e:
-            print(f"[ERROR] Failed to write to UART: {e}")
+            print(f"[{get_timestamp()}] [UART ERROR] Serial exception: {e}")
             return False
+
     else:
-        print("[ERROR] UART is not open. Cannot send command.")
+        print(f"[{get_timestamp()}] [UART ERROR] UART not open. Cannot send command.")
         return False
 
 def read_uart_response():
     """
-    Reads the response from the ATmega after sending a command.
+    Reads ALL available response bytes from the ATmega.
+    Using ser.in_waiting avoids blocking indefinitely.
     """
     if ser is not None and ser.is_open:
         try:
-            # Read line from UART
-            response = ser.readline().decode('utf-8', errors='ignore').strip()
-            if response:
-                return response
+            # Wait a tiny bit to allow ATmega to respond if it hasn't yet
+            time.sleep(0.05) 
+            
+            response_bytes = b""
+            # Read everything currently in the buffer
+            while ser.in_waiting > 0:
+                response_bytes += ser.read(ser.in_waiting)
+                time.sleep(0.01) # Allow trailing bytes to arrive
+            
+            if response_bytes:
+                # Decode safely, replacing bad characters
+                decoded = response_bytes.decode('utf-8', errors='replace').strip()
+                return f"{repr(decoded)} (Raw bytes: {response_bytes})"
             else:
-                return "<NO RESPONSE>"
+                return "<NO RESPONSE BYTES IN BUFFER>"
         except Exception as e:
-            return f"<ERROR: {e}>"
+            return f"<ERROR READING: {e}>"
     return "<UART CLOSED>"
 
 def decide_movement(left, right):
@@ -193,7 +211,7 @@ def decide_movement(left, right):
 
 def main_loop():
     print("==================================================")
-    print("[START] Starting Autonomous Line Follower Loop V2")
+    print(f"[{get_timestamp()}] [START] Starting Autonomous Line Follower Loop V2 (Debug Mode)")
     print("==================================================")
     
     last_cmd = None
@@ -207,7 +225,7 @@ def main_loop():
             left, right = filter_sensors()
             
             if left is None or right is None:
-                print("[DEBUG] Invalid sensor read (instability). Skipping loop.")
+                print(f"[{get_timestamp()}] [DEBUG] Invalid sensor read (instability). Skipping loop.")
                 time.sleep(LOOP_DELAY)
                 continue
                 
@@ -215,7 +233,7 @@ def main_loop():
             if left == last_left and right == last_right:
                 unchanged_count += 1
                 if unchanged_count >= 50:  # roughly 5-7 seconds with delay
-                    print("[WARNING] Sensor values not changing -> check wiring")
+                    print(f"[{get_timestamp()}] [WARNING] Sensor values not changing -> check wiring")
                     unchanged_count = 0  # Reset to avoid spamming every tick
             else:
                 unchanged_count = 0
@@ -225,44 +243,47 @@ def main_loop():
             # 2. Decide movement
             action, cmd = decide_movement(left, right)
             
-            # 3. Check for duplicates (Optimization)
-            if cmd == last_cmd:
-                print(f"[DEBUG] LEFT={left} RIGHT={right} -> {action} -> (Command {cmd.strip()} already active)")
-            else:
-                # 4. Send command to ATmega
-                success = send_command(cmd)
+            # Print sensor state EVERY loop for debugging
+            print(f"[{get_timestamp()}] [SENSOR] LEFT={left} RIGHT={right} | ACTION={action} | CMD={repr(cmd)}")
+            
+            # 3. Check for duplicates (Logging only)
+            if cmd != last_cmd:
+                print(f"[{get_timestamp()}] [STATE] >>> STATE CHANGED from {repr(last_cmd)} to {repr(cmd)} <<<")
                 
-                # 5. Read response
-                if success:
-                    response = read_uart_response()
-                    print(f"[DEBUG] LEFT={left} RIGHT={right} -> {action} -> Sent: {cmd.strip()} -> Received: {response}")
-                    last_cmd = cmd
-                else:
-                    print(f"[ERROR] LEFT={left} RIGHT={right} -> {action} -> FAILED to send: {cmd.strip()}")
+            # 4. Send command to ATmega ALWAYS (Debug mode: test repeated commands)
+            success = send_command(cmd)
+            
+            # 5. Read response
+            if success:
+                response = read_uart_response()
+                print(f"[{get_timestamp()}] [UART RX] Received: {response}")
+                last_cmd = cmd
+            else:
+                print(f"[{get_timestamp()}] [ERROR] FAILED to send: {repr(cmd)}")
                 
             # 6. Stability delay
             time.sleep(LOOP_DELAY)
             
     except KeyboardInterrupt:
-        print("\n[INFO] Keyboard interrupt detected. Stopping the robot...")
+        print(f"\n[{get_timestamp()}] [INFO] Keyboard interrupt detected. Stopping the robot...")
     finally:
         # Cleanup
-        print("[INFO] Cleaning up hardware resources...")
+        print(f"[{get_timestamp()}] [INFO] Cleaning up hardware resources...")
         send_command("S\n")  # Attempt to send a final stop command
         
         if ser is not None and ser.is_open:
             # Read any final response from the stop command
-            print(f"[INFO] Final STOP response: {read_uart_response()}")
+            print(f"[{get_timestamp()}] [INFO] Final STOP response: {read_uart_response()}")
             ser.close()
-            print("[INFO] UART port closed successfully.")
+            print(f"[{get_timestamp()}] [INFO] UART port closed successfully.")
             
         try:
             GPIO.cleanup()
-            print("[INFO] GPIO cleanup complete.")
+            print(f"[{get_timestamp()}] [INFO] GPIO cleanup complete.")
         except Exception as e:
-            print(f"[WARNING] GPIO cleanup failed: {e}")
+            print(f"[{get_timestamp()}] [WARNING] GPIO cleanup failed: {e}")
             
-        print("[INFO] Exited cleanly.")
+        print(f"[{get_timestamp()}] [INFO] Exited cleanly.")
 
 if __name__ == '__main__':
     setup_gpio()
