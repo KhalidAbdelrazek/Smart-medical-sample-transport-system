@@ -53,6 +53,16 @@ import '../../presentation/employee/requests/domain/repository/requests_reposito
     as _i960;
 import '../../presentation/employee/requests/ui/cubit/blood_sample_cubit.dart'
     as _i497;
+import '../../presentation/employee/root/data/data%20source/notification_ds.dart'
+    as _i392;
+import '../../presentation/employee/root/data/data%20source/notification_ds_impl.dart'
+    as _i851;
+import '../../presentation/employee/root/data/repository/notification_repository_impl.dart'
+    as _i834;
+import '../../presentation/employee/root/domain/repository/notification_repository.dart'
+    as _i631;
+import '../../presentation/employee/root/ui/cubit/notification_cubit.dart'
+    as _i211;
 import '../../presentation/employer/restrictions_tab/data/data_source/impl/restrictions_data_source_impl.dart'
     as _i131;
 import '../../presentation/employer/restrictions_tab/data/data_source/restrictions_data_source.dart'
@@ -105,6 +115,7 @@ import '../../presentation/storage/requests_tab/ui/cubit/blood_samples_cubit.dar
 import '../../presentation/storage/requests_tab/ui/cubit/return_approval_cubit.dart'
     as _i834;
 import '../api%20manager/api_manager.dart' as _i949;
+import '../notifications/notification_sound_service.dart' as _i786;
 
 extension GetItInjectableX on _i174.GetIt {
   // initializes the registration of main-scope dependencies inside of GetIt
@@ -115,6 +126,9 @@ extension GetItInjectableX on _i174.GetIt {
     final gh = _i526.GetItHelper(this, environment, environmentFilter);
     gh.factory<_i834.ReturnApprovalCubit>(() => _i834.ReturnApprovalCubit());
     gh.singleton<_i949.ApiManager>(() => _i949.ApiManager());
+    gh.lazySingleton<_i786.NotificationSoundService>(
+      () => _i786.NotificationSoundService(),
+    );
     gh.factory<_i274.MyRequestsDataSource>(
       () => _i1059.MyRequestsDataSourceImpl(apiManager: gh<_i949.ApiManager>()),
     );
@@ -166,6 +180,9 @@ extension GetItInjectableX on _i174.GetIt {
     gh.factory<_i392.AdminStatsDataSource>(
       () => _i171.AdminStatsDataSourceImpl(apiManager: gh<_i949.ApiManager>()),
     );
+    gh.factory<_i392.NotificationDataSource>(
+      () => _i851.NotificationDsImpl(apiManager: gh<_i949.ApiManager>()),
+    );
     gh.factory<_i504.RestrictionsDataSource>(
       () =>
           _i131.RestrictionsDataSourceImpl(apiManager: gh<_i949.ApiManager>()),
@@ -183,6 +200,17 @@ extension GetItInjectableX on _i174.GetIt {
     );
     gh.factory<_i600.EmployeeLoginViewModel>(
       () => _i600.EmployeeLoginViewModel(gh<_i471.AuthRepository>()),
+    );
+    gh.factory<_i631.NotificationRepository>(
+      () => _i834.NotificationRepositoryImpl(
+        notificationDataSource: gh<_i392.NotificationDataSource>(),
+      ),
+    );
+    gh.factory<_i211.NotificationCubit>(
+      () => _i211.NotificationCubit(
+        gh<_i631.NotificationRepository>(),
+        gh<_i786.NotificationSoundService>(),
+      ),
     );
     gh.factory<_i72.StatisticsCubit>(
       () => _i72.StatisticsCubit(gh<_i154.AdminStatsRepository>()),
