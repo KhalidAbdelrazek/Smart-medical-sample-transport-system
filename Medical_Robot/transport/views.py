@@ -24,13 +24,10 @@ from .services import (
     dispatch_car, 
     cancel_transport_request, 
     remove_sample_from_cart,
-    complete_transport_request,
-    fail_transport_request,
     confirm_delivery,
     reject_delivery,
 )
 from .return_services import (
-    request_sample_return,
     request_return_batch,
     get_grouped_return_requests,
     approve_return_batch,
@@ -52,7 +49,7 @@ class TransportRequestListView(APIView):
     permission_classes = [IsAuthenticated, IsStorageEmployee]
 
     @extend_schema(
-        tags=['Transport'],
+        tags=['Transport - Delivery - For Storage'],
         summary='List Pending and Loaded Transport Requests',
         description='Returns all PENDING and LOADED sample transport requests for the storage dashboard.',
         responses={200: TransportRequestSerializer(many=True)},
@@ -78,7 +75,7 @@ class AddToCarView(APIView):
     permission_classes = [IsAuthenticated, IsStorageEmployee]
 
     @extend_schema(
-        tags=['Transport'],
+        tags=['Transport - Delivery - For Storage'],
         summary='Add Sample to Car',
         description='Assign a requested sample to a car via sample_code.',
         request=AddToCarSerializer,
@@ -117,7 +114,7 @@ class DispatchCarView(APIView):
     permission_classes = [IsAuthenticated, IsStorageEmployee]
 
     @extend_schema(
-        tags=['Transport'],
+        tags=['Transport - Delivery - For Storage'],
         summary='Dispatch Car',
         description='Dispatch a car carrying samples.',
         request=DispatchCarSerializer,
@@ -153,7 +150,7 @@ class DoctorTransportRequestListView(APIView):
     permission_classes = [IsAuthenticated, IsDoctor]
 
     @extend_schema(
-        tags=['Transport'],
+        tags=['Transport - Delivery - For Doctor'],
         summary='List My Requests',
         description='Returns all sample transport requests created by the authenticated doctor.',
         responses={200: TransportRequestSerializer(many=True)},
@@ -180,7 +177,7 @@ class CancelTransportRequestView(APIView):
     permission_classes = [IsAuthenticated, IsDoctor]
 
     @extend_schema(
-        tags=['Transport'],
+        tags=['Transport - Delivery - For Doctor'],
         summary='Cancel Transport Request',
         description='Allows a doctor to cancel a transport request they made, provided it is still PENDING.',
         responses={
@@ -217,7 +214,7 @@ class RemoveFromCartView(APIView):
     permission_classes = [IsAuthenticated, IsStorageEmployee]
 
     @extend_schema(
-        tags=["Transport"],
+        tags=["Transport - Delivery - For Storage"],
         summary="Remove Sample from Cart",
         description="Remove a loaded sample from a car before dispatch. Storage employees only.",
         responses={
@@ -261,7 +258,7 @@ class AllTransportRequestsView(APIView):
     permission_classes = [IsAuthenticated, IsStorageEmployee]
 
     @extend_schema(
-        tags=["Transport"],
+        tags=["Transport - Delivery - For Storage"],
         summary="List Transport Requests Filtered according to its status",
         description="Returns transport requests with full details. Can be filtered by status (PENDING, LOADED, DISPATCHED).",
         responses={200: AllTransportRequestsSerializer(many=True)},
@@ -302,119 +299,10 @@ class AllTransportRequestsView(APIView):
         )
 
 
-class CompleteTransportRequestView(APIView):
-    """
-    POST /api/transport/requests/{request_id}/complete/
-    Mark a dispatched request as SUCCESSFUL/EXECUTED.
-    """
-
-    permission_classes = [IsAuthenticated, IsDoctor]
-
-    @extend_schema(
-        tags=['Transport - Return'],
-        summary="Verify the delivery of the sample to the doctor.",
-        description="Mark a dispatched transport request as successful/executed.",
-        responses={200: TransportRequestSerializer},
-    )
-    def post(self, request, request_id):
-        try:
-            transport_request = complete_transport_request(
-                request_id=request_id,
-                actor=request.user,
-            )
-            return unified_response(
-                success=True,
-                message="Transport request marked as completed",
-                data=TransportRequestSerializer(transport_request).data,
-                status=status.HTTP_200_OK,
-            )
-        except (NotFound, ValidationError) as e:
-            return unified_response(
-                success=False, message=format_error_message(e), status=status.HTTP_400_BAD_REQUEST
-            )
 
 
-class FailTransportRequestView(APIView):
-    """
-    POST /api/transport/requests/{request_id}/fail/
-    Mark a request as FAILED.
-    """
-
-    permission_classes = [IsAuthenticated, IsStorageEmployee]
-
-    @extend_schema(
-        tags=["Transport"],
-        summary="Fail Transport Request",
-        description="Mark a transport request as failed.",
-        responses={200: TransportRequestSerializer},
-    )
-    def post(self, request, request_id):
-        try:
-            transport_request = fail_transport_request(
-                request_id=request_id,
-                actor=request.user,
-            )
-            return unified_response(
-                success=True,
-                message="Transport request marked as failed",
-                data=TransportRequestSerializer(transport_request).data,
-                status=status.HTTP_200_OK,
-            )
-        except (NotFound, ValidationError) as e:
-            return unified_response(
-                success=False, message=format_error_message(e), status=status.HTTP_400_BAD_REQUEST
-            )
 
 
-class DoctorReturnRequestView(APIView):
-    """
-    POST /api/transport/return-request/
-    Doctor requests return of a sample they've finished examining.
-    """
-    permission_classes = [IsAuthenticated, IsDoctor]
-
-    @extend_schema(
-        tags=['Transport - Return'],
-        summary='Request Sample Return',
-        description='Doctor marks a sample as finished and requests its return to storage.',
-        request=DoctorReturnRequestSerializer,
-        responses={201: TransportRequestSerializer},
-        examples=[
-            OpenApiExample(
-                'Return Request',
-                value={'sample_code': 'PT-0001'},
-                request_only=True,
-            ),
-        ],
-    )
-    def post(self, request):
-        serializer = DoctorReturnRequestSerializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-
-        try:
-            return_request = request_sample_return(
-                sample_code=serializer.validated_data['sample_code'],
-                doctor=request.user,
-            )
-            response_data = TransportRequestSerializer(return_request).data
-            return unified_response(
-                success=True,
-                message="Sample return request created successfully",
-                data=response_data,
-                status=status.HTTP_201_CREATED,
-            )
-        except NotFound as e:
-            return unified_response(
-                success=False,
-                message=format_error_message(e),
-                status=status.HTTP_404_NOT_FOUND,
-            )
-        except ValidationError as e:
-            return unified_response(
-                success=False,
-                message=format_error_message(e),
-                status=status.HTTP_400_BAD_REQUEST,
-            )
 
 
 class RequestReturnView(APIView):
@@ -425,7 +313,7 @@ class RequestReturnView(APIView):
     permission_classes = [IsAuthenticated, IsDoctor]
 
     @extend_schema(
-        tags=['Transport - Return'],
+        tags=['Transport - Return - For Doctor'],
         summary='Request Return (Batch)',
         description='Create one RETURN transport request per sample using a shared batch_id.',
         request=RequestReturnSerializer,
@@ -465,7 +353,7 @@ class ReturnRequestsView(APIView):
     permission_classes = [IsAuthenticated, IsStorageEmployee]
 
     @extend_schema(
-        tags=['Transport - Return'],
+        tags=['Transport - Return - For Storage'],
         summary='List Return Requests',
         description='Returns return requests grouped by batch_id.',
     )
@@ -487,7 +375,7 @@ class ApproveReturnView(APIView):
     permission_classes = [IsAuthenticated, IsStorageEmployee]
 
     @extend_schema(
-        tags=['Transport - Return'],
+        tags=['Transport - Return - For Storage'],
         summary='Approve Return Batch',
         description='Approve selected samples from a batch and dispatch assigned car.',
         request=ApproveReturnSerializer,
@@ -535,7 +423,7 @@ class ReturnStatusView(APIView):
     permission_classes = [IsAuthenticated, IsDoctor]
 
     @extend_schema(
-        tags=['Transport - Return'],
+        tags=['Transport - Return - For Doctor'],
         summary='Get Return Arrival Status',
         description='Returns doctor return requests that reached ARRIVED_AT_DOCTOR.',
     )
@@ -571,7 +459,7 @@ class ConfirmReturnView(APIView):
     permission_classes = [IsAuthenticated, IsDoctor]
 
     @extend_schema(
-        tags=['Transport - Return'],
+        tags=['Transport - Return - For Doctor'],
         summary='Confirm Return Handoff',
         description='Confirm arrived return batch and mark samples back to storage.',
         request=ConfirmReturnSerializer,
@@ -606,61 +494,6 @@ class ConfirmReturnView(APIView):
             )
 
 
-class ListPendingReturnsView(APIView):
-    """
-    GET /api/transport/pending-returns/?car_id={id}
-    Storage employee views pending return requests for picking/selection.
-    Optionally shows capacity context for a specific car.
-    """
-    permission_classes = [IsAuthenticated, IsStorageEmployee]
-
-    @extend_schema(
-        tags=['Transport - Return'],
-        summary='List Pending Return Requests',
-        description='Returns all pending return requests grouped by room. Shows car capacity if car_id provided.',
-        parameters=[
-            OpenApiParameter(
-                name='car_id',
-                description='Optional car ID to show capacity context',
-                required=False,
-                type=int,
-            ),
-        ],
-        responses={200: TransportRequestSerializer(many=True)},
-    )
-    def get(self, request):
-        car_id = request.query_params.get('car_id')
-        
-        try:
-            queryset, car = list_pending_returns(car_id=car_id)
-            serializer = TransportRequestSerializer(queryset, many=True)
-            pending_count = queryset.count()
-            
-            response_data = {'requests': serializer.data}
-            if car:
-                response_data['car_info'] = {
-                    'id': car.id,
-                    'car_number': car.car_number,
-                    'capacity': car.capacity,
-                    'remaining_capacity': car.capacity,
-                    'pending_requests_count': pending_count,
-                    'max_selectable_now': min(car.capacity, pending_count),
-                    'overflow_count': max(pending_count - car.capacity, 0),
-                    'status': car.status,
-                }
-            
-            return unified_response(
-                success=True,
-                message=f"Found {pending_count} pending return request(s)",
-                data=response_data,
-                status=status.HTTP_200_OK,
-            )
-        except NotFound as e:
-            return unified_response(
-                success=False,
-                message=format_error_message(e),
-                status=status.HTTP_404_NOT_FOUND,
-            )
 
 
 class StartReturnCollectionView(APIView):
@@ -671,7 +504,7 @@ class StartReturnCollectionView(APIView):
     permission_classes = [IsAuthenticated, IsStorageEmployee]
 
     @extend_schema(
-        tags=['Transport - Return'],
+        tags=['Transport - Return - For Storage'],
         summary='Start Return Collection Run',
         description='Dispatch a car to collect selected return samples. Guards: car must be IDLE, no outbound deliveries pending, selections within capacity.',
         request=StartReturnCollectionSerializer,
@@ -726,7 +559,7 @@ class ConfirmReturnedSamplesView(APIView):
     permission_classes = [IsAuthenticated, IsStorageEmployee]
 
     @extend_schema(
-        tags=['Transport - Return'],
+        tags=['Transport - Return - For Storage'],
         summary='Confirm Returned Samples to the storage.',
         description='Marks selected returned samples as IN_STORAGE using a list of sample codes.',
         request=ConfirmReturnedSamplesSerializer,
@@ -778,7 +611,7 @@ class DeliveryArrivalsView(APIView):
     permission_classes = [IsAuthenticated, IsDoctor]
 
     @extend_schema(
-        tags=['Transport'],
+        tags=['Transport - Delivery - For Doctor'],
         summary='Poll Delivery Arrivals',
         description=(
             'Returns samples with status ARRIVED_AT_DOCTOR_DELIVERY for the '
@@ -822,7 +655,7 @@ class ConfirmDeliveryView(APIView):
     permission_classes = [IsAuthenticated, IsDoctor]
 
     @extend_schema(
-        tags=['Transport'],
+        tags=['Transport - Delivery - For Doctor'],
         summary='Confirm Delivery',
         description='Doctor confirms a sample that has arrived at their room.',
         responses={200: TransportRequestSerializer},
@@ -861,7 +694,7 @@ class RejectDeliveryView(APIView):
     permission_classes = [IsAuthenticated, IsDoctor]
 
     @extend_schema(
-        tags=['Transport'],
+        tags=['Transport - Delivery - For Doctor'],
         summary='Reject Delivery',
         description='Doctor rejects a sample. Marks request as FAILED and may trigger car to proceed.',
         request=RejectDeliverySerializer,

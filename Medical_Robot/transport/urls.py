@@ -7,15 +7,11 @@ from .views import (
     CancelTransportRequestView,
     RemoveFromCartView,
     AllTransportRequestsView,
-    CompleteTransportRequestView,
-    FailTransportRequestView,
-    DoctorReturnRequestView,
     RequestReturnView,
     ReturnRequestsView,
     ApproveReturnView,
     ReturnStatusView,
     ConfirmReturnView,
-    ListPendingReturnsView,
     StartReturnCollectionView,
     ConfirmReturnedSamplesView,
     DeliveryArrivalsView,
@@ -45,15 +41,6 @@ urlpatterns = [
     # GET /api/transport/filtered-requests/
     path('filtered-requests/', AllTransportRequestsView.as_view(), name='filtered-transport-requests'),
 
-    # POST /api/transport/requests/{uuid}/complete/
-    path('requests/<uuid:request_id>/complete/', CompleteTransportRequestView.as_view(), name='complete-request'),
-
-    # POST /api/transport/requests/{uuid}/fail/
-    path('requests/<uuid:request_id>/fail/', FailTransportRequestView.as_view(), name='fail-request'),
-    
-    # POST /api/transport/return-request/ - Doctor requests sample return
-    path('return-request/', DoctorReturnRequestView.as_view(), name='return-request'),
-
     # POST /api/transport/request-return/ - Doctor requests return for multiple samples
     path('request-return/', RequestReturnView.as_view(), name='request-return'),
 
@@ -69,9 +56,6 @@ urlpatterns = [
     # POST /api/transport/confirm-return/ - Doctor confirms handoff for arrived return batch
     path('confirm-return/', ConfirmReturnView.as_view(), name='confirm-return'),
     
-    # GET /api/transport/pending-returns/ - Storage views pending returns
-    path('pending-returns/', ListPendingReturnsView.as_view(), name='pending-returns'),
-    
     # POST /api/transport/start-return-collection/ - Storage starts collection with selected samples
     path('start-return-collection/', StartReturnCollectionView.as_view(), name='start-return-collection'),
 
@@ -86,4 +70,5 @@ urlpatterns = [
 
     # POST /api/transport/requests/{uuid}/reject-delivery/ - Doctor rejects delivery
     path('requests/<uuid:request_id>/reject-delivery/', RejectDeliveryView.as_view(), name='reject-delivery'),
+
 ]
