@@ -1,72 +1,66 @@
-import logging
-from uart_controller import UARTCarController
+import threading
+import time
+import queue
 
-# =========================
-# Console Interface
-# =========================
+class SharedState:
+    """Thread-safe state container for console to read."""
+    def __init__(self):
+        self.lock = threading.Lock()
+        self.current_state = "IDLE"
+        self.current_batch = None
+        self.current_room = None
+        self.uart_status = "UNKNOWN"
+        self.mqtt_status = "UNKNOWN"
+        
+    def update(self, **kwargs):
+        with self.lock:
+            for k, v in kwargs.items():
+                if hasattr(self, k):
+                    setattr(self, k, v)
+                    
+    def get_snapshot(self):
+        with self.lock:
+            return {
+                "state": self.current_state,
+                "batch": self.current_batch,
+                "room": self.current_room,
+                "uart": self.uart_status,
+                "mqtt": self.mqtt_status
+            }
 
-# =========================
-# Logging Setup
-# =========================
-logging.basicConfig(
-    level=logging.DEBUG,  # Set to DEBUG for detailed UART traces
-    format='%(asctime)s - [%(levelname)s] - %(message)s'
-)
-
-
-class ConsoleApp:
-    def __init__(self, controller: UARTCarController):
-        self.car = controller
+class ConsoleMonitor:
+    """
+    Runs in a separate thread to periodically print the system state
+    without blocking the main thread or requiring manual inputs.
+    """
+    def __init__(self, shared_state: SharedState):
+        self.shared_state = shared_state
         self.running = False
+        self.thread = None
+
+    def _run(self):
+        while self.running:
+            snapshot = self.shared_state.get_snapshot()
+            
+            # Print a neat dashboard
+            print("\n" + "="*40)
+            print("🚗 SMART MEDICAL TRANSPORT ROBOT")
+            print("="*40)
+            print(f"[*] State      : {snapshot['state']}")
+            print(f"[*] Batch ID   : {snapshot['batch'] if snapshot['batch'] else 'None'}")
+            print(f"[*] Room       : {snapshot['room'] if snapshot['room'] else 'None'}")
+            print(f"[*] MQTT Status: {snapshot['mqtt']}")
+            print(f"[*] UART Status: {snapshot['uart']}")
+            print("="*40)
+            
+            time.sleep(2)  # Update every 2 seconds
 
     def start(self):
         self.running = True
-
-        print("\n\n" + "="*30)
-        print("🚗 ROBOTIC CAR UART CONTROL")
-        print("="*30)
-        print("  w -> Forward")
-        print("  s -> Stop")
-        print("  x -> Backward")
-        print("  d -> Right")
-        print("  a -> Left")
-        print("  t -> enter manual test mode")
-        print("  q -> Quit")
-        print("-" * 30)
-
-        while self.running:
-            try:
-                cmd = input("\n[CMD] Enter command: ").strip().lower()
-
-                if cmd == "w":
-                    self.car.forward()
-                elif cmd == "s":
-                    self.car.stop()
-                elif cmd == "x":
-                    self.car.backward()
-                elif cmd == "d":
-                    self.car.right()
-                elif cmd == "a":
-                    self.car.left()
-                elif cmd == "t":
-                    test_char = input("Enter test character: ")
-                    if len(test_char) == 1:
-                        self.car.send_command(test_char)
-                    else:
-                        logging.warning("Please enter exactly one character.")
-                elif cmd == "q":
-                    logging.info("Exiting system")
-                    self.stop()
-                else:
-                    logging.warning(f"Unknown input: '{cmd}'")
-
-            except KeyboardInterrupt:
-                logging.info("Interrupted by user")
-                self.stop()
-            except Exception as e:
-                logging.error(f"Runtime error: {e}")
+        self.thread = threading.Thread(target=self._run, daemon=True)
+        self.thread.start()
 
     def stop(self):
         self.running = False
-        self.car.stop()
-
+        if self.thread:
+            self.thread.join()
