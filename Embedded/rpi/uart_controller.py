@@ -1,109 +1,123 @@
 import logging
-import serial
 import time
-
+import datetime
+try:
+    import serial
+except ImportError:
+    import sys
+    print("[ERROR] Install pyserial: pip3 install pyserial")
+    sys.exit(1)
 
 logging.basicConfig(
     level=logging.DEBUG,
     format='%(asctime)s - [%(levelname)s] - %(message)s'
 )
 
+def get_timestamp():
+    return datetime.datetime.now().strftime("%H:%M:%S.%f")[:-3]
 
 class UARTCarController:
-    def __init__(self, port='/dev/serial0', baudrate=9600, timeout=1.0):
-        try:
-            self.ser = serial.Serial(
-                port=port,
-                baudrate=baudrate,
-                parity=serial.PARITY_NONE,
-                stopbits=serial.STOPBITS_ONE,
-                bytesize=serial.EIGHTBITS,
-                timeout=timeout
-            )
+    def __init__(self, port='/dev/serial0', baudrate=9600, timeout=0.3):
+        self.port = port
+        self.baudrate = baudrate
+        self.timeout = timeout
+        self.ser = None
+        self.state = "SLEEP"
+        self.connect_uart()
 
-            self.state = "SLEEP"
-
-            logging.info(f"[UART] Initialized on {port} @ {baudrate}")
-
-        except Exception as e:
-            logging.error(f"[UART] Init failed: {e}")
-            raise e
-
-        self.ser.reset_input_buffer()
-        self.ser.reset_output_buffer()
-
-    # =========================
-    # Core Send Function (Non-blocking)
-    # =========================
-    def send_command(self, command: str) -> bool:
-        if self.ser is not None and self.ser.is_open:
+    def connect_uart(self):
+        while True:
             try:
-                # IMPORTANT: Do NOT clear the input buffer here!
-                # If the ATmega sent an ACK while we were reading sensors,
-                # clearing the buffer will delete the ACK and we will freeze!
-                data = command.encode('ascii')
-                
-                logging.debug(f"[UART TX] RAW: {repr(command)}")
-                self.ser.write(data)
-                return True
-            except serial.SerialTimeoutException:
-                logging.error("[UART ERROR] Timeout writing to UART.")
-                return False
-            except serial.SerialException as e:
-                logging.error(f"[UART ERROR] Serial exception: {e}")
-                return False
-        else:
-            logging.error("[UART ERROR] UART not open. Cannot send command.")
+                logging.info(f"[{get_timestamp()}] Connecting UART to {self.port} at {self.baudrate}...")
+                # Ensure previous instance is closed before retrying
+                if self.ser is not None and getattr(self.ser, 'is_open', False):
+                    try:
+                        self.ser.close()
+                    except Exception:
+                        pass
+
+                self.ser = serial.Serial(self.port, self.baudrate, timeout=self.timeout)
+
+                time.sleep(2)  # مهم جدًا (Arduino reset)
+                self.ser.reset_input_buffer()
+
+                logging.info(f"[{get_timestamp()}] UART connected successfully")
+                return
+            except Exception as e:
+                logging.error(f"[{get_timestamp()}] UART connect failed: {e}")
+                time.sleep(1)
+
+    def safe_write(self, cmd: str) -> bool:
+        if self.ser is None or not getattr(self.ser, 'is_open', False):
+            return False
+            
+        try:
+            self.ser.write(cmd.encode())
+            return True
+        except Exception as e:
+            logging.error(f"[{get_timestamp()}] UART write error: {e}")
             return False
 
-    # =========================
-    # Response Handler (Non-blocking)
-    # =========================
-    def read_uart_response(self) -> str:
-        """
-        Reads ALL available response bytes from the ATmega.
-        Using ser.in_waiting avoids blocking indefinitely.
-        """
-        if self.ser is not None and self.ser.is_open:
-            try:
-                # Wait a tiny bit to allow ATmega to respond if it hasn't yet
-                time.sleep(0.01) 
-                
-                response_bytes = b""
-                # Read everything currently in the buffer
-                while self.ser.in_waiting > 0:
-                    response_bytes += self.ser.read(self.ser.in_waiting)
-                    time.sleep(0.01) # Allow trailing bytes to arrive
-                
-                if response_bytes:
-                    decoded = response_bytes.decode('ascii', errors='ignore').strip()
-                    logging.debug(f"[UART RX] {repr(decoded)}")
-                    return decoded
-                else:
-                    return ""
-            except Exception as e:
-                logging.error(f"[UART RX ERROR] {e}")
-                return ""
-        return ""
+    def safe_read(self):
+        if self.ser is None or not getattr(self.ser, 'is_open', False):
+            return "ERROR"
+            
+        try:
+            if self.ser.in_waiting > 0:
+                line = self.ser.readline().decode(errors='ignore').strip()
+
+                # فلترة
+                if line == "":
+                    return None
+
+                if line in ["OK", "F", "S", "L", "R"]:
+                    return line
+
+                return None  # ignore garbage
+            return None
+        except Exception as e:
+            logging.error(f"[{get_timestamp()}] UART read error: {e}")
+            return "ERROR"
+
+    def send_command_and_reconnect_if_failed(self, cmd: str):
+        """Sends command and handles reconnecting if the write fails."""
+        if not self.safe_write(cmd):
+            logging.warning("Write failed. Reconnecting...")
+            self.connect_uart()
+            return False
+        return True
+
+    def read_and_reconnect_if_failed(self):
+        """Reads response and handles reconnecting if it gets an ERROR."""
+        resp = self.safe_read()
+        if resp == "ERROR":
+            logging.warning("Read error. Reconnecting...")
+            self.connect_uart()
+            return None
+        return resp
 
     # =========================
     # Movement API
     # =========================
     def forward(self):
-        return self.send_command("F\n")
+        return self.send_command_and_reconnect_if_failed("F\n")
 
     def backward(self):
-        return self.send_command("B\n")
+        return self.send_command_and_reconnect_if_failed("B\n")
 
     def left(self):
-        return self.send_command("L\n")
+        return self.send_command_and_reconnect_if_failed("L\n")
 
     def right(self):
-        return self.send_command("R\n")
+        return self.send_command_and_reconnect_if_failed("R\n")
 
     def stop(self):
-        return self.send_command("S\n")
+        return self.send_command_and_reconnect_if_failed("S\n")
 
-    def test(self):
-        logging.info("[UART] Testing connection...")
-        return self.send_command("T\n")
+    def cleanup(self):
+        try:
+            self.safe_write("S\n")
+            if self.ser:
+                self.ser.close()
+        except Exception:
+            pass

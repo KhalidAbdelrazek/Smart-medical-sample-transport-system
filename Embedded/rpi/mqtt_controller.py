@@ -1,110 +1,21 @@
 import logging
-import threading
 import json
-import time
-
-try:
-    import RPi.GPIO as GPIO
-except ImportError:
-    logging.error("[ERROR] RPi.GPIO not found. Using Mock.")
-    from unittest.mock import MagicMock
-    GPIO = MagicMock()
-
+import queue
 import paho.mqtt.client as mqtt
-from uart_controller import UARTCarController
-from functons import get_rooms, get_request_ids_for_room, filter_sensors, decide_movement
-
 
 # =========================
 # Logging Setup
 # =========================
 logging.basicConfig(
-    level=logging.DEBUG,
+    level=logging.INFO,
     format='%(asctime)s - [%(levelname)s] - %(message)s'
 )
-
-
-# =========================
-# Line Follower Controller
-# =========================
-class LineFollowerController:
-    def __init__(self, uart_controller: UARTCarController, sensor_left_pin=17, sensor_right_pin=27):
-        self.uart = uart_controller
-        self.sensor_left_pin = sensor_left_pin
-        self.sensor_right_pin = sensor_right_pin
-        self.loop_delay = 0.1
-        self.running = False
-        self._setup_gpio()
-
-    def _setup_gpio(self):
-        logging.info("[INIT] Setting up GPIO for Line Follower...")
-        GPIO.setwarnings(False)
-        GPIO.setmode(GPIO.BCM)
-        GPIO.setup(self.sensor_left_pin, GPIO.IN)
-        GPIO.setup(self.sensor_right_pin, GPIO.IN)
-        logging.info(f"[INIT] GPIO initialized successfully (LEFT={self.sensor_left_pin}, RIGHT={self.sensor_right_pin})")
-
-    def _read_sensors(self):
-        left_val = GPIO.input(self.sensor_left_pin)
-        right_val = GPIO.input(self.sensor_right_pin)
-        return left_val, right_val
-
-    def run_until_arrival(self):
-        """
-        Runs the line follower loop until the STOP condition (Arrival) is met.
-        """
-        logging.info("[ROBOT] Starting Autonomous Line Follower Loop...")
-        self.running = True
-        
-        last_cmd = None
-        filter_samples_count = 3
-        
-        while self.running:
-            left_samples = []
-            right_samples = []
-            
-            for _ in range(filter_samples_count):
-                l, r = self._read_sensors()
-                left_samples.append(l)
-                right_samples.append(r)
-                time.sleep(0.01)
-                
-            left, right = filter_sensors(left_samples, right_samples)
-            
-            if left is None or right is None:
-                logging.debug("[DEBUG] Invalid sensor read (instability). Skipping loop.")
-                time.sleep(self.loop_delay)
-                continue
-                
-            action, cmd = decide_movement(left, right)
-            
-            if cmd != last_cmd:
-                logging.debug(f"[STATE] >>> STATE CHANGED from {repr(last_cmd)} to {repr(cmd)} <<<")
-                
-            success = self.uart.send_command(cmd)
-            
-            if success:
-                response = self.uart.read_uart_response()
-                if response:
-                    logging.debug(f"[UART RX] Received: {response}")
-                last_cmd = cmd
-            else:
-                logging.error(f"[ERROR] FAILED to send: {repr(cmd)}")
-                
-            if action == "STOP":
-                logging.info("[ROBOT] STOP condition met! Arrived at destination.")
-                self.running = False
-                break
-                
-            time.sleep(self.loop_delay)
-
 
 # =========================
 # MQTT Controller
 # =========================
 class MQTTController:
-    def __init__(self, car_controller: UARTCarController):
-        self.car = car_controller
+    def __init__(self, dispatch_queue: queue.Queue):
         self.car_id = "3"
 
         self.broker = "81758f399b5b46b9875ac5e5f1e3ef1e.s1.eu.hivemq.cloud"
@@ -117,6 +28,9 @@ class MQTTController:
             (f"transport/commands/{self.car_id}/dispatch", 0)
         ]
 
+        # Queue to pass data to the main state machine
+        self.dispatch_queue = dispatch_queue
+
         # MQTT client
         self.client = mqtt.Client()
         self.client.tls_set()
@@ -127,22 +41,24 @@ class MQTTController:
         self.client.on_message = self.on_message
         self.client.on_disconnect = self.on_disconnect
         
-        # Internal line follower
-        self.line_follower = LineFollowerController(self.car)
+        self.connected = False
 
     # =========================
     # MQTT Callbacks
     # =========================
     def on_connect(self, client, userdata, flags, rc):
         if rc == 0:
+            self.connected = True
             logging.info(f"[MQTT] Connected to {self.broker}:{self.port}")
             for topic, qos in self.topics:
                 self.client.subscribe(topic, qos)
                 logging.info(f"[MQTT] Subscribed to: {topic}")
         else:
+            self.connected = False
             logging.error(f"[MQTT] Failed to connect, return code {rc}")
 
     def on_disconnect(self, client, userdata, rc):
+        self.connected = False
         if rc != 0:
             logging.warning(f"[MQTT] Unexpected disconnection (code {rc}). Reconnecting...")
 
@@ -151,14 +67,11 @@ class MQTTController:
             topic = msg.topic
             payload = json.loads(msg.payload.decode("utf-8"))
 
-            logging.info(f"[MQTT] {topic}: {payload}")
+            logging.info(f"[MQTT] Received on {topic}: {payload}")
 
             if topic == f"transport/commands/{self.car_id}/dispatch":
-                threading.Thread(
-                    target=self.handle_dispatch,
-                    args=(payload,),
-                    daemon=True
-                ).start()
+                # Place payload in queue for the main thread to handle
+                self.dispatch_queue.put(payload)
             else:
                 logging.warning(f"[MQTT] Unknown topic: {topic}")
         except Exception as e:
@@ -194,7 +107,7 @@ class MQTTController:
         
         result = self.client.publish(topic, payload_str, qos=1)
         if result.rc == mqtt.MQTT_ERR_SUCCESS:
-            logging.info(f"[MQTT] Queued successfully (mid={result.mid})")
+            logging.info(f"[MQTT] Arrival queued successfully (mid={result.mid})")
             return True
         else:
             logging.error(f"[MQTT] Publish Arrival failed — rc={result.rc}")
@@ -212,34 +125,3 @@ class MQTTController:
         else:
             logging.error(f"[ACK] Failed to publish (rc={result.rc})")
             return False
-
-    # =========================
-    # Robot Logic
-    # =========================
-    def handle_dispatch(self, payload: dict):
-        self.car.state = "DISPATCH"
-
-        rooms, batch_id = get_rooms(payload)
-
-        logging.info(f"[ROBOT] Batch ID: {batch_id}")
-        logging.info(f"[ROBOT] Rooms: {rooms}")
-
-        # Acknowledge dispatch to backend immediately
-        self.publish_ack(batch_id)
-
-        for room in rooms:
-            logging.info(f"[ROBOT] Moving to room {room}")
-            
-            # Start Line Follower
-            self.line_follower.run_until_arrival()
-            
-            # Arrived at room
-            request_ids = get_request_ids_for_room(payload, room)
-            self.publish_arrival(room, request_ids)
-            
-            # Brief pause before next room (or next state)
-            time.sleep(2)
-
-        logging.info("[ROBOT] Dispatch complete, returning to idle state")
-
-        self.car.state = "SLEEP"
