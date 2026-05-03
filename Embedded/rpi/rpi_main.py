@@ -13,6 +13,7 @@ from functons import (
     get_rooms, 
     get_request_ids_for_room
 )
+from camera_module import read_room_number
 
 # =========================
 # Logging Setup
@@ -124,14 +125,25 @@ def main():
                             current_room=room
                         )
                         
-                        logging.info(f"[ROBOT] Moving to room {room}...")
-                        run_line_follower_for_duration(car, MOVEMENT_DURATION_PER_ROOM)
+                        while True:
+                            logging.info(f"[ROBOT] Moving towards room {room}...")
+                            run_line_follower_for_duration(car, MOVEMENT_DURATION_PER_ROOM)
+                            
+                            # Robot is now stopped after 5 seconds. Scan room.
+                            logging.info(f"[ROBOT] Scanning room number...")
+                            detected_room = read_room_number()
+                            logging.info(f"[ROBOT] Detected room: {detected_room}, Expected: {room}")
+                            
+                            if str(detected_room) == str(room):
+                                logging.info(f"[ROBOT] Room match confirmed. Publishing arrival.")
+                                request_ids = get_request_ids_for_room(payload, room)
+                                mqtt_controller.publish_arrival(room, request_ids)
+                                break
+                            else:
+                                logging.warning(f"[ROBOT] Room mismatch. Expected {room}, Got {detected_room}. Moving again.")
+                                # Loop repeats, robot moves for 5s again
                         
-                        # Once 5 seconds elapsed, robot is stopped. Send arrival
-                        request_ids = get_request_ids_for_room(payload, room)
-                        mqtt_controller.publish_arrival(room, request_ids)
-                        
-                        # Small delay between rooms
+                        # Small delay before proceeding to the next room in sequence
                         time.sleep(2.0)
                         
                     # All rooms complete
