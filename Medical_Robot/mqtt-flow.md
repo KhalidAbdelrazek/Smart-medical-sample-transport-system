@@ -2,6 +2,24 @@
 
 This document lists MQTT topics used in this project and example payloads (pretty JSON) with details.
 
+## Quick Reference: Data Types
+
+| Field | Type | Example | Used In |
+|-------|------|---------|---------|
+| `car_id` | **integer** | `1` | All topics |
+| `batch_id` | string (UUID) | `"550e8400-e29b-41d4-a716-446655440000"` | dispatch, acks |
+| `room` | string | `"Room2001"`, `"STORAGE"` | control, arrivals |
+| `roomNumber` | string or integer | `"2001"` or `2001` | arrivals (legacy) |
+| `request_id` | string (UUID) | `"660e8400-e29b-41d4-a716-446655440001"` | dispatch, arrivals |
+| `sample_id` | string (UUID) | `"770e8400-e29b-41d4-a716-446655440002"` | dispatch |
+| `doctor_id` | string (UUID) or null | `"880e8400-e29b-41d4-a716-446655440003"` | dispatch |
+| `status` | string | `"OK"`, `"ERROR"` | acks |
+| `command` | string | `"proceed"`, `"stop"` | control |
+| `timestamp` | string (ISO8601) | `"2026-05-02T12:34:56Z"` | acks, arrivals, responses |
+| `capacity` | **integer** | `10` | car responses |
+
+---
+
 ## Topics and Payloads
 
 1) Topic: carts/{cart}/status
@@ -51,115 +69,133 @@ This document lists MQTT topics used in this project and example payloads (prett
 
 3) Topic helpers used by transport client (per-car topics)
 - transport/commands/{car_id}/dispatch
-  - Purpose: Dispatch a batch to a specific car and wait for ACK on ack topic.
-  - Example topic: transport/commands/1/dispatch
-  - Expected payload (example):
+   - Purpose: Dispatch a batch to a specific car and wait for ACK on ack topic.
+   - Example topic: transport/commands/1/dispatch
+   - Expected payload (example):
 
 ```json
 {
-  "car_id": "1",
-  "batch_id": "b12345",
-  "data": [
-    { "samples": ["PT-001"], "roomNumber": 1001 }
-  ]
+  "car_id": 1,
+  "batch_id": "550e8400-e29b-41d4-a716-446655440000",
+  "grouped_by_room": {
+    "Room2001": [
+      {
+        "request_id": "660e8400-e29b-41d4-a716-446655440001",
+        "sample_id": "770e8400-e29b-41d4-a716-446655440002",
+        "doctor_id": "880e8400-e29b-41d4-a716-446655440003"
+      }
+    ],
+    "Room2002": [
+      {
+        "request_id": "990e8400-e29b-41d4-a716-446655440004",
+        "sample_id": "aa0e8400-e29b-41d4-a716-446655440005",
+        "doctor_id": "bb0e8400-e29b-41d4-a716-446655440006"
+      }
+    ]
+  }
 }
 ```
 - Required/used fields:
-  - car_id: string - target car
-  - batch_id: string - unique identifier for ACK correlation
-  - data: as per dispatch payload above
+   - car_id: **integer** - target car ID
+   - batch_id: string - unique UUID identifier for ACK correlation
+   - grouped_by_room: object - samples grouped by room destination
+     - key: string - room number (e.g., "Room2001")
+     - value: array of objects for that room
+       - request_id: string - UUID of TransportRequest
+       - sample_id: string - UUID of BloodSample
+       - doctor_id: string or null - UUID of requesting doctor
 
 - transport/commands/{car_id}/control
-  - Purpose: Fire-and-forget control commands (proceed, stop)
-  - Example topic: transport/commands/1/control
-  - Example payloads:
+   - Purpose: Fire-and-forget control commands (proceed, stop)
+   - Example topic: transport/commands/1/control
+   - Example payloads:
 
 Proceed command:
 ```json
 {
-  "car_id": "1",
+  "car_id": 1,
   "command": "proceed",
-  "room": 2001
+  "room": "Room2001"
 }
 ```
 
 Stop command:
 ```json
 {
-  "car_id": "1",
+  "car_id": 1,
   "command": "stop",
   "reason": "obstacle_detected"
 }
 ```
 - Fields:
-  - car_id: string
-  - command: string ("proceed" | "stop")
-  - room: optional int (for proceed)
-  - reason: optional string (for stop)
+   - car_id: **integer** - target car ID
+   - command: string - "proceed" | "stop"
+   - room: string (for proceed) - room destination (e.g., "Room2001", "STORAGE")
+   - reason: optional string (for stop) - reason for stopping
 
 ---
 
 4) ACK and arrival topics (subscribed by the server)
 - transport/acks/{car_id}
-  - Purpose: Device ACKs for dispatch messages. The server waits for ACKs here.
-  - Example topic: transport/acks/1
-  - Expected payload (example):
+   - Purpose: Device ACKs for dispatch messages. The server waits for ACKs here.
+   - Example topic: transport/acks/1
+   - Expected payload (example):
 
 ```json
 {
-  "batch_id": "b12345",
+  "batch_id": "550e8400-e29b-41d4-a716-446655440000",
   "status": "OK",
   "message": "Accepted"
 }
 ```
 - Fields:
-  - batch_id: string - must match the dispatched batch_id
-  - status: string - e.g., "OK" or "ERROR"
-  - message: optional string with details
+   - batch_id: string (UUID) - must match the dispatched batch_id for correlation
+   - status: string - "OK" or "ERROR"
+   - message: optional string with details
 
 - transport/arrivals/{car_id}
-   - Purpose: Notify that a car arrived at destination / room, or back at storage.
-   - Example topic: transport/arrivals/1
-   - Example payload (preferred format):
+    - Purpose: Notify that a car arrived at destination / room, or back at storage.
+    - Example topic: transport/arrivals/1
+    - Example payload (preferred format):
 
 ```json
 {
-  "car_id": "1",
-  "room": "2001",
-  "arrived_request_ids": ["c4d8f455-5f29-4fe6-95c0-22ef2ca64a09"],
+  "car_id": 1,
+  "room": "Room2001",
+  "arrived_request_ids": ["660e8400-e29b-41d4-a716-446655440001", "770e8400-e29b-41d4-a716-446655440002"],
   "timestamp": "2026-05-02T12:34:56Z",
-  "samples": ["PT-001", "PT-003"]
+  "samples": ["PT-0001", "PT-0003"]
 }
 ```
 
-   - **Special case: Car arrival at STORAGE:**
+    - **Special case: Car arrival at STORAGE:**
 
 ```json
 {
-  "car_id": "1",
+  "car_id": 1,
   "room": "STORAGE",
   "timestamp": "2026-05-02T12:34:56Z"
 }
 ```
-   - When `room="STORAGE"`, the car has arrived back at the storage area after completing all deliveries/returns.
-   - The backend sets `car.arrived_at_storage` timestamp for later confirmation.
+    - When `room="STORAGE"`, the car has arrived back at the storage area after completing all deliveries/returns.
+    - The backend sets `car.arrived_at_storage` timestamp for later confirmation.
 
-   - Backward-compatible payload (also accepted):
+    - Backward-compatible payload (also accepted):
 
 ```json
 {
-  "car_id": "1",
-  "roomNumber": 2001,
+  "car_id": 1,
+  "roomNumber": "2001",
   "timestamp": "2026-05-02T12:34:56Z"
 }
 ```
 - Fields:
-   - car_id: string
-   - room: string (preferred room identifier; can be "STORAGE" for storage arrival)
-   - roomNumber: integer|string (compatibility alias for room)
-   - arrived_request_ids: optional array of TransportRequest UUID strings
-   - timestamp: ISO8601 string
-   - samples: optional array of sample codes
+    - car_id: **integer** - the car that arrived
+    - room: string (preferred) - room identifier (e.g., "Room2001", "Room2002", "STORAGE")
+    - roomNumber: string or integer (compatibility alias for room)
+    - arrived_request_ids: optional array of TransportRequest UUID strings
+    - timestamp: string - ISO8601 format timestamp
+    - samples: optional array of sample codes
 
 ---
 
@@ -181,7 +217,7 @@ This section describes the complete flow for a car returning to storage and stor
 **Payload:**
 ```json
 {
-  "car_id": "1",
+  "car_id": 1,
   "room": "STORAGE",
   "timestamp": "2026-05-02T15:45:30Z"
 }
@@ -232,13 +268,13 @@ This section describes the complete flow for a car returning to storage and stor
 **Query Parameters:** None
 
 **Response Fields:**
-- `id`: Car database ID (primary key)
-- `car_id`: Same as `id` (provided as alias for clarity)
-- `car_number`: Unique car identifier string
-- `status`: Current car status (DISPATCHED, LOADING, or IDLE)
-- `arrived_at_storage`: ISO8601 timestamp when car arrived at storage
-- `capacity`: Maximum samples the car can carry
-- `created_at`: ISO8601 timestamp when car was created in system
+- `id`: **integer** - Car database ID (primary key)
+- `car_id`: **integer** - Same as `id` (provided as alias for clarity)
+- `car_number`: string - Unique car identifier string
+- `status`: string - Current car status (DISPATCHED, LOADING, or IDLE)
+- `arrived_at_storage`: string - ISO8601 timestamp when car arrived at storage
+- `capacity`: **integer** - Maximum samples the car can carry
+- `created_at`: string - ISO8601 timestamp when car was created in system
 
 **Notes:**
 - Returns cars where `arrived_at_storage IS NOT NULL` and `status IN ['DISPATCHED', 'LOADING']`
@@ -278,7 +314,7 @@ This section describes the complete flow for a car returning to storage and stor
 - Validates car exists
 - Sets `Car.status = "IDLE"`
 - Clears `arrived_at_storage` flag (set to same value for idempotency)
-- Logs action: `CAR_RETURN_CONFIRMED`
+- Logs action: `CAR_STATUS_UPDATE`
 - Returns updated car data
 
 **Idempotency:**
@@ -290,7 +326,7 @@ This section describes the complete flow for a car returning to storage and stor
 ```
 1. Car finishes all deliveries/returns
 2. Car navigates back to storage (automatic routing)
-3. Device sends: transport/arrivals/1 { room: "STORAGE", ... }
+3. Device sends: transport/arrivals/1 { car_id: 1, room: "STORAGE", ... }
 4. Backend receives → sets car.arrived_at_storage = now
 5. Storage UI polls GET /api/transport/returned-cars/ every 5-10 seconds
 6. Storage employee sees car in the list
@@ -300,60 +336,82 @@ This section describes the complete flow for a car returning to storage and stor
 10. Car is now available for next dispatch
 ```
 
-### Data Model Changes
+---
 
-**Car Model (`cars/models.py`):**
-- Added field: `arrived_at_storage: DateTimeField(null=True, blank=True)`
-  - Tracks the timestamp when the car arrived at storage
-  - Used to identify cars awaiting confirmation
+## Summary of Updates from Previous Version
+
+✅ **Fixed Issues in mqtt-flow.md:**
+
+1. **`car_id` field type**
+   - Was: string `"1"`
+   - Now: **integer** `1`
+   - Applies to: All MQTT topics and REST API responses
+
+2. **Dispatch payload structure**
+   - Was: `"data": [...]` with `"roomNumber": 1001` (integer)
+   - Now: `"grouped_by_room": {...}` with string keys like `"Room2001"`
+   - Reason: Better organizational clarity and string room identifiers
+
+3. **Control command room field**
+   - Was: `"room": 2001` (integer)
+   - Now: `"room": "Room2001"` (string)
+   - Reason: Consistency with database room_number field which is CharField
+
+4. **Arrival event room field**
+   - Was: `"room": "2001"` (ambiguous)
+   - Now: `"room": "Room2001"` (explicit)
+   - Also accepts: `"roomNumber"` for backward compatibility
+
+5. **Data type documentation**
+   - Added: Quick reference table at top of document
+   - Shows: Which fields are integers vs strings
+   - Examples: UUID format for request/sample/doctor IDs
+
+6. **Response field types**
+   - Was: Not clearly marked
+   - Now: Marked with **integer** or string
+   - Fields: `id`, `car_id`, `capacity` are integers
+   - Example: `"capacity": 10` not `"capacity": "10"`
 
 ---
 
-## Fix #5: Return Flow - Pending Return Handling
+## Testing Your Implementation
 
-**Issue:** After doctor confirms delivery and return samples, car could not proceed because pending returns were not properly detected.
+To verify your Raspberry Pi sends the correct payloads, test with these JSON examples:
 
-**Root Cause:** `_should_proceed_from_room()` only checked for `status="RETURN_REQUESTED"` but not `"LOADED_FOR_RETURN"`.
-
-**Fix:** Updated query to include both statuses:
-```python
-status__in=["RETURN_REQUESTED", "LOADED_FOR_RETURN"]
+### Test: Arrival at Room
+```bash
+mosquitto_pub -h <broker> -u <user> -P <pass> \
+  -t "transport/arrivals/1" \
+  -m '{
+    "car_id": 1,
+    "room": "Room2001",
+    "arrived_request_ids": ["660e8400-e29b-41d4-a716-446655440001"],
+    "timestamp": "2026-05-04T12:00:00Z"
+  }'
 ```
 
-**Impact:** 
-- Car now correctly proceeds after return handoff
-- Arrival event for next room is properly published
-- Doctors see samples in front of the next room without delay
-
----
-
-## Fix #6: Delivery Confirmation Waiting for Return Handling
-
-**Issue:** Car was proceeding immediately after doctor confirmed delivery, before return samples could be handled.
-
-**Old Flow:**
-```
-1. Doctor confirms delivery → car IMMEDIATELY proceeds
-2. Doctor attempts return handoff → but car already proceeded
+### Test: Arrival at Storage
+```bash
+mosquitto_pub -h <broker> -u <user> -P <pass> \
+  -t "transport/arrivals/1" \
+  -m '{
+    "car_id": 1,
+    "room": "STORAGE",
+    "timestamp": "2026-05-04T12:00:00Z"
+  }'
 ```
 
-**New Flow:**
+### Test: ACK Response
+```bash
+mosquitto_pub -h <broker> -u <user> -P <pass> \
+  -t "transport/acks/1" \
+  -m '{
+    "batch_id": "550e8400-e29b-41d4-a716-446655440000",
+    "status": "OK",
+    "message": "Dispatch received and queued"
+  }'
 ```
-1. Doctor confirms delivery → car WAITS (no proceed)
-2. Doctor confirms return handoff → car THEN proceeds
-3. If no returns → car still proceeds (from step 2)
-```
-
-**Changes Made:**
-- `confirm_delivery()` - REMOVED proceed logic, only updates status to DELIVERED
-- `confirm_return_handoff()` - KEPT proceed logic, now it's the only point where car proceeds
-- `reject_delivery()` - KEPT proceed logic (rejected samples need no return handling)
-
-**Result:**
-- Doctors have time to handle returns after delivery
-- Clean workflow: Deliver → (Optional) Return → Proceed
-- Car waits for return confirmation before moving
-## Complete Doctor Delivery & Return Workflow
 
 This section describes the complete flow when a car arrives at a doctor's room for delivery and sample returns.
 
