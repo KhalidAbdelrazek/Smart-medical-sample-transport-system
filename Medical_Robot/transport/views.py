@@ -883,3 +883,94 @@ class ReturnedCarsCountView(APIView):
             },
             status=status.HTTP_200_OK,
         )
+
+
+class TestArrivalEventView(APIView):
+    """
+    POST /api/transport/test-arrival-event/
+    
+    DEBUG/TEST ENDPOINT: Manually trigger an arrival event to test the MQTT arrival processing.
+    This simulates what the MQTT subscriber would do when a car sends an arrival message.
+    
+    Useful for debugging arrival event processing without needing a physical robot.
+    """
+    permission_classes = [IsAuthenticated, IsStorageEmployee]
+
+    @extend_schema(
+        tags=['Transport - Debug'],
+        summary='Test Arrival Event Processing',
+        description='Manually trigger an arrival event for testing. Simulates MQTT arrival message.',
+        request={
+            'type': 'object',
+            'properties': {
+                'car_id': {'type': 'integer', 'description': 'Car ID'},
+                'room': {'type': 'string', 'description': 'Room number where car arrived (e.g. "Room2001" or "STORAGE")'},
+                'arrived_request_ids': {'type': 'array', 'items': {'type': 'string'}, 'description': 'Optional: specific request IDs'},
+                'timestamp': {'type': 'string', 'description': 'Optional: ISO format timestamp'},
+            }
+        },
+        responses={
+            200: OpenApiExample(
+                'Success',
+                value={'success': True, 'message': 'Arrival event processed', 'data': {'updated_count': 2}}
+            ),
+            400: OpenApiExample(
+                'Validation Error',
+                value={'success': False, 'message': 'Car not found or invalid room', 'data': {}}
+            ),
+        },
+    )
+    def post(self, request):
+        from .services import handle_arrival_event
+        
+        car_id = request.data.get('car_id')
+        room = request.data.get('room')
+        arrived_request_ids = request.data.get('arrived_request_ids')
+        timestamp = request.data.get('timestamp')
+        
+        if not car_id:
+            return unified_response(
+                success=False,
+                message="car_id is required",
+                data={},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        
+        if not room:
+            return unified_response(
+                success=False,
+                message="room is required",
+                data={},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        
+        try:
+            updated_count = handle_arrival_event(
+                car_id=car_id,
+                room=room,
+                arrived_request_ids=arrived_request_ids,
+                timestamp=timestamp,
+            )
+            return unified_response(
+                success=True,
+                message=f"Arrival event processed successfully",
+                data={'updated_count': updated_count},
+                status=status.HTTP_200_OK,
+            )
+        except ValidationError as ve:
+            return unified_response(
+                success=False,
+                message=format_error_message(ve),
+                data={},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        except Exception as e:
+            import logging
+            logger = logging.getLogger('transport')
+            logger.exception("Error processing test arrival event")
+            return unified_response(
+                success=False,
+                message=f"Error processing arrival event: {str(e)}",
+                data={},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            )

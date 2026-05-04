@@ -496,6 +496,7 @@ def handle_arrival_event(car_id, room, arrived_request_ids=None, timestamp=None)
     # Validate car exists
     try:
         car = Car.objects.get(id=car_id)
+        logger.info("Handle arrival: Found car with id=%s, car_number=%s", car_id, car.car_number)
     except Car.DoesNotExist:
         logger.error("Arrival event for unknown car_id=%s", car_id)
         raise ValidationError(f"Unknown car_id: {car_id}")
@@ -526,6 +527,10 @@ def handle_arrival_event(car_id, room, arrived_request_ids=None, timestamp=None)
     with transaction.atomic():
         # If specific request IDs provided, use them. Otherwise, find all DISPATCHED requests at room/car
         if arrived_request_ids:
+            logger.info(
+                "Looking for specific arrived_request_ids at car_id=%s room=%s: %s",
+                car_id, room, arrived_request_ids,
+            )
             requests = list(
                 TransportRequest.objects.select_for_update()
                 .select_related('sample')
@@ -545,12 +550,29 @@ def handle_arrival_event(car_id, room, arrived_request_ids=None, timestamp=None)
                         "car_id=%s and room=%s",
                         req_id, car_id, room,
                     )
+            
+            if len(requests) == 0:
+                logger.warning(
+                    "No matching requests found for arrived_request_ids at car_id=%s room=%s",
+                    car_id, room,
+                )
         else:
             # No specific IDs provided: find all DISPATCHED requests for this car/room
             logger.info(
                 "Arrival event has no specific request_ids. Finding all DISPATCHED requests for car_id=%s room=%s",
                 car_id, room,
             )
+            
+            # Debug: Check what rooms have DISPATCHED requests for this car
+            all_dispatched = TransportRequest.objects.filter(
+                assigned_car=car,
+                status='DISPATCHED',
+            ).values_list('room_number', flat=True).distinct()
+            logger.debug(
+                "DISPATCHED rooms for car_id=%s: %s",
+                car_id, list(all_dispatched),
+            )
+            
             requests = list(
                 TransportRequest.objects.select_for_update()
                 .select_related('sample')
@@ -559,6 +581,11 @@ def handle_arrival_event(car_id, room, arrived_request_ids=None, timestamp=None)
                     room_number=room,
                     status='DISPATCHED',
                 )
+            )
+            
+            logger.info(
+                "Found %d DISPATCHED requests for car_id=%s room=%s",
+                len(requests), car_id, room,
             )
 
         for transport_request in requests:
