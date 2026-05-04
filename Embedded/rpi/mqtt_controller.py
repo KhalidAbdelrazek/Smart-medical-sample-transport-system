@@ -15,7 +15,7 @@ logging.basicConfig(
 # MQTT Controller
 # =========================
 class MQTTController:
-    def __init__(self, dispatch_queue: queue.Queue):
+    def __init__(self, dispatch_queue: queue.Queue, control_queue: queue.Queue):
         self.car_id = "3"
 
         self.broker = "81758f399b5b46b9875ac5e5f1e3ef1e.s1.eu.hivemq.cloud"
@@ -25,11 +25,13 @@ class MQTTController:
         self.password = "bNtHo2#E,9>w18<CcOfF"
 
         self.topics = [
-            (f"transport/commands/{self.car_id}/dispatch", 0)
+            (f"transport/commands/{self.car_id}/dispatch", 0),
+            (f"transport/commands/{self.car_id}/control", 0)
         ]
 
-        # Queue to pass data to the main state machine
+        # Queues to pass data to the main state machine
         self.dispatch_queue = dispatch_queue
+        self.control_queue = control_queue
 
         # MQTT client
         self.client = mqtt.Client()
@@ -72,6 +74,8 @@ class MQTTController:
             if topic == f"transport/commands/{self.car_id}/dispatch":
                 # Place payload in queue for the main thread to handle
                 self.dispatch_queue.put(payload)
+            elif topic == f"transport/commands/{self.car_id}/control":
+                self.control_queue.put(payload)
             else:
                 logging.warning(f"[MQTT] Unknown topic: {topic}")
         except Exception as e:
