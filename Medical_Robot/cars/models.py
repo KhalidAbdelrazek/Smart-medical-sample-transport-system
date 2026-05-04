@@ -25,6 +25,11 @@ class Car(models.Model):
         help_text="Maximum number of samples this car can carry (used for return batch picking)"
     )
     created_at = models.DateTimeField(auto_now_add=True)
+    arrived_at_storage = models.DateTimeField(
+        null=True,
+        blank=True,
+        help_text="Timestamp when car arrived back at storage"
+    )
 
     class Meta:
         verbose_name = 'Car'

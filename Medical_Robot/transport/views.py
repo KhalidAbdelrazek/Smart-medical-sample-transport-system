@@ -16,6 +16,8 @@ from .serializers import (
     ConfirmReturnSerializer,
     StartReturnCollectionSerializer,
     ConfirmReturnedSamplesSerializer,
+    CarReturnConfirmSerializer,
+    ReturnedCarSerializer,
     RejectDeliverySerializer,
 )
 from .services import (
@@ -26,6 +28,9 @@ from .services import (
     confirm_delivery,
     reject_delivery,
     confirm_return_handoff,
+    confirm_car_returned,
+    get_returned_cars,
+    get_returned_cars_count,
 )
 from .return_services import (
     request_return_batch,
@@ -653,13 +658,18 @@ class ConfirmDeliveryView(APIView):
     """
     POST /api/transport/requests/{request_id}/confirm-delivery/
     Doctor confirms receipt of a delivered sample.
+    
+    NOTE: The car will NOT proceed immediately after confirmation.
+    The car waits for the doctor to either:
+    1. Confirm return handoff via /confirm-return-handoff/ (car then proceeds)
+    2. Or the system determines no returns are needed (car then proceeds)
     """
     permission_classes = [IsAuthenticated, IsDoctor]
 
     @extend_schema(
         tags=['Transport - Delivery - For Doctor'],
         summary='Confirm Delivery',
-        description='Doctor confirms a sample that has arrived at their room.',
+        description='Doctor confirms a sample that has arrived at their room. Car will proceed after return confirmation or if no returns available.',
         responses={200: TransportRequestSerializer},
     )
     def post(self, request, request_id):
@@ -736,16 +746,22 @@ class ConfirmReturnHandoffView(APIView):
     """
     POST /api/transport/confirm-return-handoff/
     Doctor confirms they handed return samples to the car at their room.
+    
+    This is the CRITICAL step that triggers car progression:
+    - Marks return samples as LOADED_FOR_RETURN
+    - Triggers proceed check and command to next room or storage
+    - If no returns available, still triggers proceed
     """
     permission_classes = [IsAuthenticated, IsDoctor]
 
     @extend_schema(
         tags=['Transport - Return - For Doctor'],
-        summary='Confirm Return Handoff',
+        summary='Confirm Return Handoff (Triggers Car Proceed)',
         description=(
             'Doctor confirms they gave the return samples to the car. '
-            'Marks all RETURN_REQUESTED items at the room as LOADED_FOR_RETURN. '
-            'If no return samples are available, the car proceeds immediately.'
+            'This endpoint triggers the car to proceed to the next room or storage. '
+            'If no return samples are available, car still proceeds immediately. '
+            'This is the critical step after delivery confirmation.'
         ),
     )
     def post(self, request):
@@ -767,3 +783,103 @@ class ConfirmReturnHandoffView(APIView):
                 message=format_error_message(e),
                 status=status.HTTP_400_BAD_REQUEST,
             )
+
+
+class ConfirmCarReturnView(APIView):
+    """
+    POST /api/transport/confirm-car-return/
+    Storage employee confirms a car has returned to the storage area.
+    """
+    permission_classes = [IsAuthenticated, IsStorageEmployee]
+
+    @extend_schema(
+        tags=['Transport - Return - For Storage'],
+        summary='Confirm Car Return',
+        description='Marks the specified car as IDLE, indicating it is back in storage.',
+        request=CarReturnConfirmSerializer,
+        responses={200: OpenApiExample(
+            'Success',
+            value={'success': True, 'message': 'Car return confirmed successfully', 'data': {'car': {'id': 1, 'car_number': 'C1', 'status': 'IDLE'}}}
+        )},
+    )
+    def post(self, request):
+        serializer = CarReturnConfirmSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        car_id = serializer.validated_data['car_id']
+        car = confirm_car_returned(car_id, actor=request.user)
+        return unified_response(
+            success=True,
+            message="Car return confirmed successfully",
+            data={
+                "car": {
+                    "id": car.id,
+                    "car_number": car.car_number,
+                    "status": car.status,
+                }
+            },
+            status=status.HTTP_200_OK,
+        )
+
+
+class ReturnedCarsView(APIView):
+    """
+    GET /api/transport/returned-cars/
+    Storage employee polls for cars that have arrived back at storage.
+    Returns a list of cars awaiting confirmation of return.
+    """
+    permission_classes = [IsAuthenticated, IsStorageEmployee]
+
+    @extend_schema(
+        tags=['Transport - Return - For Storage'],
+        summary='List Returned Cars',
+        description='Returns cars that have arrived back at storage and are awaiting confirmation.',
+        responses={200: ReturnedCarSerializer(many=True)},
+    )
+    def get(self, request):
+        returned_cars = get_returned_cars()
+        serializer = ReturnedCarSerializer(returned_cars, many=True)
+        
+        # Transform data to include car_id alias for clarity
+        returned_cars_data = []
+        for car_data in serializer.data:
+            car_data['car_id'] = car_data.get('id')  # Add car_id alias
+            returned_cars_data.append(car_data)
+        
+        return unified_response(
+            success=True,
+            message=f"Found {len(returned_cars_data)} returned car(s) awaiting confirmation",
+            data={
+                "returned_cars": returned_cars_data,
+            },
+            status=status.HTTP_200_OK,
+        )
+
+
+class ReturnedCarsCountView(APIView):
+    """
+    GET /api/transport/returned-cars/count/
+    Quick polling endpoint to check if any cars are waiting for return confirmation.
+    Useful for storage UI to show a notification badge or trigger full data fetch.
+    """
+    permission_classes = [IsAuthenticated, IsStorageEmployee]
+
+    @extend_schema(
+        tags=['Transport - Return - For Storage'],
+        summary='Check Returned Cars Count',
+        description='Returns the count of cars waiting for return confirmation. Lightweight endpoint for polling.',
+        responses={200: OpenApiExample(
+            'Success',
+            value={'success': True, 'message': 'Returned cars count', 'data': {'count': 2, 'has_returned_cars': True}}
+        )},
+    )
+    def get(self, request):
+        count = get_returned_cars_count()
+        return unified_response(
+            success=True,
+            message="Returned cars count retrieved",
+            data={
+                "count": count,
+                "has_returned_cars": count > 0,
+            },
+            status=status.HTTP_200_OK,
+        )

@@ -7,6 +7,7 @@ from rest_framework import serializers
 from .models import TransportRequest
 from samples.serializers import BloodSampleSerializer
 from cars.serializers import CarSerializer
+from cars.models import Car
 
 
 class TransportRequestSerializer(serializers.ModelSerializer):
@@ -82,6 +83,11 @@ class StartReturnCollectionSerializer(serializers.Serializer):
     )
 
 
+class CarReturnConfirmSerializer(serializers.Serializer):
+    """Payload for storage employee confirming a car has returned to storage."""
+    car_id = serializers.IntegerField(min_value=1, help_text="ID of the car that returned to storage")
+
+
 class ConfirmReturnedSamplesSerializer(serializers.Serializer):
     """Body for storage employee confirming returned samples by sample code."""
     sample_codes = serializers.ListField(
@@ -147,3 +153,12 @@ class AllTransportRequestsSerializer(serializers.ModelSerializer):
             "car_number",
             "car_status",
         ]
+
+
+class ReturnedCarSerializer(serializers.ModelSerializer):
+    """Serializer for cars that have arrived back at storage."""
+    
+    class Meta:
+        model = Car
+        fields = ['id', 'car_number', 'status', 'arrived_at_storage', 'capacity', 'created_at']
+        read_only_fields = ['id', 'car_number', 'status', 'arrived_at_storage', 'capacity', 'created_at']

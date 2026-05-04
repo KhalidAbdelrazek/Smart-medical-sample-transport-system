@@ -17,6 +17,9 @@ from .views import (
     ConfirmDeliveryView,
     RejectDeliveryView,
     ConfirmReturnHandoffView,
+    ConfirmCarReturnView,
+    ReturnedCarsView,
+    ReturnedCarsCountView,
 )
 
 urlpatterns = [
@@ -70,4 +73,13 @@ urlpatterns = [
 
     # POST /api/transport/confirm-return-handoff/ - Doctor confirms they gave the return samples to the car
     path('confirm-return-handoff/', ConfirmReturnHandoffView.as_view(), name='confirm-return-handoff'),
+    
+    # GET /api/transport/returned-cars/ - Storage polls for cars that arrived at storage
+    path('returned-cars/', ReturnedCarsView.as_view(), name='returned-cars'),
+    
+    # GET /api/transport/returned-cars/count/ - Quick poll for returned cars count
+    path('returned-cars/count/', ReturnedCarsCountView.as_view(), name='returned-cars-count'),
+    
+    # POST /api/transport/confirm-car-return/ - Storage confirms car return to storage
+    path('confirm-car-return/', ConfirmCarReturnView.as_view(), name='confirm-car-return'),
 ]
