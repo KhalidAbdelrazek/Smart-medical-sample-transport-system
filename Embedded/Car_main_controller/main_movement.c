@@ -5,7 +5,8 @@
  *  Author: NADER
  */ 
 
-
+#include "Timers.h"
+char x = 100;
 
 int Move_Up(void)
 {
@@ -17,6 +18,7 @@ int Move_Up(void)
 	DIO_Writepin('A',5,1);
 	DIO_Writepin('A',6,0);
 	DIO_Writepin('A',7,1);
+	Timer_wave_fastPWM(x);
 }
 
 int Move_Down(void)
@@ -29,6 +31,7 @@ int Move_Down(void)
 	DIO_Writepin('A',5,0);
 	DIO_Writepin('A',6,1);
 	DIO_Writepin('A',7,0);
+	Timer_wave_fastPWM(x);
 }
 
 int Move_Right(void)
@@ -41,6 +44,7 @@ int Move_Right(void)
 	DIO_Writepin('A',5,0);
 	DIO_Writepin('A',6,1);
 	DIO_Writepin('A',7,0);
+	Timer_wave_fastPWM(x);
 }
 
 int Move_Left(void)
@@ -53,6 +57,7 @@ int Move_Left(void)
 	DIO_Writepin('A',5,1);
 	DIO_Writepin('A',6,0);
 	DIO_Writepin('A',7,1);
+	Timer_wave_fastPWM(x);
 }
 
 int Stop(void)
