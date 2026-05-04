@@ -46,7 +46,6 @@ class TransportRequest(models.Model):
         ('EXECUTED', 'Executed'),                        # Legacy
         # Return flow states (batched workflow)
         ('RETURN_REQUESTED', 'Return Requested'),        # Doctor requested return
-        ('APPROVED_BY_STORAGE', 'Approved By Storage'),  # Storage approved request
         ('LOADED_FOR_RETURN', 'Loaded For Return'),      # Loaded for return collection
         ('ARRIVED_AT_DOCTOR', 'Arrived At Doctor'),      # Car reached doctor room
         ('RETURN_CONFIRMED', 'Return Confirmed'),        # Doctor confirmed handoff

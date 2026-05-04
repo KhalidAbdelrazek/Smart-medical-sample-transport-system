@@ -48,20 +48,24 @@ class DoctorReturnRequestSerializer(serializers.Serializer):
 
 
 class RequestReturnSerializer(serializers.Serializer):
-    """Doctor requests return for one or many samples (UUID IDs)."""
+    """Doctor requests return for one or many samples (UUID IDs or sample codes)."""
     sample_ids = serializers.ListField(
         child=serializers.UUIDField(),
-        allow_empty=False,
+        required=False,
+        default=[],
+    )
+    sample_codes = serializers.ListField(
+        child=serializers.CharField(),
+        required=False,
+        default=[],
     )
 
-
-class ApproveReturnSerializer(serializers.Serializer):
-    """Storage approves full/partial batch return and triggers dispatch."""
-    batch_id = serializers.UUIDField()
-    selected_sample_ids = serializers.ListField(
-        child=serializers.UUIDField(),
-        allow_empty=False,
-    )
+    def validate(self, data):
+        if not data.get('sample_ids') and not data.get('sample_codes'):
+            raise serializers.ValidationError(
+                "At least one of 'sample_ids' or 'sample_codes' must be provided."
+            )
+        return data
 
 
 class ConfirmReturnSerializer(serializers.Serializer):

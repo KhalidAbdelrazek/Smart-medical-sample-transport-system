@@ -307,7 +307,7 @@ def remove_sample_from_cart(request_id, actor=None):
         car = transport_request.assigned_car
         transport_request.assigned_car = None
         transport_request.status = (
-            "APPROVED_BY_STORAGE" if transport_request.request_type == "RETURN" else "PENDING"
+            "RETURN_REQUESTED" if transport_request.request_type == "RETURN" else "PENDING"
         )
         transport_request.loaded_at = None  # Clear the loaded timestamp
         transport_request.save()
@@ -393,7 +393,6 @@ def complete_transport_request(request_id, actor=None):
                         "CANCELLED",
                         "PENDING",
                         "RETURN_REQUESTED",
-                        "APPROVED_BY_STORAGE",
                         "ARRIVED_AT_DOCTOR",
                         "RETURN_CONFIRMED",
                         "ARRIVED_AT_DOCTOR_DELIVERY",
@@ -473,7 +472,7 @@ def fail_transport_request(request_id, actor=None):
 # Arrival event handling (called by MQTT subscriber)
 # ---------------------------------------------------------------------------
 
-def handle_arrival_event(car_id, room, arrived_request_ids, timestamp=None):
+def handle_arrival_event(car_id, room, arrived_request_ids=None, timestamp=None):
     """
     Process an arrival event from the Raspberry Pi device.
 
@@ -482,10 +481,14 @@ def handle_arrival_event(car_id, room, arrived_request_ids, timestamp=None):
 
     Idempotent: skips requests already in an arrived or later state.
 
+    If arrived_request_ids is provided, only those requests are updated.
+    If arrived_request_ids is empty/None, all DISPATCHED requests at that room/car are updated.
+    This handles cases where the Pi doesn't send specific IDs but just announces room arrival.
+
     Args:
         car_id: The car that arrived
         room: The room the car arrived at
-        arrived_request_ids: List of TransportRequest UUIDs that arrived
+        arrived_request_ids: List of TransportRequest UUIDs that arrived (optional)
         timestamp: Optional ISO timestamp from device
     """
     # Validate car exists
@@ -508,25 +511,42 @@ def handle_arrival_event(car_id, room, arrived_request_ids, timestamp=None):
     updated_count = 0
 
     with transaction.atomic():
-        requests = list(
-            TransportRequest.objects.select_for_update()
-            .select_related('sample')
-            .filter(
-                id__in=arrived_request_ids,
-                assigned_car=car,
-                room_number=room,  # Fix #3: enforce room match
-            )
-        )
-
-        # Warn about request_ids that didn't match (wrong car OR wrong room)
-        found_ids = {str(r.id) for r in requests}
-        for req_id in arrived_request_ids:
-            if str(req_id) not in found_ids:
-                logger.warning(
-                    "Arrival event references request_id=%s that does not match "
-                    "car_id=%s and room=%s",
-                    req_id, car_id, room,
+        # If specific request IDs provided, use them. Otherwise, find all DISPATCHED requests at room/car
+        if arrived_request_ids:
+            requests = list(
+                TransportRequest.objects.select_for_update()
+                .select_related('sample')
+                .filter(
+                    id__in=arrived_request_ids,
+                    assigned_car=car,
+                    room_number=room,  # Fix #3: enforce room match
                 )
+            )
+
+            # Warn about request_ids that didn't match (wrong car OR wrong room)
+            found_ids = {str(r.id) for r in requests}
+            for req_id in arrived_request_ids:
+                if str(req_id) not in found_ids:
+                    logger.warning(
+                        "Arrival event references request_id=%s that does not match "
+                        "car_id=%s and room=%s",
+                        req_id, car_id, room,
+                    )
+        else:
+            # No specific IDs provided: find all DISPATCHED requests for this car/room
+            logger.info(
+                "Arrival event has no specific request_ids. Finding all DISPATCHED requests for car_id=%s room=%s",
+                car_id, room,
+            )
+            requests = list(
+                TransportRequest.objects.select_for_update()
+                .select_related('sample')
+                .filter(
+                    assigned_car=car,
+                    room_number=room,
+                    status='DISPATCHED',
+                )
+            )
 
         for transport_request in requests:
             # Idempotent: skip if already arrived or in a terminal state
@@ -567,10 +587,16 @@ def handle_arrival_event(car_id, room, arrived_request_ids, timestamp=None):
                 transport_request.id, transport_request.status, car_id, room,
             )
 
-    logger.info(
-        "Arrival event processed. car_id=%s room=%s updated=%d/%d",
-        car_id, room, updated_count, len(arrived_request_ids),
-    )
+    if arrived_request_ids:
+        logger.info(
+            "Arrival event processed. car_id=%s room=%s updated=%d/%d",
+            car_id, room, updated_count, len(arrived_request_ids),
+        )
+    else:
+        logger.info(
+            "Arrival event processed. car_id=%s room=%s updated=%d requests (auto-discovery mode)",
+            car_id, room, updated_count,
+        )
     return updated_count
 
 
@@ -578,18 +604,108 @@ def handle_arrival_event(car_id, room, arrived_request_ids, timestamp=None):
 # Doctor confirm / reject delivery
 # ---------------------------------------------------------------------------
 
-def _should_proceed_from_room(car, room):
+def _should_proceed_from_room(car, room, for_update=False):
     """
     Check whether the car should proceed from a room.
-    Returns True if no requests with status ARRIVED_AT_DOCTOR_DELIVERY
+    Returns True if no delivery arrivals AND no pending return handoffs
     remain for the given (car, room).
     """
-    waiting = TransportRequest.objects.filter(
+    waiting_delivery_qs = TransportRequest.objects.filter(
         assigned_car=car,
         room_number=room,
         status="ARRIVED_AT_DOCTOR_DELIVERY",
-    ).exists()
-    return not waiting
+    )
+    if for_update:
+        waiting_delivery_qs = waiting_delivery_qs.select_for_update()
+    waiting_delivery = waiting_delivery_qs.exists()
+
+    waiting_return_qs = TransportRequest.objects.filter(
+        room_number=room,
+        request_type="RETURN",
+        status="RETURN_REQUESTED",
+    )
+    if for_update:
+        waiting_return_qs = waiting_return_qs.select_for_update()
+    waiting_return = waiting_return_qs.exists()
+
+    return not waiting_delivery and not waiting_return
+
+
+def _get_next_room_for_car(car, current_room, for_update=False):
+    """
+    Get the next unvisited room for the car to proceed to.
+    
+    Returns the next room number in sequence that still has pending deliveries
+    (DISPATCHED or ARRIVED_AT_DOCTOR_DELIVERY status).
+    
+    Rooms are ordered numerically/alphanumerically to ensure predictable sequencing.
+    
+    Args:
+        car: Car instance
+        current_room: Current room number (string)
+    
+    Returns:
+        str: Next room number to visit, or None if all rooms completed
+    """
+    # Get all rooms with pending deliveries for this car
+    room_qs = TransportRequest.objects.filter(
+        assigned_car=car,
+        request_type="DELIVERY",
+        status__in=['DISPATCHED', 'ARRIVED_AT_DOCTOR_DELIVERY'],
+    )
+    if for_update:
+        room_qs = room_qs.select_for_update()
+
+    pending_rooms = list(
+        room_qs
+        .values_list('room_number', flat=True)
+        .distinct()
+        .order_by('room_number')
+    )
+    
+    if not pending_rooms:
+        return None
+    
+    # Find the next room after current_room
+    for room in pending_rooms:
+        if room > current_room:
+            return room
+    
+    # If no room found after current, all rooms completed
+    return None
+
+
+def _get_proceed_target_room(car, room, for_update=False):
+    """
+    Return the room target for a proceed command, or None if car should wait.
+    """
+    if not _should_proceed_from_room(car, room, for_update=for_update):
+        return None
+    next_room = _get_next_room_for_car(car, room, for_update=for_update)
+    return next_room or "STORAGE"
+
+
+def _publish_proceed_target(car, current_room, target_room):
+    """Publish a proceed command to the resolved target room."""
+    try:
+        from .mqtt_client import publish_proceed_command
+
+        publish_proceed_command(car_id=car.id, room=target_room)
+        if target_room == "STORAGE":
+            logger.info(
+                "All rooms completed for car_id=%s. Proceeding to storage.",
+                car.id
+            )
+        else:
+            logger.info(
+                "Proceed command sent for car_id=%s from room=%s to next_room=%s",
+                car.id, current_room, target_room
+            )
+    except Exception:
+        logger.exception(
+            "Failed to send proceed command. car_id=%s room=%s",
+            car.id, current_room,
+        )
 
 
 def confirm_delivery(request_id, doctor):
@@ -620,7 +736,7 @@ def confirm_delivery(request_id, doctor):
 
     car = transport_request.assigned_car
     room = transport_request.room_number
-    should_proceed = False
+    proceed_target = None
 
     with transaction.atomic():
         # Re-fetch with row lock to prevent concurrent proceed races
@@ -641,23 +757,17 @@ def confirm_delivery(request_id, doctor):
         transport_request.save(update_fields=["status", "completed_at"])
         sample.save(update_fields=["status", "is_in_storage", "updated_at"])
 
-        # Check proceed while still holding the row locks
-        should_proceed = car is not None and _should_proceed_from_room(car, room)
+        # Resolve proceed target while still holding row locks.
+        if car is not None:
+            proceed_target = _get_proceed_target_room(car, room, for_update=True)
 
     logger.info(
         "Delivery confirmed. request_id=%s sample=%s room=%s",
         request_id, sample.sample_code, room,
     )
 
-    if should_proceed:
-        try:
-            from .mqtt_client import publish_proceed_command
-            publish_proceed_command(car_id=car.id, room=room)
-            logger.info("Proceed command sent for car_id=%s room=%s", car.id, room)
-        except Exception:
-            logger.exception(
-                "Failed to send proceed command. car_id=%s room=%s", car.id, room,
-            )
+    if car is not None and proceed_target:
+        _publish_proceed_target(car, room, proceed_target)
 
     return transport_request
 
@@ -691,7 +801,7 @@ def reject_delivery(request_id, doctor, reason=""):
 
     car = transport_request.assigned_car
     room = transport_request.room_number
-    should_proceed = False
+    proceed_target = None
 
     with transaction.atomic():
         # Re-fetch with row lock to prevent concurrent proceed races
@@ -713,22 +823,77 @@ def reject_delivery(request_id, doctor, reason=""):
         sample.is_in_storage = True
         sample.save(update_fields=["status", "is_in_storage", "updated_at"])
 
-        # Check proceed while still holding the row locks
-        should_proceed = car is not None and _should_proceed_from_room(car, room)
+        # Resolve proceed target while still holding row locks.
+        if car is not None:
+            proceed_target = _get_proceed_target_room(car, room, for_update=True)
 
     logger.info(
         "Delivery rejected. request_id=%s sample=%s room=%s reason=%s",
         request_id, sample.sample_code, room, reason,
     )
 
-    if should_proceed:
-        try:
-            from .mqtt_client import publish_proceed_command
-            publish_proceed_command(car_id=car.id, room=room)
-            logger.info("Proceed command sent for car_id=%s room=%s", car.id, room)
-        except Exception:
-            logger.exception(
-                "Failed to send proceed command. car_id=%s room=%s", car.id, room,
-            )
+    if car is not None and proceed_target:
+        _publish_proceed_target(car, room, proceed_target)
 
     return transport_request
+
+
+# ---------------------------------------------------------------------------
+# Return-loaded event handling (via REST API)
+# ---------------------------------------------------------------------------
+
+def confirm_return_handoff(doctor):
+    """
+    Doctor confirms they handed return samples to the car.
+
+    Finds all RETURN_REQUESTED items at the doctor's room, marks them as
+    LOADED_FOR_RETURN, assigns the car currently at the room, and triggers
+    a proceed check.
+
+    If there are no return samples to hand off, the car can still proceed
+    immediately without waiting.
+
+    Called from REST API, not MQTT.
+    """
+    # Find the delivery car currently at the doctor's room
+    active_delivery = TransportRequest.objects.filter(
+        requested_by=doctor,
+        request_type="DELIVERY",
+        status__in=["ARRIVED_AT_DOCTOR_DELIVERY", "DELIVERED"],
+    ).select_related("assigned_car").first()
+
+    if not active_delivery or not active_delivery.assigned_car:
+        raise ValidationError("No delivery car is at your room.")
+
+    car = active_delivery.assigned_car
+    room = active_delivery.room_number
+    now = timezone.now()
+    updated_count = 0
+    proceed_target = None
+
+    with transaction.atomic():
+        return_requests = list(
+            TransportRequest.objects.select_for_update()
+            .select_related("sample")
+            .filter(
+                requested_by=doctor,
+                room_number=room,
+                request_type="RETURN",
+                status="RETURN_REQUESTED",
+            )
+        )
+
+        # Load any return requests that exist
+        for tr in return_requests:
+            tr.assigned_car = car
+            tr.status = "LOADED_FOR_RETURN"
+            tr.loaded_at = now
+            tr.save(update_fields=["assigned_car", "status", "loaded_at"])
+            updated_count += 1
+
+        proceed_target = _get_proceed_target_room(car, room, for_update=True)
+
+    if proceed_target:
+        _publish_proceed_target(car, room, proceed_target)
+
+    return updated_count
