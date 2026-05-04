@@ -340,11 +340,17 @@ class MqttSubscriber:
         self._running = False
 
     def _on_connect(self, client, userdata, flags, reason_code, properties=None):
-        logger.info("MQTT subscriber connected. rc=%s", reason_code)
+        logger.info("MQTT subscriber connected. rc=%s (0=success)", reason_code)
+        if reason_code != 0:
+            logger.error("Connection failed with reason code %s", reason_code)
+            return
         # Subscribe to wildcard topics for all cars
-        client.subscribe("transport/acks/+", qos=_qos())
-        client.subscribe("transport/arrivals/+", qos=_qos())
-        logger.info("Subscribed to transport/acks/+ and transport/arrivals/+")
+        result_acks = client.subscribe("transport/acks/+", qos=_qos())
+        result_arrivals = client.subscribe("transport/arrivals/+", qos=_qos())
+        logger.info(
+            "Subscribed to MQTT topics: transport/acks/+ (rc=%s), transport/arrivals/+ (rc=%s)",
+            result_acks, result_arrivals,
+        )
 
     def _on_disconnect(self, client, userdata, flags, reason_code, properties=None):
         logger.warning("MQTT subscriber disconnected. rc=%s", reason_code)
@@ -372,6 +378,7 @@ class MqttSubscriber:
             return
 
         if topic.startswith("transport/arrivals/"):
+            logger.debug("Processing arrival event for car_id=%s", car_id)
             self._handle_arrival(car_id, payload)
         elif topic.startswith("transport/acks/"):
             # ACKs for dispatch are handled synchronously by publish_and_wait_for_ack.
@@ -385,10 +392,16 @@ class MqttSubscriber:
         """Process an arrival event from the device."""
         # Import here to avoid circular imports at module load time
         from transport.services import handle_arrival_event
+        from django.db.utils import IntegrityError, DatabaseError
 
         room = _extract_arrival_room(payload)
         arrived_request_ids = payload.get("arrived_request_ids", [])
         timestamp = payload.get("timestamp")
+
+        logger.info(
+            "Extracted from arrival payload: car_id=%s, room=%s, arrived_request_ids=%s, timestamp=%s",
+            car_id, room, arrived_request_ids, timestamp,
+        )
 
         if not room:
             logger.error(
@@ -398,11 +411,20 @@ class MqttSubscriber:
             return
 
         try:
-            handle_arrival_event(
+            updated_count = handle_arrival_event(
                 car_id=car_id,
                 room=room,
                 arrived_request_ids=arrived_request_ids if arrived_request_ids else None,
                 timestamp=timestamp,
+            )
+            logger.info(
+                "Arrival event processed successfully. car_id=%s room=%s updated=%d requests",
+                car_id, room, updated_count,
+            )
+        except (IntegrityError, DatabaseError) as db_err:
+            logger.error(
+                "Database error processing arrival event. car_id=%s room=%s error=%s",
+                car_id, room, str(db_err),
             )
         except Exception:
             logger.exception(
@@ -419,11 +441,17 @@ class MqttSubscriber:
 
         self._running = True
         logger.info(
-            "Starting MQTT subscriber. broker=%s:%s",
-            broker_host, _broker_port(),
+            "Starting MQTT subscriber. broker=%s:%s (use_tls=%s)",
+            broker_host, _broker_port(), _use_tls(),
         )
-        self._client.connect(broker_host, _broker_port(), keepalive=60)
-        self._client.loop_forever()
+        logger.info("Waiting for MQTT broker connection...")
+        try:
+            self._client.connect(broker_host, _broker_port(), keepalive=60)
+            logger.info("MQTT connection initiated, starting event loop...")
+            self._client.loop_forever()
+        except Exception as exc:
+            logger.exception("MQTT subscriber connection failed: %s", exc)
+            raise
 
     def stop(self):
         """Gracefully stop the subscriber."""

@@ -20,6 +20,7 @@ from .views import (
     ConfirmCarReturnView,
     ReturnedCarsView,
     ReturnedCarsCountView,
+    TestArrivalEventView,
 )
 
 urlpatterns = [
@@ -82,4 +83,7 @@ urlpatterns = [
     
     # POST /api/transport/confirm-car-return/ - Storage confirms car return to storage
     path('confirm-car-return/', ConfirmCarReturnView.as_view(), name='confirm-car-return'),
+    
+    # POST /api/transport/test-arrival-event/ - DEBUG: Test arrival event processing
+    path('test-arrival-event/', TestArrivalEventView.as_view(), name='test-arrival-event'),
 ]
