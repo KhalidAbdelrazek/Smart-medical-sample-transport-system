@@ -479,6 +479,8 @@ def handle_arrival_event(car_id, room, arrived_request_ids=None, timestamp=None)
     When the car arrives at a room, mark matching TransportRequest rows
     as ARRIVED_AT_DOCTOR_DELIVERY (for delivery) or ARRIVED_AT_DOCTOR (for return).
 
+    If room is 'STORAGE', mark the car as arrived back at storage.
+
     Idempotent: skips requests already in an arrived or later state.
 
     If arrived_request_ids is provided, only those requests are updated.
@@ -487,7 +489,7 @@ def handle_arrival_event(car_id, room, arrived_request_ids=None, timestamp=None)
 
     Args:
         car_id: The car that arrived
-        room: The room the car arrived at
+        room: The room the car arrived at (or 'STORAGE')
         arrived_request_ids: List of TransportRequest UUIDs that arrived (optional)
         timestamp: Optional ISO timestamp from device
     """
@@ -507,6 +509,17 @@ def handle_arrival_event(car_id, room, arrived_request_ids=None, timestamp=None)
                 arrival_time = parsed
         except Exception:
             pass  # Use server time as fallback
+
+    # ── Special case: car arrived at STORAGE ──
+    if room == "STORAGE":
+        with transaction.atomic():
+            car.arrived_at_storage = arrival_time
+            car.save(update_fields=["arrived_at_storage"])
+            logger.info(
+                "Car %s marked as arrived at STORAGE. timestamp=%s",
+                car_id, arrival_time,
+            )
+        return 0  # No transport requests to update for STORAGE
 
     updated_count = 0
 
@@ -600,6 +613,54 @@ def handle_arrival_event(car_id, room, arrived_request_ids=None, timestamp=None)
     return updated_count
 
 
+def confirm_car_returned(car_id, actor=None):
+    """Storage employee confirms that a car has returned to storage.
+
+    * Validates the car exists.
+    * Sets its status to ``IDLE`` (if not already).
+    * Optionally logs the action for analytics.
+    Returns the updated ``Car`` instance.
+    """
+    try:
+        car = Car.objects.get(id=car_id)
+    except Car.DoesNotExist:
+        raise NotFound(f"No car found with ID: {car_id}")
+
+    # If already idle, treat as idempotent success.
+    if car.status != "IDLE":
+        car.status = "IDLE"
+        car.save(update_fields=["status"])
+
+        if actor:
+            log_storage_employee_action(
+                employee=actor,
+                action="CAR_STATUS_UPDATE",
+                description=f"Car {car.car_number} confirmed back in storage and set to IDLE",
+                car=car,
+            )
+    return car
+
+
+def get_returned_cars():
+    """
+    Get all cars that have arrived at storage but haven't been confirmed as returned yet.
+    Returns only cars with arrived_at_storage timestamp set and status != IDLE.
+    """
+    returned_cars = Car.objects.filter(
+        arrived_at_storage__isnull=False,
+        status__in=['DISPATCHED', 'LOADING'],  # Cars that aren't IDLE yet
+    ).order_by('-arrived_at_storage')
+    return returned_cars
+
+
+def get_returned_cars_count():
+    """
+    Get count of cars waiting for return confirmation at storage.
+    Useful for quick polling to check if any cars need attention.
+    """
+    return get_returned_cars().count()
+
+
 # ---------------------------------------------------------------------------
 # Doctor confirm / reject delivery
 # ---------------------------------------------------------------------------
@@ -622,7 +683,7 @@ def _should_proceed_from_room(car, room, for_update=False):
     waiting_return_qs = TransportRequest.objects.filter(
         room_number=room,
         request_type="RETURN",
-        status="RETURN_REQUESTED",
+        status__in=["RETURN_REQUESTED", "LOADED_FOR_RETURN"],
     )
     if for_update:
         waiting_return_qs = waiting_return_qs.select_for_update()
@@ -713,11 +774,13 @@ def confirm_delivery(request_id, doctor):
     Doctor confirms receipt of a delivered sample.
 
     Transitions: ARRIVED_AT_DOCTOR_DELIVERY -> DELIVERED
-    After confirming, if no other doctors in the room are waiting,
-    publishes a 'proceed' command to the car.
-
-    Fix #4: the proceed-check is inside the same atomic block with
-    select_for_update to prevent duplicate proceed commands.
+    
+    NOTE: The car will NOT proceed after delivery confirmation.
+    The car will only proceed when:
+    1. Doctor confirms return handoff via confirm_return_handoff(), OR
+    2. If there are no return samples, car proceeds immediately from that endpoint
+    
+    This allows the doctor to handle return samples before car proceeds to next room.
     """
     try:
         transport_request = TransportRequest.objects.select_related(
@@ -734,12 +797,8 @@ def confirm_delivery(request_id, doctor):
             f"Only arrived deliveries can be confirmed. Current status: {transport_request.status}"
         )
 
-    car = transport_request.assigned_car
-    room = transport_request.room_number
-    proceed_target = None
-
     with transaction.atomic():
-        # Re-fetch with row lock to prevent concurrent proceed races
+        # Re-fetch with row lock to prevent concurrent races
         transport_request = (
             TransportRequest.objects.select_for_update()
             .select_related('sample')
@@ -757,17 +816,10 @@ def confirm_delivery(request_id, doctor):
         transport_request.save(update_fields=["status", "completed_at"])
         sample.save(update_fields=["status", "is_in_storage", "updated_at"])
 
-        # Resolve proceed target while still holding row locks.
-        if car is not None:
-            proceed_target = _get_proceed_target_room(car, room, for_update=True)
-
     logger.info(
-        "Delivery confirmed. request_id=%s sample=%s room=%s",
-        request_id, sample.sample_code, room,
+        "Delivery confirmed. request_id=%s sample=%s room=%s. Car will proceed after return confirmation.",
+        request_id, sample.sample_code, transport_request.room_number,
     )
-
-    if car is not None and proceed_target:
-        _publish_proceed_target(car, room, proceed_target)
 
     return transport_request
 
