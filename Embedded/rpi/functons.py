@@ -60,9 +60,9 @@ def decide_movement(left: int, right: int):
     """
     if left == 0 and right == 0:
         return "FORWARD", "F\n"
-    elif left == 0 and right == 1:
-        return "LEFT", "L\n"
     elif left == 1 and right == 0:
+        return "LEFT", "L\n"
+    elif left == 0 and right == 1:
         return "RIGHT", "R\n"
     else:
         return "STOP", "S\n"
