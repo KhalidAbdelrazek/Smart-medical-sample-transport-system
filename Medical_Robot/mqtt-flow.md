@@ -120,19 +120,31 @@ Stop command:
 - transport/arrivals/{car_id}
   - Purpose: Notify that a car arrived at destination / room.
   - Example topic: transport/arrivals/1
-  - Example payload (example):
+  - Example payload (preferred format):
+
+```json
+{
+  "car_id": "1",
+  "room": "2001",
+  "arrived_request_ids": ["c4d8f455-5f29-4fe6-95c0-22ef2ca64a09"],
+  "timestamp": "2026-05-02T12:34:56Z",
+  "samples": ["PT-001", "PT-003"]
+}
+```
+  - Backward-compatible payload (also accepted):
 
 ```json
 {
   "car_id": "1",
   "roomNumber": 2001,
-  "timestamp": "2026-05-02T12:34:56Z",
-  "samples": ["PT-001", "PT-003"]
+  "timestamp": "2026-05-02T12:34:56Z"
 }
 ```
 - Fields:
   - car_id: string
-  - roomNumber: integer
+  - room: string (preferred room identifier)
+  - roomNumber: integer|string (compatibility alias for room)
+  - arrived_request_ids: optional array of TransportRequest UUID strings
   - timestamp: ISO8601 string
   - samples: optional array of sample codes
 
@@ -142,5 +154,3 @@ Notes
 - QoS levels and topic names are configurable via settings (see settings.TOPIC, MQTT_DISPATCH_QOS, etc.).
 - The ACK flow requires batch_id correlation to avoid stale ACKs.
 - All payloads are JSON-encoded strings when published.
-
-If any additional topics or exact payload variations are required, mention them and the document will be updated.

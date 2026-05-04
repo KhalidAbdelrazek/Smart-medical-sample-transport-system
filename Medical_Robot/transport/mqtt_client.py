@@ -40,6 +40,25 @@ def _control_topic(car_id):
     return f"transport/commands/{car_id}/control"
 
 
+def _extract_arrival_room(payload):
+    """
+    Extract room value from arrival payload.
+
+    Supports both:
+    - room (preferred)
+    - roomNumber (compatibility)
+    """
+    room = payload.get("room")
+    if room is None or room == "":
+        room = payload.get("roomNumber")
+
+    if room is None:
+        return None
+
+    room_str = str(room).strip()
+    return room_str if room_str else None
+
+
 # ---------------------------------------------------------------------------
 # Broker connection helpers
 # ---------------------------------------------------------------------------
@@ -367,13 +386,13 @@ class MqttSubscriber:
         # Import here to avoid circular imports at module load time
         from transport.services import handle_arrival_event
 
-        room = payload.get("room")
+        room = _extract_arrival_room(payload)
         arrived_request_ids = payload.get("arrived_request_ids", [])
         timestamp = payload.get("timestamp")
 
-        if not room or not arrived_request_ids:
+        if not room:
             logger.error(
-                "Invalid arrival payload for car_id=%s: missing room or arrived_request_ids. payload=%s",
+                "Invalid arrival payload for car_id=%s: missing room/roomNumber. payload=%s",
                 car_id, payload,
             )
             return
@@ -382,7 +401,7 @@ class MqttSubscriber:
             handle_arrival_event(
                 car_id=car_id,
                 room=room,
-                arrived_request_ids=arrived_request_ids,
+                arrived_request_ids=arrived_request_ids if arrived_request_ids else None,
                 timestamp=timestamp,
             )
         except Exception:

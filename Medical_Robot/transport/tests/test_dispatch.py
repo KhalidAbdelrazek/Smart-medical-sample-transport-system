@@ -15,6 +15,7 @@ from rest_framework.test import APIClient
 from cars.models import Car
 from samples.models import BloodSample
 from transport.models import TransportRequest
+from transport.mqtt_client import MqttSubscriber
 from transport.services import (
     build_grouped_dispatch_payload,
     dispatch_car,
@@ -324,22 +325,22 @@ class TestArrivalsPollingApi(TestCase):
         resp = self.client.get("/api/transport/arrivals/")
         self.assertEqual(resp.status_code, 200)
         data = resp.json()["data"]
-        self.assertEqual(len(data), 1)
-        self.assertEqual(data[0]["sample_id"], str(s1.id))
+        self.assertEqual(len(data["arrivals"]), 1)
+        self.assertEqual(data["arrivals"][0]["sample_id"], str(s1.id))
 
         # Doctor 2 polls
         self.client.force_authenticate(user=self.doctor2)
         resp = self.client.get("/api/transport/arrivals/")
         data = resp.json()["data"]
-        self.assertEqual(len(data), 1)
-        self.assertEqual(data[0]["sample_id"], str(s2.id))
+        self.assertEqual(len(data["arrivals"]), 1)
+        self.assertEqual(data["arrivals"][0]["sample_id"], str(s2.id))
 
     def test_returns_empty_when_no_arrivals(self):
-        """Clean state returns empty list."""
+        """Clean state returns empty arrivals list."""
         self.client.force_authenticate(user=self.doctor1)
         resp = self.client.get("/api/transport/arrivals/")
         self.assertEqual(resp.status_code, 200)
-        self.assertEqual(resp.json()["data"], [])
+        self.assertEqual(resp.json()["data"]["arrivals"], [])
 
 
 # ===========================================================================
@@ -392,7 +393,7 @@ class TestConfirmRejectFlow(TestCase):
 
         reject_delivery(req.id, self.doctor)
 
-        mock_proceed.assert_called_once_with(car_id=self.car.id, room="Room-X")
+        mock_proceed.assert_called_once_with(car_id=self.car.id, room="STORAGE")
 
     @patch(_PATCH_PROCEED)
     def test_reject_no_proceed_when_others_waiting(self, mock_proceed):
@@ -408,12 +409,13 @@ class TestConfirmRejectFlow(TestCase):
 
     @patch(_PATCH_PROCEED)
     def test_confirm_last_in_room_triggers_proceed(self, mock_proceed):
-        """After the last doctor in a room confirms, proceed is sent."""
+        """After the last doctor in a room confirms, proceed is sent to next room or STORAGE."""
         req = self._make_arrived_request(room="Room-Z")
 
         confirm_delivery(req.id, self.doctor)
 
-        mock_proceed.assert_called_once_with(car_id=self.car.id, room="Room-Z")
+        # When only one room exists, car proceeds to STORAGE (no more rooms)
+        mock_proceed.assert_called_once_with(car_id=self.car.id, room="STORAGE")
 
     @patch(_PATCH_PROCEED)
     def test_confirm_not_last_in_room_no_proceed(self, mock_proceed):
@@ -424,6 +426,29 @@ class TestConfirmRejectFlow(TestCase):
         confirm_delivery(req2.id, self.doctor)
 
         mock_proceed.assert_not_called()
+
+    @patch(_PATCH_PROCEED)
+    def test_confirm_last_in_room_proceeds_to_next_room(self, mock_proceed):
+        """After confirming last delivery in a room, car proceeds to the next room."""
+        # Create requests in multiple rooms
+        req1 = self._make_arrived_request(room="Room-A")
+        self._make_arrived_request(room="Room-B")
+
+        # Confirm delivery at Room-A
+        confirm_delivery(req1.id, self.doctor)
+
+        # Should proceed to next room (Room-B)
+        mock_proceed.assert_called_once_with(car_id=self.car.id, room="Room-B")
+
+    @patch(_PATCH_PROCEED)
+    def test_reject_last_in_room_proceeds_to_next_room(self, mock_proceed):
+        """After rejecting last delivery in a room, car proceeds to the next room."""
+        req1 = self._make_arrived_request(room="Room-A")
+        self._make_arrived_request(room="Room-B")
+
+        reject_delivery(req1.id, self.doctor)
+
+        mock_proceed.assert_called_once_with(car_id=self.car.id, room="Room-B")
 
     def test_confirm_wrong_doctor_raises(self):
         """Doctor cannot confirm another doctor's delivery."""
@@ -445,6 +470,29 @@ class TestConfirmRejectFlow(TestCase):
 
         with self.assertRaises(ValidationError):
             confirm_delivery(req.id, self.doctor)
+
+
+class TestMqttArrivalPayloadCompatibility(TestCase):
+    """Verify arrival payload compatibility fields are accepted by subscriber."""
+
+    @patch("transport.services.handle_arrival_event")
+    def test_arrival_accepts_room_number_field(self, mock_handle_arrival):
+        subscriber = MqttSubscriber()
+
+        subscriber._handle_arrival(
+            car_id=3,
+            payload={
+                "roomNumber": 2001,
+                "timestamp": "2026-05-02T12:34:56Z",
+            },
+        )
+
+        mock_handle_arrival.assert_called_once_with(
+            car_id=3,
+            room="2001",
+            arrived_request_ids=None,
+            timestamp="2026-05-02T12:34:56Z",
+        )
 
 
 # ===========================================================================

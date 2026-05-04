@@ -372,7 +372,7 @@ class ReturnBatchApiTests(TestCase):
                 sample=sample,
                 requested_by=self.doctor,
                 room_number="Room-500",
-                status="DELIVERED",
+                status="ARRIVED_AT_DOCTOR_DELIVERY",
                 request_type="DELIVERY",
             )
 

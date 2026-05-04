@@ -26,7 +26,6 @@ RETURN_TERMINAL_STATUSES = {
 
 RETURN_ACTIVE_STATUSES = {
     "RETURN_REQUESTED",
-    "APPROVED_BY_STORAGE",
     "LOADED_FOR_RETURN",
     "DISPATCHED",
     "ARRIVED_AT_DOCTOR",
@@ -97,6 +96,18 @@ def request_return_batch(sample_ids, doctor):
     if not sample_ids:
         raise ValidationError("At least one sample ID is required.")
 
+    # ── Doctor must have an active delivery arrival (car at room) ──
+    has_delivery_at_room = TransportRequest.objects.filter(
+        requested_by=doctor,
+        request_type="DELIVERY",
+        status="ARRIVED_AT_DOCTOR_DELIVERY",
+    ).exists()
+    if not has_delivery_at_room:
+        raise ValidationError(
+            "You can only return samples when a delivery car is at your room. "
+            "Please wait for a delivery to arrive first."
+        )
+
     sample_ids = list(dict.fromkeys(str(sample_id) for sample_id in sample_ids))
 
     with transaction.atomic():
@@ -147,7 +158,6 @@ def get_grouped_return_requests():
             request_type="RETURN",
             status__in=[
                 "RETURN_REQUESTED",
-                "APPROVED_BY_STORAGE",
                 "LOADED_FOR_RETURN",
                 "DISPATCHED",
                 "ARRIVED_AT_DOCTOR",
@@ -191,88 +201,8 @@ def get_grouped_return_requests():
     return list(grouped.values())
 
 
-def approve_return_batch(batch_id, selected_sample_ids, actor=None):
-    if actor:
-        check_storage_samples_restriction(actor)
-
-    if not selected_sample_ids:
-        raise ValidationError("At least one sample must be selected for approval.")
-
-    selected_sample_ids = list(
-        dict.fromkeys(str(sample_id) for sample_id in selected_sample_ids)
-    )
-
-    with transaction.atomic():
-        batch_requests = list(
-            TransportRequest.objects.select_for_update()
-            .select_related("sample", "assigned_car")
-            .filter(batch_id=batch_id, request_type="RETURN")
-        )
-        if not batch_requests:
-            raise NotFound(f"No return requests found for batch: {batch_id}")
-
-        request_by_sample_id = {
-            str(transport_request.sample_id): transport_request
-            for transport_request in batch_requests
-        }
-        missing = [
-            sample_id
-            for sample_id in selected_sample_ids
-            if sample_id not in request_by_sample_id
-        ]
-        if missing:
-            raise ValidationError(
-                f"Selected sample {missing[0]} does not belong to this batch."
-            )
-
-        selected_requests = [request_by_sample_id[sid] for sid in selected_sample_ids]
-        to_dispatch = []
-        already_processed = []
-
-        for transport_request in selected_requests:
-            if transport_request.status in RETURN_TERMINAL_STATUSES:
-                already_processed.append(transport_request)
-                continue
-
-            if transport_request.status in {"DISPATCHED", "ARRIVED_AT_DOCTOR"}:
-                already_processed.append(transport_request)
-                continue
-
-            if transport_request.status not in {
-                "RETURN_REQUESTED",
-                "APPROVED_BY_STORAGE",
-                "LOADED_FOR_RETURN",
-            }:
-                raise ValidationError(
-                    f"Request {transport_request.id} is not eligible for approval. "
-                    f"Current status: {transport_request.status}"
-                )
-
-            if transport_request.status == "RETURN_REQUESTED":
-                transport_request.status = "APPROVED_BY_STORAGE"
-                transport_request.save(update_fields=["status"])
-
-            if transport_request.status in {"APPROVED_BY_STORAGE", "LOADED_FOR_RETURN"}:
-                to_dispatch.append(transport_request)
-
-        if not to_dispatch:
-            return already_processed, None
-
-        car = _select_idle_car(required_capacity=len(to_dispatch))
-        now = timezone.now()
-        for transport_request in to_dispatch:
-            transport_request.assigned_car = car
-            transport_request.status = "LOADED_FOR_RETURN"
-            transport_request.loaded_at = now
-            transport_request.save(
-                update_fields=["assigned_car", "status", "loaded_at"]
-            )
-
-        car.status = "LOADING"
-        car.save(update_fields=["status"])
-
-    dispatched_requests, dispatched_car = dispatch_car(car_id=car.id, actor=actor)
-    return dispatched_requests, dispatched_car
+# approve_return_batch() has been removed — storage approval step is no longer needed.
+# Returns are now picked up at the doctor's room during delivery (see Edit 4).
 
 
 def get_doctor_return_arrivals(doctor):
@@ -425,7 +355,6 @@ def start_return_collection(car_id, selected_request_ids, actor=None):
             if transport_request.status not in {
                 "PENDING",
                 "RETURN_REQUESTED",
-                "APPROVED_BY_STORAGE",
             }:
                 raise ValidationError(
                     f"Request {transport_request.id} cannot be collected from status "
@@ -522,3 +451,32 @@ def confirm_returned_samples(sample_codes, actor=None):
         _set_car_idle_if_ready(affected_car_ids)
 
     return updated_requests
+
+
+def request_return_by_codes(sample_codes, doctor):
+    """Accept return requests using human-readable sample codes.
+
+    Resolves codes like 'PT-0001' to BloodSample objects and delegates
+    to request_return_batch().
+    """
+    if not sample_codes:
+        raise ValidationError("At least one sample code is required.")
+
+    sample_codes = list(
+        dict.fromkeys(
+            str(code).strip() for code in sample_codes if str(code).strip()
+        )
+    )
+    if not sample_codes:
+        raise ValidationError("At least one valid sample code is required.")
+
+    samples = list(BloodSample.objects.filter(sample_code__in=sample_codes))
+    found_codes = {s.sample_code for s in samples}
+    missing = [c for c in sample_codes if c not in found_codes]
+    if missing:
+        raise NotFound(f"Sample not found: {missing[0]}")
+
+    return request_return_batch(
+        sample_ids=[s.id for s in samples],
+        doctor=doctor,
+    )

@@ -13,7 +13,6 @@ from .serializers import (
     AllTransportRequestsSerializer,
     DoctorReturnRequestSerializer,
     RequestReturnSerializer,
-    ApproveReturnSerializer,
     ConfirmReturnSerializer,
     StartReturnCollectionSerializer,
     ConfirmReturnedSamplesSerializer,
@@ -26,11 +25,12 @@ from .services import (
     remove_sample_from_cart,
     confirm_delivery,
     reject_delivery,
+    confirm_return_handoff,
 )
 from .return_services import (
     request_return_batch,
+    request_return_by_codes,
     get_grouped_return_requests,
-    approve_return_batch,
     get_doctor_return_arrivals,
     confirm_return_batch,
     list_pending_returns,
@@ -324,10 +324,19 @@ class RequestReturnView(APIView):
         serializer.is_valid(raise_exception=True)
 
         try:
-            batch_id, return_requests = request_return_batch(
-                sample_ids=serializer.validated_data['sample_ids'],
-                doctor=request.user,
-            )
+            sample_ids = serializer.validated_data.get('sample_ids', [])
+            sample_codes = serializer.validated_data.get('sample_codes', [])
+
+            if sample_codes:
+                batch_id, return_requests = request_return_by_codes(
+                    sample_codes=sample_codes,
+                    doctor=request.user,
+                )
+            else:
+                batch_id, return_requests = request_return_batch(
+                    sample_ids=sample_ids,
+                    doctor=request.user,
+                )
             return unified_response(
                 success=True,
                 message=f"Created return batch with {len(return_requests)} sample(s)",
@@ -367,52 +376,9 @@ class ReturnRequestsView(APIView):
         )
 
 
-class ApproveReturnView(APIView):
-    """
-    POST /api/transport/approve-return/
-    Storage approves selected samples in a batch and dispatches using existing flow.
-    """
-    permission_classes = [IsAuthenticated, IsStorageEmployee]
+# ApproveReturnView has been removed — storage approval step is no longer needed.
+# Returns are now picked up at the doctor's room during delivery (see Edit 4).
 
-    @extend_schema(
-        tags=['Transport - Return - For Storage'],
-        summary='Approve Return Batch',
-        description='Approve selected samples from a batch and dispatch assigned car.',
-        request=ApproveReturnSerializer,
-        responses={200: TransportRequestSerializer(many=True)},
-    )
-    def post(self, request):
-        serializer = ApproveReturnSerializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-
-        try:
-            dispatched_requests, car = approve_return_batch(
-                batch_id=serializer.validated_data['batch_id'],
-                selected_sample_ids=serializer.validated_data['selected_sample_ids'],
-                actor=request.user,
-            )
-            return unified_response(
-                success=True,
-                message=(
-                    "Selected return requests are already processed"
-                    if car is None
-                    else f"Approved and dispatched {len(dispatched_requests)} sample(s)"
-                ),
-                data={
-                    'batch_id': str(serializer.validated_data['batch_id']),
-                    'car_id': car.id if car else None,
-                    'dispatched_requests': TransportRequestSerializer(
-                        dispatched_requests, many=True
-                    ).data,
-                },
-                status=status.HTTP_200_OK,
-            )
-        except (NotFound, ValidationError) as e:
-            return unified_response(
-                success=False,
-                message=format_error_message(e),
-                status=status.HTTP_400_BAD_REQUEST,
-            )
 
 
 class ReturnStatusView(APIView):
@@ -607,6 +573,9 @@ class DeliveryArrivalsView(APIView):
     GET /api/transport/arrivals/
     Doctor polls for delivery arrivals — samples that have physically arrived
     at their room and are waiting for confirmation.
+
+    Also includes a return_offer flag + returnable samples list when the car
+    is at the doctor's room and the doctor has samples eligible for return.
     """
     permission_classes = [IsAuthenticated, IsDoctor]
 
@@ -615,10 +584,13 @@ class DeliveryArrivalsView(APIView):
         summary='Poll Delivery Arrivals',
         description=(
             'Returns samples with status ARRIVED_AT_DOCTOR_DELIVERY for the '
-            'authenticated doctor. Intended for ~5s polling by the frontend.'
+            'authenticated doctor. Includes return_offer when the doctor has '
+            'returnable samples and a car is at the room.'
         ),
     )
     def get(self, request):
+        from samples.models import BloodSample
+
         arrivals = (
             TransportRequest.objects.filter(
                 requested_by=request.user,
@@ -639,10 +611,40 @@ class DeliveryArrivalsView(APIView):
             }
             for tr in arrivals
         ]
+
+        # ── Return offer: show returnable samples when car is at room ──
+        return_offer = False
+        returnable_samples = []
+        if arrivals.exists():
+            with_doctor_samples = (
+                BloodSample.objects.filter(
+                    status="WITH_DOCTOR",
+                    is_in_storage=False,
+                    transport_requests__requested_by=request.user,
+                    transport_requests__request_type="DELIVERY",
+                    transport_requests__status="DELIVERED",
+                )
+                .distinct()
+            )
+            if with_doctor_samples.exists():
+                return_offer = True
+                returnable_samples = [
+                    {
+                        "sample_id": str(s.id),
+                        "sample_code": s.sample_code,
+                        "patient_name": s.patient_name,
+                    }
+                    for s in with_doctor_samples
+                ]
+
         return unified_response(
             success=True,
             message=f"Found {len(response_rows)} delivery arrival(s)",
-            data=response_rows,
+            data={
+                "arrivals": response_rows,
+                "return_offer": return_offer,
+                "returnable_samples": returnable_samples,
+            },
             status=status.HTTP_200_OK,
         )
 
@@ -723,6 +725,43 @@ class RejectDeliveryView(APIView):
                 status=status.HTTP_403_FORBIDDEN,
             )
         except (NotFound, ValidationError) as e:
+            return unified_response(
+                success=False,
+                message=format_error_message(e),
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+
+class ConfirmReturnHandoffView(APIView):
+    """
+    POST /api/transport/confirm-return-handoff/
+    Doctor confirms they handed return samples to the car at their room.
+    """
+    permission_classes = [IsAuthenticated, IsDoctor]
+
+    @extend_schema(
+        tags=['Transport - Return - For Doctor'],
+        summary='Confirm Return Handoff',
+        description=(
+            'Doctor confirms they gave the return samples to the car. '
+            'Marks all RETURN_REQUESTED items at the room as LOADED_FOR_RETURN. '
+            'If no return samples are available, the car proceeds immediately.'
+        ),
+    )
+    def post(self, request):
+        try:
+            loaded_count = confirm_return_handoff(doctor=request.user)
+            if loaded_count == 0:
+                message = "No samples to return. Car is proceeding."
+            else:
+                message = f"Confirmed handoff of {loaded_count} sample(s) to the car"
+            return unified_response(
+                success=True,
+                message=message,
+                data={"loaded_count": loaded_count},
+                status=status.HTTP_200_OK,
+            )
+        except ValidationError as e:
             return unified_response(
                 success=False,
                 message=format_error_message(e),

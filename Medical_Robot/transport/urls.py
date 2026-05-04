@@ -9,7 +9,6 @@ from .views import (
     AllTransportRequestsView,
     RequestReturnView,
     ReturnRequestsView,
-    ApproveReturnView,
     ReturnStatusView,
     ConfirmReturnView,
     StartReturnCollectionView,
@@ -17,6 +16,7 @@ from .views import (
     DeliveryArrivalsView,
     ConfirmDeliveryView,
     RejectDeliveryView,
+    ConfirmReturnHandoffView,
 )
 
 urlpatterns = [
@@ -47,9 +47,6 @@ urlpatterns = [
     # GET /api/transport/return-requests/ - Storage views grouped return requests
     path('return-requests/', ReturnRequestsView.as_view(), name='return-requests'),
 
-    # POST /api/transport/approve-return/ - Storage approves selected samples and dispatches
-    path('approve-return/', ApproveReturnView.as_view(), name='approve-return'),
-
     # GET /api/transport/return-status/ - Doctor polls for arrived return batches
     path('return-status/', ReturnStatusView.as_view(), name='return-status'),
 
@@ -71,4 +68,6 @@ urlpatterns = [
     # POST /api/transport/requests/{uuid}/reject-delivery/ - Doctor rejects delivery
     path('requests/<uuid:request_id>/reject-delivery/', RejectDeliveryView.as_view(), name='reject-delivery'),
 
+    # POST /api/transport/confirm-return-handoff/ - Doctor confirms they gave the return samples to the car
+    path('confirm-return-handoff/', ConfirmReturnHandoffView.as_view(), name='confirm-return-handoff'),
 ]
