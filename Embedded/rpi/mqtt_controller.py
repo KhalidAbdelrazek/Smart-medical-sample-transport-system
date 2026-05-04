@@ -15,8 +15,8 @@ logging.basicConfig(
 # MQTT Controller
 # =========================
 class MQTTController:
-    def __init__(self, dispatch_queue: queue.Queue, control_queue: queue.Queue):
-        self.car_id = "3"
+    def __init__(self, car_id: str, dispatch_queue: queue.Queue, control_queue: queue.Queue):
+        self.car_id = car_id
 
         self.broker = "81758f399b5b46b9875ac5e5f1e3ef1e.s1.eu.hivemq.cloud"
         self.port = 8883

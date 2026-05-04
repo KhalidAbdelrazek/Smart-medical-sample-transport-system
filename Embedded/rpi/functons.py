@@ -10,7 +10,9 @@ except ImportError:
 # ================= CONFIG =================
 SENSOR_LEFT_PIN = 17
 SENSOR_RIGHT_PIN = 27
-FILTER_SAMPLES = 3
+FILTER_SAMPLES = 5          # samples per majority-vote read
+INTERSECTION_CONFIRM_COUNT = 4   # consecutive confirmed reads before declaring intersection
+INTERSECTION_CONFIRM_DELAY = 0.02  # seconds between confirmation reads
 
 # ================= UTILS =================
 def get_timestamp():
@@ -46,6 +48,22 @@ def filter_sensors():
     right = max(set(right_samples), key=right_samples.count)
 
     return left, right
+
+def confirm_intersection() -> bool:
+    """
+    Returns True only when INTERSECTION_CONFIRM_COUNT consecutive
+    majority-vote reads BOTH return BLACK (1,1).  This eliminates
+    false-positives caused by thin lines or sensor noise.
+    """
+    consecutive = 0
+    for _ in range(INTERSECTION_CONFIRM_COUNT):
+        l, r = filter_sensors()
+        if l == 1 and r == 1:
+            consecutive += 1
+        else:
+            consecutive = 0          # reset — not a solid intersection
+        time.sleep(INTERSECTION_CONFIRM_DELAY)
+    return consecutive == INTERSECTION_CONFIRM_COUNT
 
 # ================= LOGIC =================
 def decide_movement(left: int, right: int):
