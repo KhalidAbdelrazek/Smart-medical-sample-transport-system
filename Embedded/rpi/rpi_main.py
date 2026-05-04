@@ -8,7 +8,8 @@ from mqtt_controller import MQTTController
 from console_interface import SharedState, ConsoleMonitor
 from functons import (
     setup_gpio, 
-    filter_sensors, 
+    filter_sensors,
+    confirm_intersection,
     decide_movement, 
     get_rooms, 
     get_request_ids_for_room
@@ -24,30 +25,37 @@ logging.basicConfig(
 )
 
 # Constants
+CAR_ID = "1"                      # Must match car_id used by the backend
 MOVEMENT_DURATION_PER_ROOM = 5.0  # seconds
-LOOP_DELAY = 0.1
+LOOP_DELAY = 0.05
 
 def run_line_follower_until_intersection(car: UARTCarController):
     """
-    Executes the line follower loop continuously until BOTH sensors detect BLACK.
+    Executes the line follower loop continuously until BOTH sensors
+    confirm a solid intersection (multiple consecutive reads).  The
+    confirm_intersection() check eliminates false positives caused by
+    thin line edges.
     """
     logging.info("[ROBOT] Starting continuous line follower until intersection...")
     
     while True:
         left, right = filter_sensors()
         
-        # Check intersection condition
+        # Quick pre-check: both sensors see black
         if left == 1 and right == 1:
-            logging.info("[ROBOT] Intersection detected (both sensors BLACK). Stopping.")
-            car.stop()
-            break
+            # Confirm it's a real intersection and not a thin-line edge
+            if confirm_intersection():
+                logging.info("[ROBOT] Intersection confirmed (both sensors BLACK). Stopping.")
+                car.stop()
+                break
+            # else: false positive — keep going with current sensor reading
             
         action, cmd = decide_movement(left, right)
         
         if not car.send_command_and_reconnect_if_failed(cmd):
             continue
             
-        resp = car.read_and_reconnect_if_failed()
+        car.read_and_reconnect_if_failed()
         
         time.sleep(LOOP_DELAY)
 
@@ -74,8 +82,8 @@ def main():
         car = UARTCarController(port='/dev/serial0', baudrate=9600)
         shared_state.update(uart_status="CONNECTED")
         
-        # Setup MQTT Controller
-        mqtt_controller = MQTTController(dispatch_queue, control_queue)
+        # Setup MQTT Controller  (car_id must match backend)
+        mqtt_controller = MQTTController(CAR_ID, dispatch_queue, control_queue)
         mqtt_controller.start()
         
         # Start Console Monitor
@@ -130,6 +138,9 @@ def main():
                                 request_ids = get_request_ids_for_room(payload, room)
                                 mqtt_controller.publish_arrival(room, request_ids)
                                 
+                                # Ensure car is completely stopped before waiting
+                                car.stop()
+                                
                                 # Wait for 'proceed' command via MQTT
                                 logging.info(f"[ROBOT] WAITING for 'proceed' command for room {room}...")
                                 shared_state.update(current_state="WAITING_FOR_PROCEED")
@@ -138,13 +149,17 @@ def main():
                                 while not proceed_received:
                                     try:
                                         ctrl_msg = control_queue.get(timeout=1.0)
-                                        if ctrl_msg.get("command") == "proceed" and str(ctrl_msg.get("room")) == str(room):
+                                        cmd_type = ctrl_msg.get("command", "").lower()
+                                        cmd_room = str(ctrl_msg.get("room", ""))
+                                        cmd_car  = str(ctrl_msg.get("car_id", CAR_ID))
+                                        if cmd_type == "proceed" and cmd_room == str(room) and cmd_car == CAR_ID:
                                             logging.info("[ROBOT] Received 'proceed' command. Continuing...")
                                             proceed_received = True
                                         else:
                                             logging.warning(f"[ROBOT] Ignored control msg: {ctrl_msg}")
                                     except queue.Empty:
-                                        pass
+                                        # Keep car stopped while waiting
+                                        car.stop()
                                 
                                 # Move slightly forward to clear the intersection
                                 logging.info("[ROBOT] Moving slightly forward to clear current intersection...")
