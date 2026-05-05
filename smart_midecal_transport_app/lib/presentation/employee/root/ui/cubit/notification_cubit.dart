@@ -65,7 +65,7 @@ class NotificationCubit extends Cubit<NotificationState> {
           emit(state.withError(failure.errorMessage));
         },
         (response) {
-          final rows = response.data ?? const <NotificationDataEntity>[];
+          final rows = response.data?.arrivals ?? const <NotificationArrivalsEntity>[];
           final merged = _mergeApiRows(rows, state);
           if (merged.dataSignature == state.dataSignature) {
             return;
@@ -101,7 +101,7 @@ class NotificationCubit extends Cubit<NotificationState> {
   }
 
   NotificationState _mergeApiRows(
-    List<NotificationDataEntity> rows,
+    List<NotificationArrivalsEntity> rows,
     NotificationState current,
   ) {
     final prevById = {for (final i in current.items) i.requestId: i};

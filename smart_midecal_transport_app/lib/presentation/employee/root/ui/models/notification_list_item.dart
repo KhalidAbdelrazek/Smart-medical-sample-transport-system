@@ -19,7 +19,7 @@ class NotificationListItem extends Equatable {
   final String? status;
   final DateTime firstSeenAt;
 
-  static String descriptionFromEntity(NotificationDataEntity e) {
+  static String descriptionFromEntity(NotificationArrivalsEntity e) {
     final parts = <String>[];
     final name = e.sampleName?.trim();
     if (name != null && name.isNotEmpty) {
@@ -35,7 +35,7 @@ class NotificationListItem extends Equatable {
     return parts.join(' · ');
   }
 
-  static String roomFromEntity(NotificationDataEntity e) {
+  static String roomFromEntity(NotificationArrivalsEntity e) {
     final r = e.room?.trim();
     if (r == null || r.isEmpty) {
       return '';
@@ -43,7 +43,7 @@ class NotificationListItem extends Equatable {
     return r;
   }
 
-  NotificationListItem mergedWith(NotificationDataEntity e, DateTime preservedFirstSeen) {
+  NotificationListItem mergedWith(NotificationArrivalsEntity e, DateTime preservedFirstSeen) {
     return NotificationListItem(
       requestId: requestId,
       titleTrKey: titleTrKey,
