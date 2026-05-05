@@ -66,7 +66,6 @@ final List<ConnectivityResult> connectivityResult =
             validateStatus: (status) => true,
           ),
         );
-        print(response.data);
         if (response.statusCode! >= 200 && response.statusCode! < 300) {
           return Right("Delivery confirmed successfully");
         }
@@ -100,7 +99,6 @@ final List<ConnectivityResult> connectivityResult =
             validateStatus: (status) => true,
           ),
         );
-        print(response.data);
         if (response.statusCode! >= 200 && response.statusCode! < 300) {
           return Right("Delivery rejected successfully");
         }

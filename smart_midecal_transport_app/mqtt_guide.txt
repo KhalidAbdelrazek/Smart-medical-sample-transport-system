@@ -49,3 +49,14 @@ transport/arrivals/3
     "request_id"
   ],
 }
+
+
+------------------------------------------------------------------------------
+from backend =============>>>>>>>>>> Raspberry pi
+transport/commands/3/control
+
+{
+  "car_id": 3,
+  "command": "proceed",
+  "room": "101"
+}
