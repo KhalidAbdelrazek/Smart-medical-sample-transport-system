@@ -10,9 +10,6 @@ from .views import (
     RequestReturnView,
     ReturnRequestsView,
     ReturnStatusView,
-    ConfirmReturnView,
-    StartReturnCollectionView,
-    ConfirmReturnedSamplesView,
     DeliveryArrivalsView,
     ConfirmDeliveryView,
     RejectDeliveryView,
@@ -20,7 +17,6 @@ from .views import (
     ConfirmCarReturnView,
     ReturnedCarsView,
     ReturnedCarsCountView,
-    TestArrivalEventView,
 )
 
 urlpatterns = [
@@ -53,16 +49,7 @@ urlpatterns = [
 
     # GET /api/transport/return-status/ - Doctor polls for arrived return batches
     path('return-status/', ReturnStatusView.as_view(), name='return-status'),
-
-    # POST /api/transport/confirm-return/ - Doctor confirms handoff for arrived return batch
-    path('confirm-return/', ConfirmReturnView.as_view(), name='confirm-return'),
     
-    # POST /api/transport/start-return-collection/ - Storage starts collection with selected samples
-    path('start-return-collection/', StartReturnCollectionView.as_view(), name='start-return-collection'),
-
-    # POST /api/transport/confirm-returned-samples/ - Storage confirms returned sample codes
-    path('confirm-returned-samples/', ConfirmReturnedSamplesView.as_view(), name='confirm-returned-samples'),
-
     # GET /api/transport/arrivals/ - Doctor polls for delivery arrivals
     path('arrivals/', DeliveryArrivalsView.as_view(), name='delivery-arrivals'),
 
@@ -84,6 +71,4 @@ urlpatterns = [
     # POST /api/transport/confirm-car-return/ - Storage confirms car return to storage
     path('confirm-car-return/', ConfirmCarReturnView.as_view(), name='confirm-car-return'),
     
-    # POST /api/transport/test-arrival-event/ - DEBUG: Test arrival event processing
-    path('test-arrival-event/', TestArrivalEventView.as_view(), name='test-arrival-event'),
 ]
