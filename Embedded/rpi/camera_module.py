@@ -1,70 +1,76 @@
 import time
-import cv2
 import re
-from collections import Counter
 import logging
+from collections import Counter
 
 try:
+    import cv2
     from picamera2 import Picamera2
     import pytesseract
     CAMERA_AVAILABLE = True
 except ImportError:
-    logging.warning("[CAMERA] picamera2 or pytesseract not found. Camera module will run in mock mode.")
+    logging.warning("[CAMERA] picamera2 / pytesseract not found — running in mock mode.")
     CAMERA_AVAILABLE = False
 
-def read_room_number(samples=10, delay=0.3):
+
+def read_room_number(samples: int = 10, delay: float = 0.3):
+    """
+    Captures `samples` frames, runs OCR on each, and returns the most
+    frequently detected number string (majority vote).
+
+    Returns None if nothing is detected or camera is unavailable.
+    """
     if not CAMERA_AVAILABLE:
-        logging.warning("[CAMERA] Camera unavailable. Returning mock value (None).")
-        time.sleep(2)
+        logging.warning("[CAMERA] Mock mode — returning None.")
+        time.sleep(1)
         return None
 
+    picam2 = None
     try:
         picam2 = Picamera2()
-        config = picam2.create_preview_configuration()
-        picam2.configure(config)
+        picam2.configure(picam2.create_preview_configuration())
         picam2.start()
+        time.sleep(2)   # Warm-up / auto-exposure settle
 
-        time.sleep(2)
-
-        detected_numbers = []
+        detected = []
 
         for i in range(samples):
             frame = picam2.capture_array()
 
-            gray = cv2.cvtColor(frame, cv2.COLOR_RGB2GRAY)
-            gray = cv2.GaussianBlur(gray, (5, 5), 0)
-            _, thresh = cv2.threshold(
-                gray, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU
-            )
+            # --- Pre-processing for OCR accuracy ---
+            gray   = cv2.cvtColor(frame, cv2.COLOR_RGB2GRAY)
+            gray   = cv2.GaussianBlur(gray, (5, 5), 0)
+            _, thr = cv2.threshold(gray, 0, 255,
+                                   cv2.THRESH_BINARY + cv2.THRESH_OTSU)
 
-            config_str = r'--oem 3 --psm 7 -c tessedit_char_whitelist=0123456789'
-            text = pytesseract.image_to_string(thresh, config=config_str)
+            # Digits-only whitelist, single-line PSM
+            cfg  = r'--oem 3 --psm 7 -c tessedit_char_whitelist=0123456789'
+            text = pytesseract.image_to_string(thr, config=cfg)
 
-            numbers = re.findall(r'\d+', text)
-
-            if numbers:
-                print(f"[CAMERA] Detected (sample {i+1}): {numbers[0]}")
-                detected_numbers.append(numbers[0])
+            nums = re.findall(r'\d+', text)
+            if nums:
+                logging.info(f"[CAMERA] Sample {i+1}/{samples} → '{nums[0]}'")
+                detected.append(nums[0])
             else:
-                print(f"[CAMERA] No number detected (sample {i+1})")
+                logging.debug(f"[CAMERA] Sample {i+1}/{samples} → no number")
 
             time.sleep(delay)
 
         picam2.close()
 
-        if not detected_numbers:
-            print("[CAMERA] No numbers detected at all.")
+        if not detected:
+            logging.warning("[CAMERA] No room number detected in any sample.")
             return None
 
-        final_number = Counter(detected_numbers).most_common(1)[0][0]
-        print(f"[CAMERA] Final detected room number: {final_number}")
-
-        return final_number
+        result = Counter(detected).most_common(1)[0][0]
+        logging.info(f"[CAMERA] Final room number (majority vote): {result}")
+        return result
 
     except Exception as e:
-        logging.error(f"[CAMERA] Error reading room number: {e}")
-        try:
-            picam2.close()
-        except:
-            pass
+        logging.error(f"[CAMERA] Exception: {e}")
+        if picam2:
+            try:
+                picam2.close()
+            except Exception:
+                pass
         return None
