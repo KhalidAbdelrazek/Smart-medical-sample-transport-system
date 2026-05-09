@@ -40,4 +40,8 @@ abstract class ApiEndPoints {
       '${ApiConstants.baseUrl}api/transport/requests/$requestId/confirm-delivery/';
   static String rejectDelivery(String requestId) =>
       '${ApiConstants.baseUrl}api/transport/requests/$requestId/reject-delivery/';
+
+  static String getCar = '${ApiConstants.baseUrl}/api/transport/returned-cars/';
+  static String confirmReturnedCar =
+      '${ApiConstants.baseUrl}/api/transport/confirm-car-return/';
 }
