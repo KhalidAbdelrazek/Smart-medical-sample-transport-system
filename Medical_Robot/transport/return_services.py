@@ -239,7 +239,7 @@ def confirm_return_batch(batch_id, doctor, actor=None):
         ]
         if not arrived_requests:
             if all(
-                transport_request.status == "RETURN_CONFIRMED"
+                transport_request.status in {"RETURNED", "RETURN_CONFIRMED"}
                 for transport_request in batch_requests
             ):
                 return batch_requests
@@ -253,7 +253,7 @@ def confirm_return_batch(batch_id, doctor, actor=None):
             sample.is_in_storage = True
             sample.save(update_fields=["status", "is_in_storage", "updated_at"])
 
-            transport_request.status = "RETURN_CONFIRMED"
+            transport_request.status = "RETURNED"
             transport_request.completed_at = now
             transport_request.save(update_fields=["status", "completed_at"])
 
@@ -404,7 +404,7 @@ def confirm_returned_samples(sample_codes, actor=None):
             .filter(
                 sample__sample_code__in=sample_codes,
                 request_type="RETURN",
-                status__in=["DISPATCHED", "ARRIVED_AT_DOCTOR"],
+                status__in=["DISPATCHED", "ARRIVED_AT_DOCTOR", "LOADED_FOR_RETURN"],
             )
             .order_by("created_at")
         )
@@ -414,7 +414,7 @@ def confirm_returned_samples(sample_codes, actor=None):
         ]
         if missing_requests:
             raise ValidationError(
-                f"Sample {missing_requests[0]} has no dispatched/arrived RETURN request."
+                f"Sample {missing_requests[0]} has no dispatched/arrived/loaded RETURN request."
             )
 
         now = timezone.now()
@@ -428,7 +428,7 @@ def confirm_returned_samples(sample_codes, actor=None):
             sample.is_in_storage = True
             sample.save(update_fields=["status", "is_in_storage", "updated_at"])
 
-            transport_request.status = "RETURN_CONFIRMED"
+            transport_request.status = "RETURNED"
             transport_request.completed_at = now
             transport_request.save(update_fields=["status", "completed_at"])
 

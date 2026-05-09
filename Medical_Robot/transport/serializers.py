@@ -74,6 +74,33 @@ class ConfirmReturnSerializer(serializers.Serializer):
     batch_id = serializers.UUIDField()
 
 
+class ConfirmReturnHandoffSerializer(serializers.Serializer):
+    """Doctor confirms return handoff for explicit sample codes."""
+    sample_codes = serializers.ListField(
+        child=serializers.CharField(),
+        required=True,
+        allow_empty=False,
+        help_text=(
+            "Required list of sample codes to hand off now. "
+            "Endpoint loads only eligible samples from this list."
+        ),
+    )
+
+    def validate_sample_codes(self, value):
+        normalized = []
+        seen = set()
+        for raw_code in value:
+            code = str(raw_code).strip()
+            if not code:
+                raise serializers.ValidationError("Sample codes cannot contain empty values.")
+            if code not in seen:
+                seen.add(code)
+                normalized.append(code)
+        if not normalized:
+            raise serializers.ValidationError("At least one valid sample code is required.")
+        return normalized
+
+
 class StartReturnCollectionSerializer(serializers.Serializer):
     """Body for storage employee starting return collection."""
     car_id = serializers.IntegerField()

@@ -327,7 +327,7 @@ class ReturnFlowTests(TestCase):
         sample.refresh_from_db()
         self.car.refresh_from_db()
 
-        self.assertEqual(req.status, "RETURN_CONFIRMED")
+        self.assertEqual(req.status, "RETURNED")
         self.assertEqual(sample.status, "IN_STORAGE")
         self.assertTrue(sample.is_in_storage)
         self.assertEqual(self.car.status, "IDLE")
@@ -478,7 +478,7 @@ class ReturnBatchApiTests(TestCase):
 
         return_request.refresh_from_db()
         self.sample_1.refresh_from_db()
-        self.assertEqual(return_request.status, "RETURN_CONFIRMED")
+        self.assertEqual(return_request.status, "RETURNED")
         self.assertEqual(self.sample_1.status, "IN_STORAGE")
         self.assertTrue(self.sample_1.is_in_storage)
 
@@ -520,7 +520,90 @@ class ReturnBatchApiTests(TestCase):
         sample.refresh_from_db()
         self.car.refresh_from_db()
 
-        self.assertEqual(req.status, "RETURN_CONFIRMED")
+        self.assertEqual(req.status, "RETURNED")
         self.assertEqual(sample.status, "IN_STORAGE")
         self.assertTrue(sample.is_in_storage)
         self.assertEqual(self.car.status, "IDLE")
+
+
+class ConfirmCarReturnApiTests(TestCase):
+    def setUp(self):
+        self.client = APIClient()
+        self.storage = User.objects.create_user(
+            email="storage.returncar@test.com",
+            password="testpass123",
+            full_name="Storage Return Car",
+            role="STORAGE_EMPLOYEE",
+        )
+        self.doctor = User.objects.create_user(
+            email="doctor.returncar@test.com",
+            password="testpass123",
+            full_name="Dr. Return Car",
+            role="DOCTOR",
+        )
+        self.car = Car.objects.create(car_number="CAR-RETURN-CONFIRM-01", status="DISPATCHED")
+        self.client.force_authenticate(user=self.storage)
+
+    def _create_return_request(self, sample_status="OUT_FOR_DELIVERY", request_status="LOADED_FOR_RETURN"):
+        sample = BloodSample.objects.create(
+            patient_name="Return Car Patient",
+            blood_type="A+",
+            status=sample_status,
+            is_in_storage=False,
+        )
+        request = TransportRequest.objects.create(
+            sample=sample,
+            requested_by=self.doctor,
+            room_number="Room-900",
+            assigned_car=self.car,
+            status=request_status,
+            request_type="RETURN",
+        )
+        return sample, request
+
+    def test_confirm_car_return_finalizes_return_samples(self):
+        sample_one, request_one = self._create_return_request(request_status="LOADED_FOR_RETURN")
+        sample_two, request_two = self._create_return_request(request_status="DISPATCHED")
+
+        response = self.client.post(
+            "/api/transport/confirm-car-return/",
+            {"car_id": self.car.id},
+            format="json",
+        )
+        self.assertEqual(response.status_code, 200)
+        payload = response.json()["data"]
+        self.assertEqual(payload["car"]["status"], "IDLE")
+        self.assertEqual(payload["finalized_return_count"], 2)
+
+        request_one.refresh_from_db()
+        request_two.refresh_from_db()
+        sample_one.refresh_from_db()
+        sample_two.refresh_from_db()
+        self.car.refresh_from_db()
+
+        self.assertEqual(request_one.status, "RETURNED")
+        self.assertEqual(request_two.status, "RETURNED")
+        self.assertEqual(sample_one.status, "IN_STORAGE")
+        self.assertEqual(sample_two.status, "IN_STORAGE")
+        self.assertTrue(sample_one.is_in_storage)
+        self.assertTrue(sample_two.is_in_storage)
+        self.assertEqual(self.car.status, "IDLE")
+
+    def test_confirm_car_return_is_idempotent_after_finalization(self):
+        _sample, _request = self._create_return_request(request_status="LOADED_FOR_RETURN")
+
+        first = self.client.post(
+            "/api/transport/confirm-car-return/",
+            {"car_id": self.car.id},
+            format="json",
+        )
+        self.assertEqual(first.status_code, 200)
+        self.assertEqual(first.json()["data"]["finalized_return_count"], 1)
+
+        second = self.client.post(
+            "/api/transport/confirm-car-return/",
+            {"car_id": self.car.id},
+            format="json",
+        )
+        self.assertEqual(second.status_code, 200)
+        self.assertEqual(second.json()["data"]["finalized_return_count"], 0)
