@@ -42,10 +42,10 @@ urlpatterns = [
     path('filtered-requests/', AllTransportRequestsView.as_view(), name='filtered-transport-requests'),
 
     # POST /api/transport/request-return/ - Doctor requests return for multiple samples
-    path('request-return/', RequestReturnView.as_view(), name='request-return'),
+    # path('request-return/', RequestReturnView.as_view(), name='request-return'),
 
     # GET /api/transport/return-requests/ - Storage views grouped return requests
-    path('return-requests/', ReturnRequestsView.as_view(), name='return-requests'),
+    # path('return-requests/', ReturnRequestsView.as_view(), name='return-requests'),
 
     # GET /api/transport/return-status/ - Doctor polls for arrived return batches
     path('return-status/', ReturnStatusView.as_view(), name='return-status'),
@@ -66,7 +66,7 @@ urlpatterns = [
     path('returned-cars/', ReturnedCarsView.as_view(), name='returned-cars'),
     
     # GET /api/transport/returned-cars/count/ - Quick poll for returned cars count
-    path('returned-cars/count/', ReturnedCarsCountView.as_view(), name='returned-cars-count'),
+    # path('returned-cars/count/', ReturnedCarsCountView.as_view(), name='returned-cars-count'),
     
     # POST /api/transport/confirm-car-return/ - Storage confirms car return to storage
     path('confirm-car-return/', ConfirmCarReturnView.as_view(), name='confirm-car-return'),

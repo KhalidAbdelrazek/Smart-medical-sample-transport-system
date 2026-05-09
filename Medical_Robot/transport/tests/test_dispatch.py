@@ -21,6 +21,7 @@ from transport.services import (
     dispatch_car,
     handle_arrival_event,
     confirm_delivery,
+    confirm_return_handoff,
     reject_delivery,
 )
 
@@ -496,7 +497,188 @@ class TestMqttArrivalPayloadCompatibility(TestCase):
 
 
 # ===========================================================================
-# 6. Confirm/Reject API Endpoints
+# 6. Confirm Return Handoff
+# ===========================================================================
+
+class TestConfirmReturnHandoffFlow(TestCase):
+    """Verify direct handoff behavior from WITH_DOCTOR samples."""
+
+    def setUp(self):
+        self.client = APIClient()
+        self.doctor = _create_doctor()
+        self.car = _create_car(status="DISPATCHED")
+        self.client.force_authenticate(user=self.doctor)
+
+    def _make_active_delivery(self, room="Room-A"):
+        sample = _create_sample(f"D-{uuid4().hex[:4]}", status="WITH_DOCTOR")
+        return _create_transport_request(
+            sample,
+            self.doctor,
+            self.car,
+            room=room,
+            status="DELIVERED",
+            request_type="DELIVERY",
+        )
+
+    def _make_eligible_with_doctor_sample(self, room="Room-A"):
+        sample = _create_sample(f"W-{uuid4().hex[:4]}", status="WITH_DOCTOR")
+        sample.is_in_storage = False
+        sample.save(update_fields=["is_in_storage", "updated_at"])
+        _create_transport_request(
+            sample,
+            self.doctor,
+            self.car,
+            room=room,
+            status="DELIVERED",
+            request_type="DELIVERY",
+        )
+        return sample
+
+    def _make_return_request(self, sample, room="Room-A"):
+        return _create_transport_request(
+            sample,
+            self.doctor,
+            self.car,
+            room=room,
+            status="RETURN_REQUESTED",
+            request_type="RETURN",
+        )
+
+    @patch(_PATCH_PROCEED)
+    def test_confirm_return_handoff_creates_and_loads_from_with_doctor(self, mock_proceed):
+        self._make_active_delivery()
+        sample = self._make_eligible_with_doctor_sample()
+
+        result = confirm_return_handoff(
+            doctor=self.doctor,
+            sample_codes=[sample.sample_code],
+        )
+
+        self.assertEqual(result["loaded_count"], 1)
+        self.assertEqual(result["loaded_sample_codes"], [sample.sample_code])
+        self.assertEqual(result["skipped_sample_codes"], [])
+
+        return_request = TransportRequest.objects.get(
+            sample=sample,
+            request_type="RETURN",
+        )
+        self.assertEqual(return_request.status, "LOADED_FOR_RETURN")
+        self.assertEqual(return_request.assigned_car_id, self.car.id)
+        self.assertIsNotNone(return_request.loaded_at)
+
+        sample.refresh_from_db()
+        self.assertEqual(sample.status, "OUT_FOR_DELIVERY")
+        self.assertFalse(sample.is_in_storage)
+        mock_proceed.assert_called_once_with(car_id=self.car.id, room="STORAGE")
+
+    @patch(_PATCH_PROCEED)
+    def test_confirm_return_handoff_loads_existing_return_request(self, mock_proceed):
+        self._make_active_delivery()
+        sample = self._make_eligible_with_doctor_sample()
+        return_request = self._make_return_request(sample=sample)
+
+        result = confirm_return_handoff(
+            doctor=self.doctor,
+            sample_codes=[sample.sample_code],
+        )
+
+        self.assertEqual(result["loaded_count"], 1)
+        self.assertEqual(result["loaded_sample_codes"], [sample.sample_code])
+        self.assertEqual(result["skipped_sample_codes"], [])
+
+        return_request.refresh_from_db()
+        self.assertEqual(return_request.status, "LOADED_FOR_RETURN")
+        self.assertEqual(return_request.assigned_car_id, self.car.id)
+        self.assertIsNotNone(return_request.loaded_at)
+
+        sample.refresh_from_db()
+        self.assertEqual(sample.status, "OUT_FOR_DELIVERY")
+        self.assertFalse(sample.is_in_storage)
+        mock_proceed.assert_called_once_with(car_id=self.car.id, room="STORAGE")
+
+    @patch(_PATCH_PROCEED)
+    def test_confirm_return_handoff_skips_invalid_or_ineligible_codes(self, mock_proceed):
+        self._make_active_delivery()
+        valid_sample = self._make_eligible_with_doctor_sample()
+        ineligible_sample = _create_sample("Ineligible", status="IN_STORAGE")
+
+        result = confirm_return_handoff(
+            doctor=self.doctor,
+            sample_codes=[
+                valid_sample.sample_code,
+                "PT-UNKNOWN",
+                ineligible_sample.sample_code,
+            ],
+        )
+
+        self.assertEqual(result["loaded_count"], 1)
+        self.assertEqual(result["loaded_sample_codes"], [valid_sample.sample_code])
+        self.assertEqual(
+            result["skipped_sample_codes"],
+            ["PT-UNKNOWN", ineligible_sample.sample_code],
+        )
+
+        valid_sample.refresh_from_db()
+        self.assertEqual(valid_sample.status, "OUT_FOR_DELIVERY")
+        self.assertFalse(valid_sample.is_in_storage)
+        self.assertFalse(
+            TransportRequest.objects.filter(
+                sample=ineligible_sample,
+                request_type="RETURN",
+            ).exists()
+        )
+        mock_proceed.assert_called_once_with(car_id=self.car.id, room="STORAGE")
+
+    @patch(_PATCH_PROCEED)
+    def test_confirm_return_handoff_api_returns_loaded_and_skipped_lists(self, mock_proceed):
+        self._make_active_delivery()
+        valid_sample = self._make_eligible_with_doctor_sample()
+
+        response = self.client.post(
+            "/api/transport/confirm-return-handoff/",
+            {"sample_codes": [valid_sample.sample_code, "PT-UNKNOWN"]},
+            format="json",
+        )
+        self.assertEqual(response.status_code, 200)
+        data = response.json()["data"]
+        self.assertEqual(data["loaded_count"], 1)
+        self.assertEqual(data["loaded_sample_codes"], [valid_sample.sample_code])
+        self.assertEqual(data["skipped_sample_codes"], ["PT-UNKNOWN"])
+
+        valid_sample.refresh_from_db()
+        self.assertEqual(valid_sample.status, "OUT_FOR_DELIVERY")
+        self.assertFalse(valid_sample.is_in_storage)
+        mock_proceed.assert_called_once_with(car_id=self.car.id, room="STORAGE")
+
+    def test_confirm_return_handoff_api_requires_sample_codes(self):
+        self._make_active_delivery()
+
+        response = self.client.post(
+            "/api/transport/confirm-return-handoff/",
+            {},
+            format="json",
+        )
+        self.assertEqual(response.status_code, 400)
+
+    @patch(_PATCH_PROCEED)
+    def test_confirm_return_handoff_api_all_invalid_codes_returns_partial_success(self, mock_proceed):
+        self._make_active_delivery()
+
+        response = self.client.post(
+            "/api/transport/confirm-return-handoff/",
+            {"sample_codes": ["PT-UNKNOWN"]},
+            format="json",
+        )
+        self.assertEqual(response.status_code, 200)
+        data = response.json()["data"]
+        self.assertEqual(data["loaded_count"], 0)
+        self.assertEqual(data["loaded_sample_codes"], [])
+        self.assertEqual(data["skipped_sample_codes"], ["PT-UNKNOWN"])
+        mock_proceed.assert_called_once_with(car_id=self.car.id, room="STORAGE")
+
+
+# ===========================================================================
+# 7. Confirm/Reject API Endpoints
 # ===========================================================================
 
 class TestConfirmRejectApi(TestCase):

@@ -14,6 +14,7 @@ from .serializers import (
     DoctorReturnRequestSerializer,
     RequestReturnSerializer,
     ConfirmReturnSerializer,
+    ConfirmReturnHandoffSerializer,
     StartReturnCollectionSerializer,
     ConfirmReturnedSamplesSerializer,
     CarReturnConfirmSerializer,
@@ -599,12 +600,13 @@ class RejectDeliveryView(APIView):
 class ConfirmReturnHandoffView(APIView):
     """
     POST /api/transport/confirm-return-handoff/
-    Doctor confirms they handed return samples to the car at their room.
+    Doctor confirms direct handoff of explicit sample codes to the car.
     
     This is the CRITICAL step that triggers car progression:
-    - Marks return samples as LOADED_FOR_RETURN
+    - Creates/loads return samples as LOADED_FOR_RETURN
+    - Marks loaded sample states as OUT_FOR_DELIVERY
     - Triggers proceed check and command to next room or storage
-    - If no returns available, still triggers proceed
+    - Invalid/ineligible sample codes are skipped and returned in response
     """
     permission_classes = [IsAuthenticated, IsDoctor]
 
@@ -612,23 +614,37 @@ class ConfirmReturnHandoffView(APIView):
         tags=['Transport - Return - For Doctor'],
         summary='Confirm Return Handoff (Triggers Car Proceed)',
         description=(
-            'Doctor confirms they gave the return samples to the car. '
-            'This endpoint triggers the car to proceed to the next room or storage. '
-            'If no return samples are available, car still proceeds immediately. '
-            'This is the critical step after delivery confirmation.'
+            'Doctor provides sample_codes for direct handoff to the car. '
+            'For each eligible sample currently with the doctor, the endpoint creates/loads a '
+            'RETURN transport request in the same call and marks the sample OUT_FOR_DELIVERY. '
+            'Invalid or ineligible sample codes are skipped and returned in the response.'
         ),
+        request=ConfirmReturnHandoffSerializer,
     )
     def post(self, request):
+        serializer = ConfirmReturnHandoffSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
         try:
-            loaded_count = confirm_return_handoff(doctor=request.user)
+            result = confirm_return_handoff(
+                doctor=request.user,
+                sample_codes=serializer.validated_data["sample_codes"],
+            )
+            loaded_count = result["loaded_count"]
+            skipped_count = len(result["skipped_sample_codes"])
             if loaded_count == 0:
-                message = "No samples to return. Car is proceeding."
+                message = "No eligible samples were loaded. Car is proceeding."
+            elif skipped_count:
+                message = (
+                    f"Loaded {loaded_count} sample(s) and skipped {skipped_count} "
+                    "ineligible/unknown sample code(s)."
+                )
             else:
                 message = f"Confirmed handoff of {loaded_count} sample(s) to the car"
             return unified_response(
                 success=True,
                 message=message,
-                data={"loaded_count": loaded_count},
+                data=result,
                 status=status.HTTP_200_OK,
             )
         except ValidationError as e:
@@ -649,18 +665,28 @@ class ConfirmCarReturnView(APIView):
     @extend_schema(
         tags=['Transport - Return - For Storage'],
         summary='Confirm Car Return',
-        description='Marks the specified car as IDLE, indicating it is back in storage.',
+        description=(
+            'Marks the specified car as IDLE, indicating it is back in storage, '
+            'and finalizes return samples currently on that car.'
+        ),
         request=CarReturnConfirmSerializer,
         responses={200: OpenApiExample(
             'Success',
-            value={'success': True, 'message': 'Car return confirmed successfully', 'data': {'car': {'id': 1, 'car_number': 'C1', 'status': 'IDLE'}}}
+            value={
+                'success': True,
+                'message': 'Car return confirmed successfully',
+                'data': {
+                    'car': {'id': 1, 'car_number': 'C1', 'status': 'IDLE'},
+                    'finalized_return_count': 2,
+                },
+            }
         )},
     )
     def post(self, request):
         serializer = CarReturnConfirmSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         car_id = serializer.validated_data['car_id']
-        car = confirm_car_returned(car_id, actor=request.user)
+        car, finalized_return_count = confirm_car_returned(car_id, actor=request.user)
         return unified_response(
             success=True,
             message="Car return confirmed successfully",
@@ -669,7 +695,8 @@ class ConfirmCarReturnView(APIView):
                     "id": car.id,
                     "car_number": car.car_number,
                     "status": car.status,
-                }
+                },
+                "finalized_return_count": finalized_return_count,
             },
             status=status.HTTP_200_OK,
         )

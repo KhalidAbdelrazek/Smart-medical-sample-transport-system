@@ -22,53 +22,9 @@ This document lists MQTT topics used in this project and example payloads (prett
 
 ## Topics and Payloads
 
-1) Topic: carts/{cart}/status
-- Purpose: Send cart state signals (from web UI) to devices or monitoring.
-- Example topic: carts/1/status
-- QoS: 1
-- Payload (example):
-
-```json
-{
-  "cart": "1",
-  "state": "C"
-}
-```
-- Fields:
-  - cart: string - identifier of the robot/cart
-  - state: string - e.g., "C" = make dispatch order
-
----
-
-2) Topic: carts/1/command (default configured as TOPIC)
-- Purpose: Dispatch commands published by the healthcare dispatch service.
-- Example topic: carts/1/command
-- QoS: configurable (default 1)
-- Payload shape (built by build_dispatch_payload):
-
-```json
-{
-  "data": [
-    {
-      "samples": ["PT-001", "PT-003"],
-      "roomNumber": 2001
-    },
-    {
-      "samples": ["PT-005"],
-      "roomNumber": 2002
-    }
-  ]
-}
-```
-- Fields:
-  - data: array of objects grouped by room
-    - samples: array of sample codes (strings)
-    - roomNumber: integer room identifier
-
----
 
 3) Topic helpers used by transport client (per-car topics)
-- transport/commands/{car_id}/dispatch
+### transport/commands/{car_id}/dispatch
    - Purpose: Dispatch a batch to a specific car and wait for ACK on ack topic.
    - Example topic: transport/commands/1/dispatch
    - Expected payload (example):
@@ -105,7 +61,7 @@ This document lists MQTT topics used in this project and example payloads (prett
        - sample_id: string - UUID of BloodSample
        - doctor_id: string or null - UUID of requesting doctor
 
-- transport/commands/{car_id}/control
+### transport/commands/{car_id}/control
    - Purpose: Fire-and-forget control commands (proceed, stop)
    - Example topic: transport/commands/1/control
    - Example payloads:
@@ -136,7 +92,7 @@ Stop command:
 ---
 
 4) ACK and arrival topics (subscribed by the server)
-- transport/acks/{car_id}
+### transport/acks/{car_id}
    - Purpose: Device ACKs for dispatch messages. The server waits for ACKs here.
    - Example topic: transport/acks/1
    - Expected payload (example):
@@ -153,7 +109,7 @@ Stop command:
    - status: string - "OK" or "ERROR"
    - message: optional string with details
 
-- transport/arrivals/{car_id}
+### transport/arrivals/{car_id}
     - Purpose: Notify that a car arrived at destination / room, or back at storage.
     - Example topic: transport/arrivals/1
     - Example payload (preferred format):
@@ -441,16 +397,19 @@ This section describes the complete flow when a car arrives at a doctor's room f
 
 4b. Doctor Confirms Return Handoff
    ├─ API: POST /api/transport/confirm-return-handoff/ ⭐ KEY ENDPOINT
-   ├─ Status: RETURN_REQUESTED → LOADED_FOR_RETURN
+   ├─ Required body: { "sample_codes": ["PT-0007", "PT-0012"] }
+   ├─ Action: for each eligible code, create/load RETURN request and assign to car
+   ├─ Sample state: WITH_DOCTOR → OUT_FOR_DELIVERY (for loaded samples)
+   ├─ Response: loaded_count, loaded_sample_codes, skipped_sample_codes
    ├─ Check: _should_proceed_from_room()
    │  ├─ No ARRIVED_AT_DOCTOR_DELIVERY? ✓
-   │  └─ No RETURN_REQUESTED or LOADED_FOR_RETURN? ✓
+   │  └─ Return waiting can be ignored for this explicit handoff list ✓
    ├─ Action: _publish_proceed_target() → MQTT proceed
    └─ Car: Proceeds to next room or STORAGE
 
 5a. Alternative: No Returns
-   ├─ API: POST /api/transport/confirm-return-handoff/ (still called)
-   ├─ Result: loaded_count = 0 (no return samples)
+   ├─ API: POST /api/transport/confirm-return-handoff/ with explicit codes
+   ├─ Result: loaded_count may be 0 if all provided codes are skipped
    ├─ Action: _publish_proceed_target() → MQTT proceed
    └─ Car: Immediately proceeds (no returns to handle)
 

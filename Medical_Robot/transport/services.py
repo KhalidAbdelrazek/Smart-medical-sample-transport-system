@@ -19,6 +19,16 @@ from restrictions.services import (
 
 logger = logging.getLogger(__name__)
 
+RETURN_ACTIVE_STATUSES = [
+    "RETURN_REQUESTED",
+    "LOADED_FOR_RETURN",
+    "DISPATCHED",
+    "ARRIVED_AT_DOCTOR",
+    # Legacy statuses still treated as active to prevent duplicates.
+    "PENDING",
+    "LOADED",
+]
+
 
 # ---------------------------------------------------------------------------
 # Grouped-by-room payload builder
@@ -644,28 +654,57 @@ def confirm_car_returned(car_id, actor=None):
     """Storage employee confirms that a car has returned to storage.
 
     * Validates the car exists.
-    * Sets its status to ``IDLE`` (if not already).
+    * Finalizes RETURN requests currently on the car as RETURNED.
+    * Moves finalized samples to IN_STORAGE / is_in_storage=True.
+    * Sets car status to ``IDLE`` (if not already).
     * Optionally logs the action for analytics.
-    Returns the updated ``Car`` instance.
+    Returns tuple: (updated ``Car`` instance, finalized return count).
     """
-    try:
-        car = Car.objects.get(id=car_id)
-    except Car.DoesNotExist:
-        raise NotFound(f"No car found with ID: {car_id}")
+    with transaction.atomic():
+        try:
+            car = Car.objects.select_for_update().get(id=car_id)
+        except Car.DoesNotExist:
+            raise NotFound(f"No car found with ID: {car_id}")
 
-    # If already idle, treat as idempotent success.
-    if car.status != "IDLE":
-        car.status = "IDLE"
-        car.save(update_fields=["status"])
+        return_requests = list(
+            TransportRequest.objects.select_for_update()
+            .select_related("sample")
+            .filter(
+                assigned_car=car,
+                request_type="RETURN",
+                status__in=["LOADED_FOR_RETURN", "DISPATCHED"],
+            )
+        )
+
+        now = timezone.now()
+        finalized_count = 0
+        for transport_request in return_requests:
+            sample = transport_request.sample
+            sample.status = "IN_STORAGE"
+            sample.is_in_storage = True
+            sample.save(update_fields=["status", "is_in_storage", "updated_at"])
+
+            transport_request.status = "RETURNED"
+            transport_request.completed_at = now
+            transport_request.save(update_fields=["status", "completed_at"])
+            finalized_count += 1
+
+        if car.status != "IDLE":
+            car.status = "IDLE"
+            car.save(update_fields=["status"])
 
         if actor:
             log_storage_employee_action(
                 employee=actor,
                 action="CAR_STATUS_UPDATE",
-                description=f"Car {car.car_number} confirmed back in storage and set to IDLE",
+                description=(
+                    f"Car {car.car_number} confirmed back in storage and set to IDLE. "
+                    f"Finalized {finalized_count} returned sample(s)."
+                ),
                 car=car,
             )
-    return car
+
+    return car, finalized_count
 
 
 def get_returned_cars():
@@ -692,7 +731,7 @@ def get_returned_cars_count():
 # Doctor confirm / reject delivery
 # ---------------------------------------------------------------------------
 
-def _should_proceed_from_room(car, room, for_update=False):
+def _should_proceed_from_room(car, room, for_update=False, ignore_return_waiting=False):
     """
     Check whether the car should proceed from a room.
     Returns True if no delivery arrivals AND no pending return handoffs
@@ -707,14 +746,16 @@ def _should_proceed_from_room(car, room, for_update=False):
         waiting_delivery_qs = waiting_delivery_qs.select_for_update()
     waiting_delivery = waiting_delivery_qs.exists()
 
-    waiting_return_qs = TransportRequest.objects.filter(
-        room_number=room,
-        request_type="RETURN",
-        status__in=["RETURN_REQUESTED", "LOADED_FOR_RETURN"],
-    )
-    if for_update:
-        waiting_return_qs = waiting_return_qs.select_for_update()
-    waiting_return = waiting_return_qs.exists()
+    waiting_return = False
+    if not ignore_return_waiting:
+        waiting_return_qs = TransportRequest.objects.filter(
+            room_number=room,
+            request_type="RETURN",
+            status__in=["RETURN_REQUESTED", "LOADED_FOR_RETURN"],
+        )
+        if for_update:
+            waiting_return_qs = waiting_return_qs.select_for_update()
+        waiting_return = waiting_return_qs.exists()
 
     return not waiting_delivery and not waiting_return
 
@@ -763,11 +804,21 @@ def _get_next_room_for_car(car, current_room, for_update=False):
     return None
 
 
-def _get_proceed_target_room(car, room, for_update=False):
+def _get_proceed_target_room(
+    car,
+    room,
+    for_update=False,
+    ignore_return_waiting=False,
+):
     """
     Return the room target for a proceed command, or None if car should wait.
     """
-    if not _should_proceed_from_room(car, room, for_update=for_update):
+    if not _should_proceed_from_room(
+        car,
+        room,
+        for_update=for_update,
+        ignore_return_waiting=ignore_return_waiting,
+    ):
         return None
     next_room = _get_next_room_for_car(car, room, for_update=for_update)
     return next_room or "STORAGE"
@@ -921,19 +972,26 @@ def reject_delivery(request_id, doctor, reason=""):
 # Return-loaded event handling (via REST API)
 # ---------------------------------------------------------------------------
 
-def confirm_return_handoff(doctor):
+def confirm_return_handoff(doctor, sample_codes):
     """
     Doctor confirms they handed return samples to the car.
 
-    Finds all RETURN_REQUESTED items at the doctor's room, marks them as
-    LOADED_FOR_RETURN, assigns the car currently at the room, and triggers
-    a proceed check.
-
-    If there are no return samples to hand off, the car can still proceed
-    immediately without waiting.
+    Processes explicit sample codes from the doctor:
+    - If a RETURN_REQUESTED request already exists for a code, load it.
+    - Otherwise, if the sample is eligible (WITH_DOCTOR + delivered to this doctor),
+      auto-create a RETURN request and load it immediately.
+    - Ineligible/unknown sample codes are skipped.
 
     Called from REST API, not MQTT.
     """
+    sample_codes = list(
+        dict.fromkeys(
+            str(code).strip() for code in sample_codes if str(code).strip()
+        )
+    )
+    if not sample_codes:
+        raise ValidationError("At least one valid sample code is required.")
+
     # Find the delivery car currently at the doctor's room
     active_delivery = TransportRequest.objects.filter(
         requested_by=doctor,
@@ -947,7 +1005,8 @@ def confirm_return_handoff(doctor):
     car = active_delivery.assigned_car
     room = active_delivery.room_number
     now = timezone.now()
-    updated_count = 0
+    loaded_sample_codes = []
+    skipped_sample_codes = []
     proceed_target = None
 
     with transaction.atomic():
@@ -961,18 +1020,82 @@ def confirm_return_handoff(doctor):
                 status="RETURN_REQUESTED",
             )
         )
+        return_requests_by_code = {
+            transport_request.sample.sample_code: transport_request
+            for transport_request in return_requests
+        }
 
-        # Load any return requests that exist
-        for tr in return_requests:
-            tr.assigned_car = car
-            tr.status = "LOADED_FOR_RETURN"
-            tr.loaded_at = now
-            tr.save(update_fields=["assigned_car", "status", "loaded_at"])
-            updated_count += 1
+        samples = list(
+            BloodSample.objects.select_for_update().filter(sample_code__in=sample_codes)
+        )
+        samples_by_code = {sample.sample_code: sample for sample in samples}
 
-        proceed_target = _get_proceed_target_room(car, room, for_update=True)
+        for sample_code in sample_codes:
+            transport_request = return_requests_by_code.get(sample_code)
+            sample = None
+
+            if transport_request is None:
+                sample = samples_by_code.get(sample_code)
+                if sample is None:
+                    skipped_sample_codes.append(sample_code)
+                    continue
+
+                delivered_request_exists = TransportRequest.objects.filter(
+                    sample=sample,
+                    requested_by=doctor,
+                    request_type="DELIVERY",
+                    status="DELIVERED",
+                    room_number=room,
+                ).exists()
+                duplicate_return_exists = TransportRequest.objects.filter(
+                    sample=sample,
+                    request_type="RETURN",
+                    status__in=RETURN_ACTIVE_STATUSES,
+                ).exists()
+                if (
+                    sample.status != "WITH_DOCTOR"
+                    or sample.is_in_storage
+                    or not delivered_request_exists
+                    or duplicate_return_exists
+                ):
+                    skipped_sample_codes.append(sample_code)
+                    continue
+
+                transport_request = TransportRequest.objects.create(
+                    sample=sample,
+                    requested_by=doctor,
+                    room_number=room,
+                    assigned_car=car,
+                    status="LOADED_FOR_RETURN",
+                    request_type="RETURN",
+                    loaded_at=now,
+                )
+            else:
+                sample = transport_request.sample
+                transport_request.assigned_car = car
+                transport_request.status = "LOADED_FOR_RETURN"
+                transport_request.loaded_at = now
+                transport_request.save(
+                    update_fields=["assigned_car", "status", "loaded_at"]
+                )
+
+            sample.status = "OUT_FOR_DELIVERY"
+            sample.is_in_storage = False
+            sample.save(update_fields=["status", "is_in_storage", "updated_at"])
+            loaded_sample_codes.append(sample_code)
+
+        proceed_target = _get_proceed_target_room(
+            car,
+            room,
+            for_update=True,
+            ignore_return_waiting=True,
+        )
 
     if proceed_target:
         _publish_proceed_target(car, room, proceed_target)
 
-    return updated_count
+    return {
+        "loaded_count": len(loaded_sample_codes),
+        "loaded_sample_codes": loaded_sample_codes,
+        "skipped_sample_codes": skipped_sample_codes,
+    }
