@@ -125,6 +125,18 @@
     "requests": "Requests",
     "profile": "Profile"
   },
+  "storage": {
+    "returned_cars_tab": "Returns",
+    "returned_cars_empty": "No returned cars awaiting confirmation",
+    "returned_cars_error_title": "Could not load returned cars",
+    "last_updated_seconds": "Last updated {} s ago",
+    "car_label": "Car",
+    "car_id_label": "ID",
+    "arrived_label": "Arrived",
+    "capacity_label": "Capacity",
+    "confirm_return": "Confirm Return",
+    "return_confirm_success": "Return confirmed successfully"
+  },
   "home": {
     "today_stats": "Today's Statistics",
     "blood_bags": "Blood Bags",

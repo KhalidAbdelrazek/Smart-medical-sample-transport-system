@@ -125,6 +125,18 @@
     "requests": "الطلبات",
     "profile": "الملف الشخصي"
   },
+  "storage": {
+    "returned_cars_tab": "المرتجعات",
+    "returned_cars_empty": "لا توجد سيارات مرتجعة بانتظار التأكيد",
+    "returned_cars_error_title": "تعذر تحميل السيارات المرتجعة",
+    "last_updated_seconds": "آخر تحديث منذ {} ث",
+    "car_label": "سيارة",
+    "car_id_label": "المعرّف",
+    "arrived_label": "وصلت",
+    "capacity_label": "السعة",
+    "confirm_return": "تأكيد الإرجاع",
+    "return_confirm_success": "تم تأكيد إرجاع السيارة بنجاح"
+  },
   "home": {
     "today_stats": "إحصائيات اليوم",
     "blood_bags": "أكياس الدم",
