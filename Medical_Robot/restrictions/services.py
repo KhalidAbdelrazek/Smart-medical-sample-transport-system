@@ -12,7 +12,7 @@ Two layers of service functions:
 """
 from django.db import transaction, models
 from django.db.models import Value, BooleanField, Exists, OuterRef, F
-from rest_framework.exceptions import PermissionDenied
+from rest_framework.exceptions import PermissionDenied, ValidationError
 
 from .models import SystemRestriction, RestrictedUser
 
@@ -24,13 +24,13 @@ from .models import SystemRestriction, RestrictedUser
 def _get_restriction(restriction_type: str) -> SystemRestriction:
     """
     Return the SystemRestriction row for the given type.
-    Safe because the seed migration always guarantees these rows exist.
+    Uses update_or_create to ensure the row exists without raising DoesNotExist.
     """
-    try:
-        return SystemRestriction.objects.get(restriction_type=restriction_type)
-    except SystemRestriction.DoesNotExist:
-        # Fallback: if seed migration hasn't run yet, treat as unrestricted.
-        return SystemRestriction(restriction_type=restriction_type, mode='ALL_UNRESTRICT')
+    restriction, _ = SystemRestriction.objects.update_or_create(
+        restriction_type=restriction_type,
+        defaults={}
+    )
+    return restriction
 
 
 # ─────────────────────────────────────────────────────────────────
@@ -125,9 +125,22 @@ def _apply_restriction(restriction_type: str, mode: str,
     from accounts.models import User
 
     with transaction.atomic():
-        restriction = SystemRestriction.objects.select_for_update().get(
-            restriction_type=restriction_type
+        restriction, _ = SystemRestriction.objects.select_for_update().update_or_create(
+            restriction_type=restriction_type,
+            defaults={}
         )
+
+        # Role Validation Layer
+        if user_ids:
+            role_map = {
+                'DOCTOR_SAMPLES': 'DOCTOR',
+                'STORAGE_SAMPLES': 'STORAGE_EMPLOYEE'
+            }
+            required_role = role_map.get(restriction_type)
+            if required_role:
+                mismatched = User.objects.filter(id__in=user_ids).exclude(role=required_role).exists()
+                if mismatched:
+                    raise ValidationError('This employee does not belong to the selected category.')
 
         if mode == 'PARTIAL_UNRESTRICT':
             if restriction.mode == 'GLOBAL_RESTRICT':
@@ -170,14 +183,21 @@ def _apply_restriction(restriction_type: str, mode: str,
 
         # Rebuild list if setting PARTIAL_RESTRICT
         if mode == 'PARTIAL_RESTRICT':
-            # Note: usually we wipe and rebuild for this mode
-            RestrictedUser.objects.filter(restriction=restriction).delete()
+            # CUMULATIVE: Append new users instead of wiping existing ones
             if user_ids:
-                users = User.objects.filter(id__in=user_ids)
-                RestrictedUser.objects.bulk_create([
-                    RestrictedUser(restriction=restriction, user=u, restricted_by=admin)
-                    for u in users
-                ])
+                existing_uids = set(RestrictedUser.objects.filter(
+                    restriction=restriction,
+                    user_id__in=user_ids
+                ).values_list('user_id', flat=True))
+                
+                new_uids = [uid for uid in user_ids if uid not in existing_uids]
+                
+                if new_uids:
+                    users = User.objects.filter(id__in=new_uids)
+                    RestrictedUser.objects.bulk_create([
+                        RestrictedUser(restriction=restriction, user=u, restricted_by=admin)
+                        for u in users
+                    ])
 
         blocked_count = RestrictedUser.objects.filter(restriction=restriction).count()
 
@@ -229,45 +249,32 @@ def apply_transport_car_restriction(enabled: bool,
     return _apply_restriction('TRANSPORT_CAR', mode, [], reason, admin)
 
 
-def get_all_restriction_statuses() -> dict:
+def get_all_restriction_statuses(query_list: list = None) -> dict:
     """
-    Return a lightweight summary of all three restriction rows.
-    Used by the GET /api/restrictions/status/ polling endpoint.
-    Includes names of restricted users when mode is PARTIAL.
+    Return detailed restriction status for requested categories.
+    
+    - doctor/storage: returns a list of all active users with their individual is_restricted status.
+    - car: returns a single object with mode and is_restricted boolean.
     """
-    rows = SystemRestriction.objects.all().prefetch_related('restricted_users__user')
-    status_map = {r.restriction_type: r for r in rows}
+    if not query_list:
+        return {}
 
-    def _entry(rtype):
-        row = status_map.get(rtype)
-        if not row:
-            return {'mode': 'ALL_UNRESTRICT', 'reason': '', 'updated_at': None, 'restricted_users': []}
-        
-        data = {
-            'mode':       row.mode,
-            'reason':     row.reason,
-            'updated_at': row.updated_at,
-            'restricted_users': []
+    result = {}
+
+    if 'doctor' in query_list:
+        result['doctor_samples'] = list(get_users_restriction_status('doctor'))
+
+    if 'storage' in query_list:
+        result['storage_samples'] = list(get_users_restriction_status('storage'))
+
+    if 'car' in query_list:
+        row = _get_restriction('TRANSPORT_CAR')
+        result['transport_car'] = {
+            'mode': row.mode,
+            'is_restricted': (row.mode == 'GLOBAL_RESTRICT')
         }
 
-        if row.mode == 'PARTIAL_RESTRICT':
-            # Collect ID and full_name of each restricted user
-            data['restricted_users'] = [
-                {
-                    'id': ru.user.id,
-                    'full_name': ru.user.full_name,
-                    'employee_id': ru.user.employee_id
-                }
-                for ru in row.restricted_users.all()
-            ]
-
-        return data
-
-    return {
-        'doctor_samples':  _entry('DOCTOR_SAMPLES'),
-        'storage_samples': _entry('STORAGE_SAMPLES'),
-        'transport_car':   _entry('TRANSPORT_CAR'),
-    }
+    return result
 
 
 def get_users_restriction_status(category: str):

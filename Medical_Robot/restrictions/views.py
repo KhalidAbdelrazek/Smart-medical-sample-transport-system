@@ -169,43 +169,67 @@ class RestrictionStatusView(APIView):
         tags=['Restrictions'],
         summary='Get Restrictions Status',
         description=(
-            'Returns current system restrictions. '
-            'Pass ?type=doctor or ?type=storage to get an alphabetical list of users '
-            'in that category with their individual "is_restricted" status.'
+            'Returns current system restrictions for the requested categories. '
+            'The "query" parameter is mandatory and can be a comma-separated list '
+            'or multiple "query" parameters (e.g., ?query=doctor,storage,car).'
         ),
         parameters=[
             OpenApiParameter(
-                name='type',
+                name='query',
                 type=str,
                 location=OpenApiParameter.QUERY,
-                description='Category of users to list (doctor or storage)',
-                required=False,
-                enum=['doctor', 'storage']
+                description='Categories to fetch (doctor, storage, car)',
+                required=True,
+                enum=['doctor', 'storage', 'car']
             ),
         ],
         responses={200: OpenApiExample('Status Response', value={
             "success": True,
             "message": "Current system restrictions fetched successfully.",
             "data": {
-                "doctor_samples": {"mode": "NONE", "reason": "", "updated_at": "..."},
-                "storage_samples": {"mode": "GLOBAL", "reason": "...", "updated_at": "..."},
-                "transport_car": {"mode": "NONE", "reason": "", "updated_at": "..."}
+                "doctor_samples": [
+                    {"id": "...", "name": "Dr. Smith", "is_restricted": False},
+                    {"id": "...", "name": "Dr. Doe", "is_restricted": True}
+                ],
+                "storage_samples": [
+                    {"id": "...", "name": "Emp A", "is_restricted": False}
+                ],
+                "transport_car": {"mode": "ALL_UNRESTRICT", "is_restricted": False}
             }
         })},
     )
     def get(self, request):
-        category = request.query_params.get('type')
+        # Extract query parameters (handles ?query=a,b and ?query=a&query=b)
+        query_raw = request.query_params.get('query', '')
+        if not query_raw:
+            return unified_response(
+                success=False,
+                message='The query list cannot be empty. Please select at least one category (doctor, storage, or car).',
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
+        # Split by comma and flatten multiple 'query' keys if they exist
+        query_list = []
+        for q in request.query_params.getlist('query'):
+            query_list.extend([item.strip().lower() for item in q.split(',') if item.strip()])
+        
+        # Remove duplicates
+        query_list = list(set(query_list))
+        
+        # Validate that at least one valid category is present
+        valid_categories = {'doctor', 'storage', 'car'}
+        if not any(cat in valid_categories for cat in query_list):
+            return unified_response(
+                success=False,
+                message='The query list cannot be empty. Please select at least one category (doctor, storage, or car).',
+                status=status.HTTP_400_BAD_REQUEST
+            )
 
-        if category in ['doctor', 'storage']:
-            data = get_users_restriction_status(category)
-            msg = f"List of {category}s with restriction status fetched successfully."
-        else:
-            data = get_all_restriction_statuses()
-            msg = "Current system restrictions fetched successfully."
-
+        data = get_all_restriction_statuses(query_list)
+        
         return unified_response(
             success=True,
-            message=msg,
+            message="Current system restrictions fetched successfully.",
             data=data,
             status=status.HTTP_200_OK
         )
