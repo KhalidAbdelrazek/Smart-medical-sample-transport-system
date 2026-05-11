@@ -76,7 +76,7 @@ ISR(USART_RXC_vect)
 void UART_Init(unsigned long baud)
 {
     /* 1. Normal speed (U2X=0): UBRR = F_CPU / (16 * baud) - 1        */
-    unsigned short ubrr_value = (unsigned short)((F_CPU / (16UL * baud)) - 1);
+    unsigned short ubrr_value = (unsigned short)((F_CPU / (8UL * baud)) - 1);
 
     UBRRH = (unsigned char)(ubrr_value >> 8);
     UBRRL = (unsigned char)(ubrr_value);
