@@ -124,9 +124,9 @@ int main(void)
     _delay_ms(500);
     LED_Off('D', 7);
 
-    /* ── UART @ 115200 baud ── */
-    UART_Init(115200);
-    UART_Send_string("[BOOT] ATmega ready @ 115200\r\n");
+    /* ── UART @ 9600 baud (reliable at 8 MHz, 0.16% error) ── */
+    UART_Init(9600);
+    UART_Send_string("[BOOT] ATmega ready @ 9600\r\n");
 
     /* ── Enable global interrupts (required for UART RX ISR) ── */
     sei();

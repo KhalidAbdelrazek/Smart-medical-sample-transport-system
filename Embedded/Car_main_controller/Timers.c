@@ -10,6 +10,7 @@
 #define F_CPU 8000000UL
 #include <util/delay.h>
 
+
 void Timer_CTC_init_interrupt(void)
 {
 	//select mode
@@ -37,16 +38,23 @@ void Timer_wave_nonPWM(char value)
 
 void Timer_wave_fastPWM(char value)
 {
-	SET_BIT(DDRB,3);
-	SET_BIT(TCCR0,WGM00);
-	SET_BIT(TCCR0,WGM01);
-	
-	SET_BIT(TCCR0,CS00);
-	SET_BIT(TCCR0,CS02);
-	//inverting mode
-	SET_BIT(TCCR0,COM00);
-	SET_BIT(TCCR0,COM01);
-	OCR0 =255 - value;
+    SET_BIT(DDRB, 3);           /* OC0 / PB3 as output                */
+    SET_BIT(TCCR0, WGM00);      /* Fast PWM mode (WGM01+WGM00)        */
+    SET_BIT(TCCR0, WGM01);
+
+    /* Prescaler: CS01 only = clk/8  →  PWM freq = 8MHz/(8*256) ≈ 3.9 kHz
+     * (smooth, inaudible hum for motors)
+     * DO NOT combine CS00+CS02 = clk/1024 → only ~30 Hz (visible flicker,
+     * low torque, and motors may not start)                          */
+    CLR_BIT(TCCR0, CS00);
+    SET_BIT(TCCR0, CS01);
+    CLR_BIT(TCCR0, CS02);
+
+    /* Inverting mode: OC0 HIGH when TCNT0 < OCR0
+     * → duty = (255 - OCR0) / 255 = value / 255                    */
+    SET_BIT(TCCR0, COM00);
+    SET_BIT(TCCR0, COM01);
+    OCR0 = 255 - value;
 }
 
 
