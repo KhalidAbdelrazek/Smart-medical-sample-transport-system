@@ -7,19 +7,19 @@ Idx Name          Size      VMA       LMA       File off  Algn
                   CONTENTS, ALLOC, LOAD, READONLY, CODE
   1 .data         00000000  00800060  000001a4  000003a1  2**0
                   ALLOC
-  2 .bss          00000002  00800060  00800060  000021d4  2**0
+  2 .bss          00000002  00800060  00800060  000021d6  2**0
                   ALLOC
-  3 .comment      0000002f  00000000  00000000  000021d4  2**0
+  3 .comment      0000002f  00000000  00000000  000021d6  2**0
                   CONTENTS, READONLY
-  4 .stack.descriptors.hdr 0000007e  00000000  00000000  00002203  2**0
+  4 .stack.descriptors.hdr 0000007e  00000000  00000000  00002205  2**0
                   CONTENTS, READONLY
-  5 .debug_aranges 000001a0  00000000  00000000  00002281  2**0
+  5 .debug_aranges 000001a0  00000000  00000000  00002283  2**0
                   CONTENTS, READONLY, DEBUGGING
-  6 .debug_info   000023bd  00000000  00000000  00002421  2**0
+  6 .debug_info   000023bd  00000000  00000000  00002423  2**0
                   CONTENTS, READONLY, DEBUGGING
-  7 .debug_abbrev 00000ae8  00000000  00000000  000047de  2**0
+  7 .debug_abbrev 00000ae8  00000000  00000000  000047e0  2**0
                   CONTENTS, READONLY, DEBUGGING
-  8 .debug_line   00000d48  00000000  00000000  000052c6  2**0
+  8 .debug_line   00000d48  00000000  00000000  000052c8  2**0
                   CONTENTS, READONLY, DEBUGGING
   9 .debug_frame  000002e4  00000000  00000000  00006010  2**2
                   CONTENTS, READONLY, DEBUGGING
@@ -29,7 +29,7 @@ Idx Name          Size      VMA       LMA       File off  Algn
                   CONTENTS, READONLY, DEBUGGING
  12 .debug_ranges 00000140  00000000  00000000  00007144  2**0
                   CONTENTS, READONLY, DEBUGGING
- 13 .text         00000004  000020f2  000020f2  000021c6  2**1
+ 13 .text         00000004  000020f4  000020f4  000021c8  2**1
                   CONTENTS, ALLOC, LOAD, READONLY, CODE
  14 .note.gnu.avr.deviceinfo 0000003c  00000000  00000000  00007284  2**2
                   CONTENTS, READONLY, DEBUGGING
@@ -37,11 +37,11 @@ Idx Name          Size      VMA       LMA       File off  Algn
                   CONTENTS, ALLOC, LOAD, READONLY, CODE
  16 .text.DIO_Writepin 000000e0  00001552  00001552  00001626  2**1
                   CONTENTS, ALLOC, LOAD, READONLY, CODE
- 17 .text.LED_Init 00000008  000020bc  000020bc  00002190  2**1
+ 17 .text.LED_Init 00000008  000020be  000020be  00002192  2**1
                   CONTENTS, ALLOC, LOAD, READONLY, CODE
- 18 .text.LED_On  00000008  000020c4  000020c4  00002198  2**1
+ 18 .text.LED_On  00000008  000020c6  000020c6  0000219a  2**1
                   CONTENTS, ALLOC, LOAD, READONLY, CODE
- 19 .text.LED_Off 00000008  000020cc  000020cc  000021a0  2**1
+ 19 .text.LED_Off 00000008  000020ce  000020ce  000021a2  2**1
                   CONTENTS, ALLOC, LOAD, READONLY, CODE
  20 .progmemx.data 00000129  000001a4  000001a4  00000278  2**0
                   CONTENTS, ALLOC, LOAD, READONLY, PROGMEMX
@@ -49,37 +49,37 @@ Idx Name          Size      VMA       LMA       File off  Algn
                   CONTENTS, ALLOC, LOAD, READONLY, CODE
  22 .text.main    0000008c  00001c5e  00001c5e  00001d32  2**1
                   CONTENTS, ALLOC, LOAD, READONLY, CODE
- 23 .bss.last_cmd 00000001  00800062  00800062  000021d4  2**0
+ 23 .bss.last_cmd 00000001  00800062  00800062  000021d6  2**0
                   ALLOC
  24 .text.Move_Up 00000010  00002062  00002062  00002136  2**1
                   CONTENTS, ALLOC, LOAD, READONLY, CODE
  25 .text.Move_Down 00000010  00002072  00002072  00002146  2**1
                   CONTENTS, ALLOC, LOAD, READONLY, CODE
- 26 .text.Move_Right 0000000e  000020a2  000020a2  00002176  2**1
+ 26 .text.Move_Right 00000010  00002082  00002082  00002156  2**1
                   CONTENTS, ALLOC, LOAD, READONLY, CODE
- 27 .text.Move_Left 00000010  00002082  00002082  00002156  2**1
+ 27 .text.Move_Left 00000010  00002092  00002092  00002166  2**1
                   CONTENTS, ALLOC, LOAD, READONLY, CODE
- 28 .text.Stop    00000008  000020d4  000020d4  000021a8  2**1
+ 28 .text.Stop    00000008  000020d6  000020d6  000021aa  2**1
                   CONTENTS, ALLOC, LOAD, READONLY, CODE
  29 .text.Timer_wave_fastPWM 00000030  00001ec4  00001ec4  00001f98  2**1
                   CONTENTS, ALLOC, LOAD, READONLY, CODE
  30 .text.UART_Init 00000044  00001d52  00001d52  00001e26  2**1
                   CONTENTS, ALLOC, LOAD, READONLY, CODE
- 31 .text.UART_Send_data 00000008  000020dc  000020dc  000021b0  2**1
+ 31 .text.UART_Send_data 00000008  000020de  000020de  000021b2  2**1
                   CONTENTS, ALLOC, LOAD, READONLY, CODE
- 32 .text.UART_Receive_data 00000008  000020e4  000020e4  000021b8  2**1
+ 32 .text.UART_Receive_data 00000008  000020e6  000020e6  000021ba  2**1
                   CONTENTS, ALLOC, LOAD, READONLY, CODE
  33 .text.UART_Send_string 0000002c  00001f24  00001f24  00001ff8  2**1
                   CONTENTS, ALLOC, LOAD, READONLY, CODE
  34 .text.libgcc.div 00000044  00001d96  00001d96  00001e6a  2**1
                   CONTENTS, ALLOC, LOAD, READONLY, CODE
- 35 .text.libgcc  0000000c  000020b0  000020b0  00002184  2**1
+ 35 .text.libgcc  0000000c  000020b2  000020b2  00002186  2**1
                   CONTENTS, ALLOC, LOAD, READONLY, CODE
- 36 .text.__dummy_fini 00000002  000020fa  000020fa  000021ce  2**1
+ 36 .text.__dummy_fini 00000002  000020fc  000020fc  000021d0  2**1
                   CONTENTS, ALLOC, LOAD, READONLY, CODE
- 37 .text.__dummy_funcs_on_exit 00000002  000020fc  000020fc  000021d0  2**1
+ 37 .text.__dummy_funcs_on_exit 00000002  000020fe  000020fe  000021d2  2**1
                   CONTENTS, ALLOC, LOAD, READONLY, CODE
- 38 .text.__dummy_simulator_exit 00000002  000020fe  000020fe  000021d2  2**1
+ 38 .text.__dummy_simulator_exit 00000002  00002100  00002100  000021d4  2**1
                   CONTENTS, ALLOC, LOAD, READONLY, CODE
  39 .text.exit    00000016  00002028  00002028  000020fc  2**1
                   CONTENTS, ALLOC, LOAD, READONLY, CODE
@@ -93,7 +93,7 @@ Idx Name          Size      VMA       LMA       File off  Algn
                   CONTENTS, ALLOC, LOAD, READONLY, CODE
  44 .text.__pad   0000010e  00001364  00001364  00001438  2**1
                   CONTENTS, ALLOC, LOAD, READONLY, CODE
- 45 .text.__dummy_fmt4 00000006  000020ec  000020ec  000021c0  2**1
+ 45 .text.__dummy_fmt4 00000006  000020ee  000020ee  000021c2  2**1
                   CONTENTS, ALLOC, LOAD, READONLY, CODE
  46 .text.__fmt_state 0000009e  00001a9e  00001a9e  00001b72  2**1
                   CONTENTS, ALLOC, LOAD, READONLY, CODE
@@ -127,11 +127,11 @@ Idx Name          Size      VMA       LMA       File off  Algn
                   CONTENTS, ALLOC, LOAD, READONLY, CODE
  61 .text.strlen  0000002c  00001f50  00001f50  00002024  2**1
                   CONTENTS, ALLOC, LOAD, READONLY, CODE
- 62 .text.tolower 00000010  00002092  00002092  00002166  2**1
+ 62 .text.tolower 00000010  000020a2  000020a2  00002176  2**1
                   CONTENTS, ALLOC, LOAD, READONLY, CODE
  63 .text.toupper 00000012  00002050  00002050  00002124  2**1
                   CONTENTS, ALLOC, LOAD, READONLY, CODE
- 64 .text._Exit   00000004  000020f6  000020f6  000021ca  2**1
+ 64 .text._Exit   00000004  000020f8  000020f8  000021cc  2**1
                   CONTENTS, ALLOC, LOAD, READONLY, CODE
  65 .text.__vsprintf 00000018  00001ff8  00001ff8  000020cc  2**1
                   CONTENTS, ALLOC, LOAD, READONLY, CODE
@@ -160,26 +160,26 @@ Disassembly of section .text:
 
 00000000 <__vectors>:
    0:	0c 94 a8 00 	jmp	0x150	; 0x150 <__ctors_end>
-   4:	0c 94 79 10 	jmp	0x20f2	; 0x20f2 <__bad_interrupt>
-   8:	0c 94 79 10 	jmp	0x20f2	; 0x20f2 <__bad_interrupt>
-   c:	0c 94 79 10 	jmp	0x20f2	; 0x20f2 <__bad_interrupt>
-  10:	0c 94 79 10 	jmp	0x20f2	; 0x20f2 <__bad_interrupt>
-  14:	0c 94 79 10 	jmp	0x20f2	; 0x20f2 <__bad_interrupt>
-  18:	0c 94 79 10 	jmp	0x20f2	; 0x20f2 <__bad_interrupt>
-  1c:	0c 94 79 10 	jmp	0x20f2	; 0x20f2 <__bad_interrupt>
-  20:	0c 94 79 10 	jmp	0x20f2	; 0x20f2 <__bad_interrupt>
-  24:	0c 94 79 10 	jmp	0x20f2	; 0x20f2 <__bad_interrupt>
-  28:	0c 94 79 10 	jmp	0x20f2	; 0x20f2 <__bad_interrupt>
-  2c:	0c 94 79 10 	jmp	0x20f2	; 0x20f2 <__bad_interrupt>
-  30:	0c 94 79 10 	jmp	0x20f2	; 0x20f2 <__bad_interrupt>
-  34:	0c 94 79 10 	jmp	0x20f2	; 0x20f2 <__bad_interrupt>
-  38:	0c 94 79 10 	jmp	0x20f2	; 0x20f2 <__bad_interrupt>
-  3c:	0c 94 79 10 	jmp	0x20f2	; 0x20f2 <__bad_interrupt>
-  40:	0c 94 79 10 	jmp	0x20f2	; 0x20f2 <__bad_interrupt>
-  44:	0c 94 79 10 	jmp	0x20f2	; 0x20f2 <__bad_interrupt>
-  48:	0c 94 79 10 	jmp	0x20f2	; 0x20f2 <__bad_interrupt>
-  4c:	0c 94 79 10 	jmp	0x20f2	; 0x20f2 <__bad_interrupt>
-  50:	0c 94 79 10 	jmp	0x20f2	; 0x20f2 <__bad_interrupt>
+   4:	0c 94 7a 10 	jmp	0x20f4	; 0x20f4 <__bad_interrupt>
+   8:	0c 94 7a 10 	jmp	0x20f4	; 0x20f4 <__bad_interrupt>
+   c:	0c 94 7a 10 	jmp	0x20f4	; 0x20f4 <__bad_interrupt>
+  10:	0c 94 7a 10 	jmp	0x20f4	; 0x20f4 <__bad_interrupt>
+  14:	0c 94 7a 10 	jmp	0x20f4	; 0x20f4 <__bad_interrupt>
+  18:	0c 94 7a 10 	jmp	0x20f4	; 0x20f4 <__bad_interrupt>
+  1c:	0c 94 7a 10 	jmp	0x20f4	; 0x20f4 <__bad_interrupt>
+  20:	0c 94 7a 10 	jmp	0x20f4	; 0x20f4 <__bad_interrupt>
+  24:	0c 94 7a 10 	jmp	0x20f4	; 0x20f4 <__bad_interrupt>
+  28:	0c 94 7a 10 	jmp	0x20f4	; 0x20f4 <__bad_interrupt>
+  2c:	0c 94 7a 10 	jmp	0x20f4	; 0x20f4 <__bad_interrupt>
+  30:	0c 94 7a 10 	jmp	0x20f4	; 0x20f4 <__bad_interrupt>
+  34:	0c 94 7a 10 	jmp	0x20f4	; 0x20f4 <__bad_interrupt>
+  38:	0c 94 7a 10 	jmp	0x20f4	; 0x20f4 <__bad_interrupt>
+  3c:	0c 94 7a 10 	jmp	0x20f4	; 0x20f4 <__bad_interrupt>
+  40:	0c 94 7a 10 	jmp	0x20f4	; 0x20f4 <__bad_interrupt>
+  44:	0c 94 7a 10 	jmp	0x20f4	; 0x20f4 <__bad_interrupt>
+  48:	0c 94 7a 10 	jmp	0x20f4	; 0x20f4 <__bad_interrupt>
+  4c:	0c 94 7a 10 	jmp	0x20f4	; 0x20f4 <__bad_interrupt>
+  50:	0c 94 7a 10 	jmp	0x20f4	; 0x20f4 <__bad_interrupt>
   54:	45 0a       	sbc	r4, r21
   56:	5e 0a       	sbc	r5, r30
   58:	77 0a       	sbc	r7, r23
@@ -361,8 +361,8 @@ Disassembly of section .text:
 
 Disassembly of section .text:
 
-000020f2 <__bad_interrupt>:
-    20f2:	0c 94 00 00 	jmp	0	; 0x0 <__TEXT_REGION_ORIGIN__>
+000020f4 <__bad_interrupt>:
+    20f4:	0c 94 00 00 	jmp	0	; 0x0 <__TEXT_REGION_ORIGIN__>
 
 Disassembly of section .text.DIO_Setpindir:
 
@@ -383,7 +383,7 @@ void DIO_Setpindir(char port,char pin,char dir)
     1480:	67 c0       	rjmp	.+206    	; 0x1550 <DIO_Setpindir+0xde>
     1482:	e6 5d       	subi	r30, 0xD6	; 214
     1484:	ff 4f       	sbci	r31, 0xFF	; 255
-    1486:	0c 94 58 10 	jmp	0x20b0	; 0x20b0 <__tablejump2__>
+    1486:	0c 94 59 10 	jmp	0x20b2	; 0x20b2 <__tablejump2__>
 	{
 		case 'A':
 		case 'a':
@@ -547,7 +547,7 @@ Disassembly of section .text.DIO_Writepin:
     1560:	67 c0       	rjmp	.+206    	; 0x1630 <DIO_Writepin+0xde>
     1562:	e2 5b       	subi	r30, 0xB2	; 178
     1564:	ff 4f       	sbci	r31, 0xFF	; 255
-    1566:	0c 94 58 10 	jmp	0x20b0	; 0x20b0 <__tablejump2__>
+    1566:	0c 94 59 10 	jmp	0x20b2	; 0x20b2 <__tablejump2__>
 	{
 		case 'A':
 		case 'a':
@@ -694,39 +694,39 @@ Disassembly of section .text.DIO_Writepin:
 
 Disassembly of section .text.LED_Init:
 
-000020bc <LED_Init>:
+000020be <LED_Init>:
 #include "DIO.h"
 
 void LED_Init(char port , char pin)
 {
 	DIO_Setpindir(port,pin,1);
-    20bc:	41 e0       	ldi	r20, 0x01	; 1
-    20be:	0e 94 39 0a 	call	0x1472	; 0x1472 <DIO_Setpindir>
-    20c2:	08 95       	ret
+    20be:	41 e0       	ldi	r20, 0x01	; 1
+    20c0:	0e 94 39 0a 	call	0x1472	; 0x1472 <DIO_Setpindir>
+    20c4:	08 95       	ret
 
 Disassembly of section .text.LED_On:
 
-000020c4 <LED_On>:
+000020c6 <LED_On>:
 }
 
 void LED_On(char port, char pin)
 {
 	DIO_Writepin(port,pin,1);
-    20c4:	41 e0       	ldi	r20, 0x01	; 1
-    20c6:	0e 94 a9 0a 	call	0x1552	; 0x1552 <DIO_Writepin>
-    20ca:	08 95       	ret
+    20c6:	41 e0       	ldi	r20, 0x01	; 1
+    20c8:	0e 94 a9 0a 	call	0x1552	; 0x1552 <DIO_Writepin>
+    20cc:	08 95       	ret
 
 Disassembly of section .text.LED_Off:
 
-000020cc <LED_Off>:
+000020ce <LED_Off>:
 }
 
 void LED_Off(char port, char pin)
 {
 	DIO_Writepin(port,pin,0);
-    20cc:	40 e0       	ldi	r20, 0x00	; 0
-    20ce:	0e 94 a9 0a 	call	0x1552	; 0x1552 <DIO_Writepin>
-    20d2:	08 95       	ret
+    20ce:	40 e0       	ldi	r20, 0x00	; 0
+    20d0:	0e 94 a9 0a 	call	0x1552	; 0x1552 <DIO_Writepin>
+    20d4:	08 95       	ret
 
 Disassembly of section .text.handle_command:
 
@@ -826,7 +826,7 @@ static void handle_command(char cmd)
  e20:	6e c0       	rjmp	.+220    	; 0xefe <handle_command+0x16c>
  e22:	ee 58       	subi	r30, 0x8E	; 142
  e24:	ff 4f       	sbci	r31, 0xFF	; 255
- e26:	0c 94 58 10 	jmp	0x20b0	; 0x20b0 <__tablejump2__>
+ e26:	0c 94 59 10 	jmp	0x20b2	; 0x20b2 <__tablejump2__>
        kept here as a safety net)                                      */
     if (cmd == '\r' || cmd == '\n') return;
 
@@ -890,7 +890,7 @@ static void handle_command(char cmd)
  e7a:	80 e0       	ldi	r24, 0x00	; 0
  e7c:	0e 94 92 0f 	call	0x1f24	; 0x1f24 <UART_Send_string>
     }
- e80:	0e 94 41 10 	call	0x2082	; 0x2082 <Move_Left>
+ e80:	0e 94 49 10 	call	0x2092	; 0x2092 <Move_Left>
  e84:	8f e1       	ldi	r24, 0x1F	; 31
  e86:	9e e4       	ldi	r25, 0x4E	; 78
  e88:	01 97       	sbiw	r24, 0x01	; 1
@@ -914,7 +914,7 @@ static void handle_command(char cmd)
  ea0:	80 e0       	ldi	r24, 0x00	; 0
  ea2:	0e 94 92 0f 	call	0x1f24	; 0x1f24 <UART_Send_string>
             Move_Up();
- ea6:	0e 94 51 10 	call	0x20a2	; 0x20a2 <Move_Right>
+ ea6:	0e 94 41 10 	call	0x2082	; 0x2082 <Move_Right>
  eaa:	8f e1       	ldi	r24, 0x1F	; 31
  eac:	9e e4       	ldi	r25, 0x4E	; 78
  eae:	01 97       	sbiw	r24, 0x01	; 1
@@ -938,7 +938,7 @@ static void handle_command(char cmd)
  ec6:	80 e0       	ldi	r24, 0x00	; 0
  ec8:	0e 94 92 0f 	call	0x1f24	; 0x1f24 <UART_Send_string>
             break;
- ecc:	0e 94 6a 10 	call	0x20d4	; 0x20d4 <Stop>
+ ecc:	0e 94 6b 10 	call	0x20d6	; 0x20d6 <Stop>
  ed0:	8f e1       	ldi	r24, 0x1F	; 31
  ed2:	9e e4       	ldi	r25, 0x4E	; 78
  ed4:	01 97       	sbiw	r24, 0x01	; 1
@@ -1031,11 +1031,11 @@ int main(void)
     DIO_Setportdir('A', 0xFF);
     1c76:	67 e0       	ldi	r22, 0x07	; 7
     1c78:	84 e4       	ldi	r24, 0x44	; 68
-    1c7a:	0e 94 5e 10 	call	0x20bc	; 0x20bc <LED_Init>
+    1c7a:	0e 94 5f 10 	call	0x20be	; 0x20be <LED_Init>
 
     1c7e:	67 e0       	ldi	r22, 0x07	; 7
     1c80:	84 e4       	ldi	r24, 0x44	; 68
-    1c82:	0e 94 62 10 	call	0x20c4	; 0x20c4 <LED_On>
+    1c82:	0e 94 63 10 	call	0x20c6	; 0x20c6 <LED_On>
     1c86:	2f ef       	ldi	r18, 0xFF	; 255
     1c88:	89 e6       	ldi	r24, 0x69	; 105
     1c8a:	98 e1       	ldi	r25, 0x18	; 24
@@ -1049,7 +1049,7 @@ int main(void)
     LED_Init('D', 7);
     1c98:	67 e0       	ldi	r22, 0x07	; 7
     1c9a:	84 e4       	ldi	r24, 0x44	; 68
-    1c9c:	0e 94 66 10 	call	0x20cc	; 0x20cc <LED_Off>
+    1c9c:	0e 94 67 10 	call	0x20ce	; 0x20ce <LED_Off>
     LED_On('D', 7);
     _delay_ms(500);
     LED_Off('D', 7);
@@ -1069,7 +1069,7 @@ int main(void)
     /* ── Enable global interrupts (required for UART RX ISR) ── */
     sei();
 
-    1cb6:	0e 94 72 10 	call	0x20e4	; 0x20e4 <UART_Receive_data>
+    1cb6:	0e 94 73 10 	call	0x20e6	; 0x20e6 <UART_Receive_data>
     1cba:	c8 2f       	mov	r28, r24
     /* ── Make sure car starts stopped ── */
     1cbc:	0e 94 c9 06 	call	0xd92	; 0xd92 <handle_command>
@@ -1080,7 +1080,7 @@ int main(void)
     /* ── Main loop — never blocks ───────────────────────────────
     1cc4:	67 e0       	ldi	r22, 0x07	; 7
     1cc6:	84 e4       	ldi	r24, 0x44	; 68
-    1cc8:	0e 94 62 10 	call	0x20c4	; 0x20c4 <LED_On>
+    1cc8:	0e 94 63 10 	call	0x20c6	; 0x20c6 <LED_On>
     1ccc:	2f ef       	ldi	r18, 0xFF	; 255
     1cce:	83 ed       	ldi	r24, 0xD3	; 211
     1cd0:	90 e3       	ldi	r25, 0x30	; 48
@@ -1098,7 +1098,7 @@ int main(void)
         if (UART_DataAvailable())
     1ce0:	67 e0       	ldi	r22, 0x07	; 7
     1ce2:	84 e4       	ldi	r24, 0x44	; 68
-    1ce4:	0e 94 66 10 	call	0x20cc	; 0x20cc <LED_Off>
+    1ce4:	0e 94 67 10 	call	0x20ce	; 0x20ce <LED_Off>
     1ce8:	e6 cf       	rjmp	.-52     	; 0x1cb6 <main+0x58>
 
 Disassembly of section .text.Move_Up:
@@ -1113,7 +1113,7 @@ int Move_Up(void)
     2062:	8a ea       	ldi	r24, 0xAA	; 170
     2064:	8b bb       	out	0x1b, r24	; 27
     Timer_wave_fastPWM(speed);
-    2066:	8a e5       	ldi	r24, 0x5A	; 90
+    2066:	8c e3       	ldi	r24, 0x3C	; 60
     2068:	0e 94 62 0f 	call	0x1ec4	; 0x1ec4 <Timer_wave_fastPWM>
     return 0;
 }
@@ -1131,7 +1131,7 @@ int Move_Down(void)
     2072:	85 e5       	ldi	r24, 0x55	; 85
     2074:	8b bb       	out	0x1b, r24	; 27
     Timer_wave_fastPWM(speed);
-    2076:	8a e5       	ldi	r24, 0x5A	; 90
+    2076:	8c e3       	ldi	r24, 0x3C	; 60
     2078:	0e 94 62 0f 	call	0x1ec4	; 0x1ec4 <Timer_wave_fastPWM>
     return 0;
 }
@@ -1141,36 +1141,17 @@ int Move_Down(void)
 
 Disassembly of section .text.Move_Right:
 
-000020a2 <Move_Right>:
+00002082 <Move_Right>:
      * Right turn: left motors forward (1010), right motors reverse (0101)
      * PA[1:0]=10, PA[3:2]=10, PA[5:4]=01, PA[7:6]=01 → 0b01011010 = 0x5A
      * Matches original: PA0=0,PA1=1,PA2=0,PA3=1 (left fwd)
      *                   PA4=1,PA5=0,PA6=1,PA7=0 (right rev)
      */
     PORTA = 0x5A;
-    20a2:	8a e5       	ldi	r24, 0x5A	; 90
-    20a4:	8b bb       	out	0x1b, r24	; 27
-    Timer_wave_fastPWM(speed);
-    20a6:	0e 94 62 0f 	call	0x1ec4	; 0x1ec4 <Timer_wave_fastPWM>
-    return 0;
-}
-    20aa:	80 e0       	ldi	r24, 0x00	; 0
-    20ac:	90 e0       	ldi	r25, 0x00	; 0
-    20ae:	08 95       	ret
-
-Disassembly of section .text.Move_Left:
-
-00002082 <Move_Left>:
-     * Left turn: left motors reverse (0101), right motors forward (1010)
-     * PA[1:0]=01, PA[3:2]=01, PA[5:4]=10, PA[7:6]=10 → 0b10100101 = 0xA5
-     * Matches original: PA0=1,PA1=0,PA2=1,PA3=0 (left rev)
-     *                   PA4=0,PA5=1,PA6=0,PA7=1 (right fwd)
-     */
-    PORTA = 0xA5;
-    2082:	85 ea       	ldi	r24, 0xA5	; 165
+    2082:	8a e5       	ldi	r24, 0x5A	; 90
     2084:	8b bb       	out	0x1b, r24	; 27
     Timer_wave_fastPWM(speed);
-    2086:	8a e5       	ldi	r24, 0x5A	; 90
+    2086:	8c e3       	ldi	r24, 0x3C	; 60
     2088:	0e 94 62 0f 	call	0x1ec4	; 0x1ec4 <Timer_wave_fastPWM>
     return 0;
 }
@@ -1178,20 +1159,40 @@ Disassembly of section .text.Move_Left:
     208e:	90 e0       	ldi	r25, 0x00	; 0
     2090:	08 95       	ret
 
+Disassembly of section .text.Move_Left:
+
+00002092 <Move_Left>:
+     * Left turn: left motors reverse (0101), right motors forward (1010)
+     * PA[1:0]=01, PA[3:2]=01, PA[5:4]=10, PA[7:6]=10 → 0b10100101 = 0xA5
+     * Matches original: PA0=1,PA1=0,PA2=1,PA3=0 (left rev)
+     *                   PA4=0,PA5=1,PA6=0,PA7=1 (right fwd)
+     */
+    PORTA = 0xA5;
+    2092:	85 ea       	ldi	r24, 0xA5	; 165
+    2094:	8b bb       	out	0x1b, r24	; 27
+    Timer_wave_fastPWM(speed);
+    2096:	8c e3       	ldi	r24, 0x3C	; 60
+    2098:	0e 94 62 0f 	call	0x1ec4	; 0x1ec4 <Timer_wave_fastPWM>
+    return 0;
+}
+    209c:	80 e0       	ldi	r24, 0x00	; 0
+    209e:	90 e0       	ldi	r25, 0x00	; 0
+    20a0:	08 95       	ret
+
 Disassembly of section .text.Stop:
 
-000020d4 <Stop>:
+000020d6 <Stop>:
      * SINGLE register write — all motor inputs go LOW simultaneously.
      * This is the fastest possible stop: 1 AVR instruction (OUT/STS).
      * Using 8 × DIO_Writepin() calls takes ~8 µs at 8 MHz; this takes
      * ~125 ns — 64× faster, essential for a narrow 2 cm black stripe.
      */
     PORTA = 0x00;
-    20d4:	1b ba       	out	0x1b, r1	; 27
+    20d6:	1b ba       	out	0x1b, r1	; 27
     return 0;
-    20d6:	80 e0       	ldi	r24, 0x00	; 0
-    20d8:	90 e0       	ldi	r25, 0x00	; 0
-    20da:	08 95       	ret
+    20d8:	80 e0       	ldi	r24, 0x00	; 0
+    20da:	90 e0       	ldi	r25, 0x00	; 0
+    20dc:	08 95       	ret
 
 Disassembly of section .text.Timer_wave_fastPWM:
 
@@ -1293,34 +1294,34 @@ Disassembly of section .text.UART_Init:
 
 Disassembly of section .text.UART_Send_data:
 
-000020dc <UART_Send_data>:
+000020de <UART_Send_data>:
 #include "USART.h"
 
 /* ── Ring buffer storage (defined here, declared extern in header) ── */
 volatile char    uart_rx_buf[UART_RX_BUFFER_SIZE];
 volatile uint8_t uart_rx_head = 0;   /* ISR writes here  */
 volatile uint8_t uart_rx_tail = 0;   /* main reads here  */
-    20dc:	5d 9b       	sbis	0x0b, 5	; 11
-    20de:	fe cf       	rjmp	.-4      	; 0x20dc <UART_Send_data>
+    20de:	5d 9b       	sbis	0x0b, 5	; 11
+    20e0:	fe cf       	rjmp	.-4      	; 0x20de <UART_Send_data>
 
 /* ── RX Complete ISR — fires on every received byte ─────────────── */
-    20e0:	8c b9       	out	0x0c, r24	; 12
-    20e2:	08 95       	ret
+    20e2:	8c b9       	out	0x0c, r24	; 12
+    20e4:	08 95       	ret
 
 Disassembly of section .text.UART_Receive_data:
 
-000020e4 <UART_Receive_data>:
+000020e6 <UART_Receive_data>:
 ISR(USART_RXC_vect)
 {
     char byte = UDR;   /* MUST read UDR to clear the interrupt flag   */
 
     /* Drop newline characters — they carry no command information    */
-    20e4:	5f 9b       	sbis	0x0b, 7	; 11
-    20e6:	fe cf       	rjmp	.-4      	; 0x20e4 <UART_Receive_data>
+    20e6:	5f 9b       	sbis	0x0b, 7	; 11
+    20e8:	fe cf       	rjmp	.-4      	; 0x20e6 <UART_Receive_data>
     if (byte == '\r' || byte == '\n') return;
-    20e8:	8c b1       	in	r24, 0x0c	; 12
+    20ea:	8c b1       	in	r24, 0x0c	; 12
 
-    20ea:	08 95       	ret
+    20ec:	08 95       	ret
 
 Disassembly of section .text.UART_Send_string:
 
@@ -1341,7 +1342,7 @@ Disassembly of section .text.UART_Send_string:
     1f32:	c9 1a       	sub	r12, r25
     1f34:	d9 0a       	sbc	r13, r25
     1f36:	e9 0a       	sbc	r14, r25
-    1f38:	0e 94 6e 10 	call	0x20dc	; 0x20dc <UART_Send_data>
+    1f38:	0e 94 6f 10 	call	0x20de	; 0x20de <UART_Send_data>
     if (byte == '\r' || byte == '\n') return;
 
     uint8_t next_head = (uart_rx_head + 1) & UART_RX_BUFFER_MASK;
@@ -1407,39 +1408,39 @@ Disassembly of section .text.libgcc.div:
 
 Disassembly of section .text.libgcc:
 
-000020b0 <__tablejump2__>:
-    20b0:	ee 0f       	add	r30, r30
-    20b2:	ff 1f       	adc	r31, r31
-    20b4:	05 90       	lpm	r0, Z+
-    20b6:	f4 91       	lpm	r31, Z
-    20b8:	e0 2d       	mov	r30, r0
-    20ba:	09 94       	ijmp
+000020b2 <__tablejump2__>:
+    20b2:	ee 0f       	add	r30, r30
+    20b4:	ff 1f       	adc	r31, r31
+    20b6:	05 90       	lpm	r0, Z+
+    20b8:	f4 91       	lpm	r31, Z
+    20ba:	e0 2d       	mov	r30, r0
+    20bc:	09 94       	ijmp
 
 Disassembly of section .text.__dummy_fini:
 
-000020fa <_fini>:
-    20fa:	08 95       	ret
+000020fc <_fini>:
+    20fc:	08 95       	ret
 
 Disassembly of section .text.__dummy_funcs_on_exit:
 
-000020fc <__funcs_on_exit>:
-    20fc:	08 95       	ret
+000020fe <__funcs_on_exit>:
+    20fe:	08 95       	ret
 
 Disassembly of section .text.__dummy_simulator_exit:
 
-000020fe <__simulator_exit>:
-    20fe:	08 95       	ret
+00002100 <__simulator_exit>:
+    2100:	08 95       	ret
 
 Disassembly of section .text.exit:
 
 00002028 <exit>:
     2028:	ec 01       	movw	r28, r24
-    202a:	0e 94 7e 10 	call	0x20fc	; 0x20fc <__funcs_on_exit>
-    202e:	0e 94 7d 10 	call	0x20fa	; 0x20fa <_fini>
+    202a:	0e 94 7f 10 	call	0x20fe	; 0x20fe <__funcs_on_exit>
+    202e:	0e 94 7e 10 	call	0x20fc	; 0x20fc <_fini>
     2032:	ce 01       	movw	r24, r28
-    2034:	0e 94 7f 10 	call	0x20fe	; 0x20fe <__simulator_exit>
+    2034:	0e 94 80 10 	call	0x2100	; 0x2100 <__simulator_exit>
     2038:	ce 01       	movw	r24, r28
-    203a:	0e 94 7b 10 	call	0x20f6	; 0x20f6 <_Exit>
+    203a:	0e 94 7c 10 	call	0x20f8	; 0x20f8 <_Exit>
 
 Disassembly of section .text.__wrap_sprintf:
 
@@ -1754,10 +1755,10 @@ Disassembly of section .text.__pad:
 
 Disassembly of section .text.__dummy_fmt4:
 
-000020ec <__fmt_a>:
-    20ec:	80 e0       	ldi	r24, 0x00	; 0
-    20ee:	90 e0       	ldi	r25, 0x00	; 0
-    20f0:	08 95       	ret
+000020ee <__fmt_a>:
+    20ee:	80 e0       	ldi	r24, 0x00	; 0
+    20f0:	90 e0       	ldi	r25, 0x00	; 0
+    20f2:	08 95       	ret
 
 Disassembly of section .text.__fmt_state:
 
@@ -2337,7 +2338,7 @@ Disassembly of section .text.__printf_core:
  6cc:	08 2e       	mov	r0, r24
  6ce:	00 0c       	add	r0, r0
  6d0:	99 0b       	sbc	r25, r25
- 6d2:	0e 94 49 10 	call	0x2092	; 0x2092 <tolower>
+ 6d2:	0e 94 51 10 	call	0x20a2	; 0x20a2 <tolower>
  6d6:	89 36       	cpi	r24, 0x69	; 105
  6d8:	91 05       	cpc	r25, r1
  6da:	09 f4       	brne	.+2      	; 0x6de <__EEPROM_REGION_LENGTH__+0x2de>
@@ -2428,7 +2429,7 @@ Disassembly of section .text.__printf_core:
  786:	6f 57       	subi	r22, 0x7F	; 127
  788:	7f 4f       	sbci	r23, 0xFF	; 255
  78a:	c4 01       	movw	r24, r8
- 78c:	0e 94 76 10 	call	0x20ec	; 0x20ec <__fmt_a>
+ 78c:	0e 94 77 10 	call	0x20ee	; 0x20ee <__fmt_a>
  790:	95 c1       	rjmp	.+810    	; 0xabc <__stack+0x25d>
  792:	61 2f       	mov	r22, r17
  794:	70 e0       	ldi	r23, 0x00	; 0
@@ -2687,7 +2688,7 @@ Disassembly of section .text.__printf_core:
  9a8:	6f 57       	subi	r22, 0x7F	; 127
  9aa:	7f 4f       	sbci	r23, 0xFF	; 255
  9ac:	c4 01       	movw	r24, r8
- 9ae:	0e 94 76 10 	call	0x20ec	; 0x20ec <__fmt_a>
+ 9ae:	0e 94 77 10 	call	0x20ee	; 0x20ee <__fmt_a>
  9b2:	84 c0       	rjmp	.+264    	; 0xabc <__stack+0x25d>
  9b4:	10 38       	cpi	r17, 0x80	; 128
  9b6:	09 f0       	breq	.+2      	; 0x9ba <__stack+0x15b>
@@ -4252,15 +4253,15 @@ Disassembly of section .text.strlen:
 
 Disassembly of section .text.tolower:
 
-00002092 <tolower>:
-    2092:	9c 01       	movw	r18, r24
-    2094:	21 54       	subi	r18, 0x41	; 65
-    2096:	31 09       	sbc	r19, r1
-    2098:	2a 31       	cpi	r18, 0x1A	; 26
-    209a:	31 05       	cpc	r19, r1
-    209c:	08 f4       	brcc	.+2      	; 0x20a0 <tolower+0xe>
-    209e:	80 62       	ori	r24, 0x20	; 32
-    20a0:	08 95       	ret
+000020a2 <tolower>:
+    20a2:	9c 01       	movw	r18, r24
+    20a4:	21 54       	subi	r18, 0x41	; 65
+    20a6:	31 09       	sbc	r19, r1
+    20a8:	2a 31       	cpi	r18, 0x1A	; 26
+    20aa:	31 05       	cpc	r19, r1
+    20ac:	08 f4       	brcc	.+2      	; 0x20b0 <tolower+0xe>
+    20ae:	80 62       	ori	r24, 0x20	; 32
+    20b0:	08 95       	ret
 
 Disassembly of section .text.toupper:
 
@@ -4277,8 +4278,8 @@ Disassembly of section .text.toupper:
 
 Disassembly of section .text._Exit:
 
-000020f6 <_Exit>:
-    20f6:	0e 94 d0 00 	call	0x1a0	; 0x1a0 <_exit>
+000020f8 <_Exit>:
+    20f8:	0e 94 d0 00 	call	0x1a0	; 0x1a0 <_exit>
 
 Disassembly of section .text.__vsprintf:
 
