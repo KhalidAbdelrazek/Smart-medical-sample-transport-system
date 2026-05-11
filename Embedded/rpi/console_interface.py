@@ -1,65 +1,66 @@
 import threading
 import time
-
+import queue
 
 class SharedState:
-    """Thread-safe state container read by ConsoleMonitor and written by main."""
-
+    """Thread-safe state container for console to read."""
     def __init__(self):
-        self._lock         = threading.Lock()
+        self.lock = threading.Lock()
         self.current_state = "IDLE"
         self.current_batch = None
-        self.current_room  = None
-        self.uart_status   = "UNKNOWN"
-        self.mqtt_status   = "UNKNOWN"
-
+        self.current_room = None
+        self.uart_status = "UNKNOWN"
+        self.mqtt_status = "UNKNOWN"
+        
     def update(self, **kwargs):
-        with self._lock:
-            for key, val in kwargs.items():
-                # Map convenience kwarg names → attribute names
-                attr = "current_state" if key == "state" else key
-                if hasattr(self, attr):
-                    setattr(self, attr, val)
-
-    def get_snapshot(self) -> dict:
-        with self._lock:
+        with self.lock:
+            for k, v in kwargs.items():
+                if hasattr(self, k):
+                    setattr(self, k, v)
+                    
+    def get_snapshot(self):
+        with self.lock:
             return {
                 "state": self.current_state,
                 "batch": self.current_batch,
-                "room":  self.current_room,
-                "uart":  self.uart_status,
-                "mqtt":  self.mqtt_status,
+                "room": self.current_room,
+                "uart": self.uart_status,
+                "mqtt": self.mqtt_status
             }
 
-
 class ConsoleMonitor:
-    """Prints a live dashboard every 2 seconds on a daemon thread."""
-
+    """
+    Runs in a separate thread to periodically print the system state
+    without blocking the main thread or requiring manual inputs.
+    """
     def __init__(self, shared_state: SharedState):
         self.shared_state = shared_state
-        self.running      = False
-        self.thread       = None
+        self.running = False
+        self.thread = None
 
     def _run(self):
         while self.running:
-            s = self.shared_state.get_snapshot()
-            print("\n" + "=" * 44)
-            print("  🚗  SMART MEDICAL TRANSPORT ROBOT")
-            print("=" * 44)
-            print(f"  State   : {s['state']}")
-            print(f"  Batch   : {s['batch'] or '—'}")
-            print(f"  Room    : {s['room']  or '—'}")
-            print(f"  MQTT    : {s['mqtt']}")
-            print(f"  UART    : {s['uart']}")
-            print("=" * 44)
-            time.sleep(2)
+            snapshot = self.shared_state.get_snapshot()
+            
+            # Print a neat dashboard
+            print("\n" + "="*40)
+            print("🚗 SMART MEDICAL TRANSPORT ROBOT")
+            print("="*40)
+            print(f"[*] State      : {snapshot['state']}")
+            print(f"[*] Batch ID   : {snapshot['batch'] if snapshot['batch'] else 'None'}")
+            print(f"[*] Room       : {snapshot['room'] if snapshot['room'] else 'None'}")
+            print(f"[*] MQTT Status: {snapshot['mqtt']}")
+            print(f"[*] UART Status: {snapshot['uart']}")
+            print("="*40)
+            
+            time.sleep(2)  # Update every 2 seconds
 
     def start(self):
         self.running = True
-        self.thread  = threading.Thread(target=self._run, daemon=True)
+        self.thread = threading.Thread(target=self._run, daemon=True)
         self.thread.start()
 
     def stop(self):
         self.running = False
         if self.thread:
-            self.thread.join(timeout=3)
+            self.thread.join()
