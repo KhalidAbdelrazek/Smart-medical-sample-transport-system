@@ -31,7 +31,7 @@
  * 150 ≈ 59 % duty — a good starting value for reliable line following.
  * Increase for more speed, decrease for tighter control on curves.
  */
-static char speed = 150;
+static char speed = 90;
 
 /*
  * Port A motor wiring (L298N or similar dual H-bridge):
