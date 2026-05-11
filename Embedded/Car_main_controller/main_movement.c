@@ -28,10 +28,16 @@
 
 /*
  * Motor speed: 0–255.
- * 150 ≈ 59 % duty — a good starting value for reliable line following.
- * Increase for more speed, decrease for tighter control on curves.
+ * With Timer0 Fast-PWM in INVERTING mode, OCR0 = 255 - speed.
+ * A higher speed value = more duty cycle = faster motors.
+ *
+ * speed =  60 → OCR0 = 195 →  ~24 % duty  ← TOO WEAK, motors stall!
+ * speed = 180 → OCR0 =  75 →  ~71 % duty  ← GOOD for line following
+ * speed = 220 → OCR0 =  35 →  ~86 % duty  ← faster, less control
+ *
+ * Increase if motors stall on your surface, decrease for tighter turns.
  */
-static char speed = 60;
+static char speed = 180;
 
 /*
  * Port A motor wiring (L298N or similar dual H-bridge):
@@ -95,11 +101,19 @@ int Move_Left(void)
 int Stop(void)
 {
     /*
-     * SINGLE register write — all motor inputs go LOW simultaneously.
-     * This is the fastest possible stop: 1 AVR instruction (OUT/STS).
-     * Using 8 × DIO_Writepin() calls takes ~8 µs at 8 MHz; this takes
-     * ~125 ns — 64× faster, essential for a narrow 2 cm black stripe.
+     * 1. All motor direction inputs LOW simultaneously — single register
+     *    write = 1 AVR instruction (~125 ns at 8 MHz).
      */
     PORTA = 0x00;
+
+    /*
+     * 2. Disable Timer0 (clear clock-select bits) so OC0/PB3 stops
+     *    toggling.  Without this the PWM pin can stay HIGH (inverting
+     *    mode) and keep the H-bridge enable signal asserted, meaning
+     *    the motors receive power even though PORTA says stop.
+     */
+    TCCR0 = 0x00;   /* stop Timer0 clock — OC0 held at last state   */
+    CLR_BIT(PORTB, 3);  /* force OC0/PB3 LOW so H-bridge enable = 0  */
+
     return 0;
 }

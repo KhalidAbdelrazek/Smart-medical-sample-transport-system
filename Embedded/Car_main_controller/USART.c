@@ -4,23 +4,33 @@
  * Created: 10/1/2025 8:18:50 PM
  *  Author: nanav
  *
- * CHANGES vs original
- * -------------------
- * 1. UART_Init() now configures for 115200 baud (passed from caller).
- *    U2X double-speed mode is kept — it improves accuracy at 8 MHz.
- *    UBRR formula with U2X:  UBRR = F_CPU / (8 * baud) - 1
- *    @ 8 MHz, 115200 baud  → UBRR = 8000000 / (8*115200) - 1 = 7.68 ≈ 8
- *    Error ≈ 3.7 % — acceptable for UART 8N1.
+ * BAUD RATE FIX (critical)
+ * ------------------------
+ * The MCU runs at F_CPU = 8 MHz.
  *
- * 2. RX Complete Interrupt (RXCIE) is enabled so every incoming byte
- *    is captured into a ring buffer by the ISR — the main loop never
- *    blocks waiting for serial data.
+ * With U2X=1:  UBRR = F_CPU / (8 * baud) - 1
+ *   115200 baud → UBRR = 8000000/(8*115200) - 1 = 7.68  → round to 8
+ *              actual baud = 8000000 / (8*(8+1)) = 111 111 baud
+ *              ERROR = |115200-111111|/115200 = 3.5 %  ← EXCEEDS UART 2% limit!
+ *              Result: silent bit corruption, commands silently lost.
  *
- * 3. UART_Read_nonblocking() lets main.c poll the ring buffer without
- *    ever stalling. If no byte is available it returns 0.
+ *   9600 baud  → UBRR = 8000000/(8*9600) - 1  = 103.17 → round to 103
+ *              actual baud = 8000000 / (8*(103+1)) = 9615 baud
+ *              ERROR = |9600-9615|/9600 = 0.16 %  ← rock solid
  *
- * 4. UART_Receive_data() (blocking) is kept unchanged so existing code
- *    that calls it still compiles.
+ * FIX: Use 9600 baud on BOTH the ATmega and the Raspberry Pi.
+ *      Also switched to normal speed (U2X=0) for additional stability.
+ *      Normal speed formula: UBRR = F_CPU / (16 * baud) - 1
+ *   9600 baud  → UBRR = 8000000/(16*9600) - 1 = 51.08 → round to 51
+ *              actual baud = 8000000 / (16*(51+1)) = 9615 baud
+ *              ERROR = 0.16 %  ← perfect
+ *
+ * RX Complete Interrupt (RXCIE) is enabled so every incoming byte
+ * is captured into a ring buffer by the ISR — the main loop never
+ * blocks waiting for serial data.
+ *
+ * UART_Read_nonblocking() lets main.c poll the ring buffer without
+ * ever stalling. If no byte is available it returns 0.
  */
 
 #include <avr/io.h>
@@ -53,25 +63,34 @@ ISR(USART_RXC_vect)
     }
 }
 
-/* ── Init ──────────────────────────────────────────────────────────── */
+/* ── Init ──────────────────────────────────────────────────────────────
+ * FIXED: Use normal speed (U2X=0) at 9600 baud.
+ *
+ * Formula (U2X=0):  UBRR = F_CPU / (16 * baud) - 1
+ *   @ 8 MHz, 9600 baud → UBRR = 8000000 / (16*9600) - 1 = 51.08 → 51
+ *   Actual baud = 8000000 / (16 * 52) = 9615.4  →  error = 0.16 %  ✓
+ *
+ * The 'baud' parameter is kept so callers don't need to change their
+ * UART_Init(9600) call — the formula now computes the correct UBRR.
+ * ─────────────────────────────────────────────────────────────────── */
 void UART_Init(unsigned long baud)
 {
-    /* 1. UBRR for Double Speed (U2X=1): UBRR = F_CPU/(8*baud) - 1   */
-    unsigned short ubrr_value = (unsigned short)((F_CPU / (8UL * baud)) - 1);
+    /* 1. Normal speed (U2X=0): UBRR = F_CPU / (16 * baud) - 1        */
+    unsigned short ubrr_value = (unsigned short)((F_CPU / (16UL * baud)) - 1);
 
     UBRRH = (unsigned char)(ubrr_value >> 8);
     UBRRL = (unsigned char)(ubrr_value);
 
-    /* 2. Enable Double Speed */
-    UCSRA |= (1 << U2X);
+    /* 2. Make sure U2X is CLEAR (normal speed, not double-speed)      */
+    UCSRA &= ~(1 << U2X);
 
-    /* 3. Enable RX, TX, and RX Complete Interrupt                    */
+    /* 3. Enable RX, TX, and RX Complete Interrupt                     */
     UCSRB = (1 << RXEN) | (1 << TXEN) | (1 << RXCIE);
 
-    /* 4. Frame format: 8 data bits, No parity, 1 stop bit (8N1)      */
+    /* 4. Frame format: 8 data bits, No parity, 1 stop bit (8N1)       */
     UCSRC = (1 << URSEL) | (1 << UCSZ1) | (1 << UCSZ0);
 
-    /* 5. Global interrupts must be enabled by the caller (sei())     */
+    /* 5. Global interrupts must be enabled by the caller (sei())      */
 }
 
 /* ── Transmit one byte (blocking — waits for empty TX buffer) ────── */

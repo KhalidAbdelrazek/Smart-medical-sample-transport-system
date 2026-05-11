@@ -135,7 +135,7 @@ def main():
         setup_gpio()
 
         shared_state.update(uart_status="CONNECTING")
-        car = UARTCarController(port='/dev/serial0', baudrate=115200)
+        car = UARTCarController(port='/dev/serial0', baudrate=9600)
         shared_state.update(uart_status="CONNECTED")
 
         mqtt_controller = MQTTController(CAR_ID, dispatch_queue, control_queue)
