@@ -44,4 +44,7 @@ abstract class ApiEndPoints {
   static String getCar = '${ApiConstants.baseUrl}/api/transport/returned-cars/';
   static String confirmReturnedCar =
       '${ApiConstants.baseUrl}/api/transport/confirm-car-return/';
+
+ static String confirmReturnHandoff() =>
+      '${ApiConstants.baseUrl}/api/transport/confirm-return-handoff/';     
 }

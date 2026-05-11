@@ -6,4 +6,10 @@ abstract class NotificationDataSource {
   Future<Either<Failures, NotificationResponseEntity>> getNotifications();
   Future<Either<Failures, String?>> confirmDelivery({required String requestId});
   Future<Either<Failures, String?>> rejectDelivery({required String requestId});
+
+  /// POST /api/transport/confirm-return-handoff
+  /// Body: { "sample_codes": [...] }
+  Future<Either<Failures, String?>> confirmReturnHandoff({
+    required List<String> sampleCodes,
+  });
 }

@@ -10,18 +10,29 @@ class NotificationRepositoryImpl implements NotificationRepository {
   final NotificationDataSource notificationDataSource;
 
   NotificationRepositoryImpl({required this.notificationDataSource});
+
   @override
   Future<Either<Failures, NotificationResponseEntity>> getNotifications() {
     return notificationDataSource.getNotifications();
   }
-  
+
   @override
-  Future<Either<Failures, String?>> confirmDelivery({required String requestId}) {
+  Future<Either<Failures, String?>> confirmDelivery(
+      {required String requestId}) {
     return notificationDataSource.confirmDelivery(requestId: requestId);
   }
-  
+
   @override
-  Future<Either<Failures, String?>> rejectDelivery({required String requestId}) {
+  Future<Either<Failures, String?>> rejectDelivery(
+      {required String requestId}) {
     return notificationDataSource.rejectDelivery(requestId: requestId);
+  }
+
+  @override
+  Future<Either<Failures, String?>> confirmReturnHandoff({
+    required List<String> sampleCodes,
+  }) {
+    return notificationDataSource.confirmReturnHandoff(
+        sampleCodes: sampleCodes);
   }
 }
