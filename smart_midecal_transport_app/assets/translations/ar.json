@@ -118,7 +118,16 @@
     "notifications_just_now": "الآن",
     "notifications_minutes_ago": "منذ {} د",
     "notifications_hours_ago": "منذ {} س",
-    "notifications_days_ago": "منذ {} يوم"
+    "notifications_days_ago": "منذ {} يوم",
+    "return_handoff_title": "إرجاع عينات؟",
+    "return_handoff_subtitle": "يوجد {} عينة في السيارة يمكن إرجاعها. هل تريد تحديد بعضها؟",
+    "return_handoff_yes": "نعم، اختر",
+    "return_handoff_no": "لا، تخطى",
+    "return_handoff_select_title": "اختر العينات للإرجاع",
+    "return_handoff_select_all": "تحديد الكل",
+    "return_handoff_clear": "إلغاء التحديد",
+    "return_handoff_skip": "تخطى",
+    "return_handoff_confirm": "إرجاع ({})"
   },
   "nav": {
     "home": "الرئيسية",

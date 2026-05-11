@@ -6,4 +6,11 @@ abstract class NotificationRepository {
   Future<Either<Failures, NotificationResponseEntity>> getNotifications();
   Future<Either<Failures, String?>> confirmDelivery({required String requestId});
   Future<Either<Failures, String?>> rejectDelivery({required String requestId});
+
+  /// Called after the user accepts a delivery.
+  /// [sampleCodes] is the list of selected returnable sample codes,
+  /// or an empty list if the user chose not to return any samples.
+  Future<Either<Failures, String?>> confirmReturnHandoff({
+    required List<String> sampleCodes,
+  });
 }

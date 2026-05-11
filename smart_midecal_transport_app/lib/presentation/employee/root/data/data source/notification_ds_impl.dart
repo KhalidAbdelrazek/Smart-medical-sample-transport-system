@@ -15,8 +15,8 @@ class NotificationDsImpl implements NotificationDataSource {
   NotificationDsImpl({required this.apiManager});
 
   @override
-  Future<Either<Failures, NotificationResponseDm>> getNotifications() async{
-final List<ConnectivityResult> connectivityResult =
+  Future<Either<Failures, NotificationResponseDm>> getNotifications() async {
+    final List<ConnectivityResult> connectivityResult =
         await Connectivity().checkConnectivity();
     try {
       String? token = SharedPrefService.instance.getAccessToken();
@@ -48,11 +48,12 @@ final List<ConnectivityResult> connectivityResult =
       return Left(ServerError(errorMessage: e.toString()));
     }
   }
-  
+
   @override
-  Future<Either<Failures, String?>> confirmDelivery({required String requestId}) async{
+  Future<Either<Failures, String?>> confirmDelivery(
+      {required String requestId}) async {
     final List<ConnectivityResult> connectivityResult =
-    await Connectivity().checkConnectivity();
+        await Connectivity().checkConnectivity();
     try {
       String? token = SharedPrefService.instance.getAccessToken();
       if (!connectivityResult.contains(ConnectivityResult.none)) {
@@ -71,7 +72,8 @@ final List<ConnectivityResult> connectivityResult =
         }
         return Left(
           ServerError(
-            errorMessage: response.data["message"]?.toString() ?? "Unreliable Error",
+            errorMessage: response.data["message"]?.toString() ??
+                "Unreliable Error",
           ),
         );
       } else {
@@ -81,11 +83,12 @@ final List<ConnectivityResult> connectivityResult =
       return Left(ServerError(errorMessage: e.toString()));
     }
   }
-  
+
   @override
-  Future<Either<Failures, String?>> rejectDelivery({required String requestId}) async{
+  Future<Either<Failures, String?>> rejectDelivery(
+      {required String requestId}) async {
     final List<ConnectivityResult> connectivityResult =
-    await Connectivity().checkConnectivity();
+        await Connectivity().checkConnectivity();
     try {
       String? token = SharedPrefService.instance.getAccessToken();
       if (!connectivityResult.contains(ConnectivityResult.none)) {
@@ -104,7 +107,8 @@ final List<ConnectivityResult> connectivityResult =
         }
         return Left(
           ServerError(
-            errorMessage: response.data["message"]?.toString() ?? "Unreliable Error",
+            errorMessage: response.data["message"]?.toString() ??
+                "Unreliable Error",
           ),
         );
       } else {
@@ -114,5 +118,47 @@ final List<ConnectivityResult> connectivityResult =
       return Left(ServerError(errorMessage: e.toString()));
     }
   }
-  
+
+  @override
+  Future<Either<Failures, String?>> confirmReturnHandoff({
+    required List<String> sampleCodes,
+  }) async {
+    final List<ConnectivityResult> connectivityResult =
+        await Connectivity().checkConnectivity();
+      
+    try {
+      String? token = SharedPrefService.instance.getAccessToken();
+      if (!connectivityResult.contains(ConnectivityResult.none)) {
+        var response = await apiManager.postData(
+          path: ApiEndPoints.confirmReturnHandoff(), 
+          data: {"sample_codes": sampleCodes},
+          options: Options(
+            headers: {
+              "Content-Type": "application/json",
+              "Authorization": "Bearer $token",
+            },
+            validateStatus: (status) => true,
+            
+          ),
+          
+        );
+        if (response.statusCode! >= 200 && response.statusCode! < 300) {
+          return Right(
+            response.data["message"]?.toString() ??
+                "Return handoff confirmed successfully",
+          );
+        }
+        return Left(
+          ServerError(
+            errorMessage: response.data["message"]?.toString() ??
+                "Unreliable Error",
+          ),
+        );
+      } else {
+        return Left(NetworkError(errorMessage: "Network Error"));
+      }
+    } catch (e) {
+      return Left(ServerError(errorMessage: e.toString()));
+    }
+  }
 }
