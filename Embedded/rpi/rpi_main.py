@@ -213,10 +213,16 @@ def run_line_follower_until_intersection(car: UARTCarController):
         left, right = filter_sensors()
 
         if left == 1 and right == 1:
+            car.stop()  # ← STOP IMMEDIATELY before any confirmation
             if confirm_intersection():
                 logging.info("[ROBOT] Intersection confirmed (both sensors BLACK). Stopping.")
-                car.stop()
                 break
+            # If confirm failed (false positive), continue moving
+            action, cmd = decide_movement(left, right)
+            car.send_command_and_reconnect_if_failed(cmd)
+            car.read_and_reconnect_if_failed()
+            time.sleep(LOOP_DELAY)
+            continue
 
         action, cmd = decide_movement(left, right)
 
@@ -225,8 +231,6 @@ def run_line_follower_until_intersection(car: UARTCarController):
 
         car.read_and_reconnect_if_failed()
         time.sleep(LOOP_DELAY)
-
-
 # =========================
 # Main
 # =========================
