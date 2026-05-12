@@ -120,7 +120,8 @@ def get_gyro(bus, offsets):
     if abs(gy) < GYRO_DEADBAND: gy = 0.0
     if abs(gz) < GYRO_DEADBAND: gz = 0.0
 
-    return gx, gy, gz Menna Khaled, [May 11, 2026 at 7:41 PM]
+    return gx, gy, gz
+
 # ==========================================================
 # CALIBRATION  (more samples + outlier rejection)
 # ==========================================================
@@ -173,7 +174,7 @@ def calculate_angles(ax, ay, az):
 # ==========================================================
 
 class MovingAverage:
-    def init(self, size=5):        # Smaller window â†’ less lag
+    def __init__(self, size=5):        # Smaller window â†’ less lag
         self.size   = size
         self.values = []
 
@@ -246,8 +247,9 @@ def main():
     if MODE == "calibrate_scale":
         calibrate_scale_factor(bus, gyro_offsets)
         bus.close()
-        return Menna Khaled, [May 11, 2026 at 7:41 PM]
-# Filters (window=5 â€” faster response, less smoothing lag)
+        return
+
+    # Filters (window=5 â€” faster response, less smoothing lag)
     ax_filter = MovingAverage(5)
     ay_filter = MovingAverage(5)
     az_filter = MovingAverage(5)
@@ -299,5 +301,5 @@ def main():
         print("I2C Closed")
 
 # ==========================================================
-if name == "main":
+if __name__ == "__main__":
     main()
