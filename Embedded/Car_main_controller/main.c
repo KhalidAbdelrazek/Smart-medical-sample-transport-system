@@ -58,7 +58,7 @@ void handle_command(char cmd) {
         case 'f':
             UART_Send_string("[DEBUG] Command: FORWARD\r\n");
             Move_Up();
-            _delay_ms(10);
+            // _delay_ms(10);
             UART_Send_string("<ACK>\r\n");
             break;
  
@@ -66,7 +66,7 @@ void handle_command(char cmd) {
         case 'b':
             UART_Send_string("[DEBUG] Command: BACKWARD\r\n");
             Move_Down();
-            _delay_ms(10);
+            // _delay_ms(10);
             UART_Send_string("<ACK>\r\n");
             break;
  
@@ -74,7 +74,7 @@ void handle_command(char cmd) {
         case 'l':
             UART_Send_string("[DEBUG] Command: LEFT\r\n");
             Move_Left();
-            _delay_ms(10);
+            // _delay_ms(10);
             UART_Send_string("<ACK>\r\n");
             break;
  
@@ -82,7 +82,7 @@ void handle_command(char cmd) {
         case 'r':
             UART_Send_string("[DEBUG] Command: RIGHT\r\n");
             Move_Right();
-            _delay_ms(10);
+            // _delay_ms(10);
             UART_Send_string("<ACK>\r\n");
             break;
  
@@ -90,7 +90,7 @@ void handle_command(char cmd) {
         case 's':
             UART_Send_string("[DEBUG] Command: STOP\r\n");
             Stop();
-            _delay_ms(10);
+            // _delay_ms(10);
             UART_Send_string("<ACK>\r\n");
             break;
  
