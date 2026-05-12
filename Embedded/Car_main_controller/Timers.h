@@ -15,7 +15,7 @@ void Timer_wave_fastPWM(char value);
 void Timer2_OVF_interrupt_init(void);
 short ultrasonic (void);
 void Timer1_wave_fastPWM(double value);
-
+void Timer2_wave_fastPWM(char value);
 
 
 

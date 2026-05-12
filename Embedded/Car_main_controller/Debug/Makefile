@@ -41,6 +41,7 @@ C_SRCS +=  \
 ../DIO.c \
 ../Interrupts.c \
 ../LED.c \
+../Line_Follower_Logic.c \
 ../main.c \
 ../main_movement.c \
 ../Timers.c \
@@ -58,6 +59,7 @@ Button.o \
 DIO.o \
 Interrupts.o \
 LED.o \
+Line_Follower_Logic.o \
 main.o \
 main_movement.o \
 Timers.o \
@@ -68,6 +70,7 @@ Button.o \
 DIO.o \
 Interrupts.o \
 LED.o \
+Line_Follower_Logic.o \
 main.o \
 main_movement.o \
 Timers.o \
@@ -78,6 +81,7 @@ Button.d \
 DIO.d \
 Interrupts.d \
 LED.d \
+Line_Follower_Logic.d \
 main.d \
 main_movement.d \
 Timers.d \
@@ -88,6 +92,7 @@ Button.d \
 DIO.d \
 Interrupts.d \
 LED.d \
+Line_Follower_Logic.d \
 main.d \
 main_movement.d \
 Timers.d \
@@ -129,6 +134,13 @@ LINKER_SCRIPT_DEP+=
 	
 
 ./LED.o: .././LED.c
+	@echo Building file: $<
+	@echo Invoking: XC8 C Compiler : 2.36
+	$(QUOTE)C:\Program Files\Microchip\xc8\v2.36\bin\xc8-cc.exe$(QUOTE)  -mcpu=ATmega32  -mdfp="C:\Program Files (x86)\Atmel\Studio\7.0\Packs\atmel\ATmega_DFP\1.7.374\xc8"  -c -x c -funsigned-char -funsigned-bitfields -mext=cci -D__ATmega32__ -DDEBUG  -Og -ffunction-sections -fdata-sections -fpack-struct -fshort-enums -g2 -Wall -MD -MP -MF "$(@:%.o=%.d)" -MT"$(@:%.o=%.d)" -MT"$(@:%.o=%.o)"   -o "$@" "$<" 
+	@echo Finished building: $<
+	
+
+./Line_Follower_Logic.o: .././Line_Follower_Logic.c
 	@echo Building file: $<
 	@echo Invoking: XC8 C Compiler : 2.36
 	$(QUOTE)C:\Program Files\Microchip\xc8\v2.36\bin\xc8-cc.exe$(QUOTE)  -mcpu=ATmega32  -mdfp="C:\Program Files (x86)\Atmel\Studio\7.0\Packs\atmel\ATmega_DFP\1.7.374\xc8"  -c -x c -funsigned-char -funsigned-bitfields -mext=cci -D__ATmega32__ -DDEBUG  -Og -ffunction-sections -fdata-sections -fpack-struct -fshort-enums -g2 -Wall -MD -MP -MF "$(@:%.o=%.d)" -MT"$(@:%.o=%.d)" -MT"$(@:%.o=%.o)"   -o "$@" "$<" 

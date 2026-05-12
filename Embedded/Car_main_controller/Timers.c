@@ -118,3 +118,27 @@ void Timer1_wave_fastPWM(double value)
 	SET_BIT(TCCR1B,CS10);
 	SET_BIT(TCCR1A,COM1A1);
 }
+
+void Timer2_wave_fastPWM(char value)
+{
+    /* Set PD7 (OC2) as output */
+    SET_BIT(DDRD, 7);
+
+    /* Configure Fast PWM mode (WGM20=1, WGM21=1) */
+    SET_BIT(TCCR2, WGM20);
+    SET_BIT(TCCR2, WGM21);
+    
+    /* Set Prescaler to 1024 (CS20=1, CS21=1, CS22=1) 
+       Note: Timer 2 prescaler bits differ slightly from Timer 0 */
+    SET_BIT(TCCR2, CS20);
+    SET_BIT(TCCR2, CS21);
+    SET_BIT(TCCR2, CS22);
+    
+    /* Set Inverting Mode (COM20=1, COM21=1) 
+       Output low on compare match, high at BOTTOM */
+    SET_BIT(TCCR2, COM20);
+    SET_BIT(TCCR2, COM21);
+    
+    /* Set Output Compare Register value */
+    OCR2 = 255 - value;
+}
