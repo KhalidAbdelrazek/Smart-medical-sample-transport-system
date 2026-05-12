@@ -6,7 +6,7 @@
  */ 
 
 #include "Timers.h"
-char x = 100;
+char x = 70;
 
 int Move_Up(void)
 {

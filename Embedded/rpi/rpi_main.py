@@ -12,6 +12,7 @@ from console_interface import SharedState, ConsoleMonitor
 from functons import (
     setup_gpio,
     filter_sensors,
+    read_sensors_fast,
     confirm_intersection,
     decide_movement,
     get_rooms,
@@ -143,7 +144,7 @@ def calibrate_gyro(bus):
 
     offsets = []
     for axis_readings in readings:
-        axis_sorted = sorted(axis_readings)
+        axis_sorted = sorted(axis_readings)+
         trim    = int(SAMPLES * 0.10)
         trimmed = axis_sorted[trim: SAMPLES - trim]
         offsets.append(sum(trimmed) / len(trimmed))
@@ -210,20 +211,22 @@ def run_line_follower_until_intersection(car: UARTCarController):
     logging.info("[ROBOT] Starting continuous line follower until intersection...")
 
     while True:
+        # Fast raw read first — no delays
+        left_fast, right_fast = read_sensors_fast()
+
+        if left_fast == 1 and right_fast == 1:
+            print("True +++++===============================" if car.stop() else "False +++++===============================")# IMMEDIATE stop on raw read
+            logging.info("[ROBOT] Intersection confirmed (both sensors BLACK). Stopping.")
+            break
+
+        # False positive — resume
+        action, cmd = decide_movement(left_fast, right_fast)
+        car.send_command_and_reconnect_if_failed(cmd)
+        car.read_and_reconnect_if_failed()
+        time.sleep(LOOP_DELAY)
+
+        # Normal path — filtered read for steering decisions
         left, right = filter_sensors()
-
-        if left == 1 and right == 1:
-            car.stop()  # ← STOP IMMEDIATELY before any confirmation
-            if confirm_intersection():
-                logging.info("[ROBOT] Intersection confirmed (both sensors BLACK). Stopping.")
-                break
-            # If confirm failed (false positive), continue moving
-            action, cmd = decide_movement(left, right)
-            car.send_command_and_reconnect_if_failed(cmd)
-            car.read_and_reconnect_if_failed()
-            time.sleep(LOOP_DELAY)
-            continue
-
         action, cmd = decide_movement(left, right)
 
         if not car.send_command_and_reconnect_if_failed(cmd):
@@ -231,6 +234,8 @@ def run_line_follower_until_intersection(car: UARTCarController):
 
         car.read_and_reconnect_if_failed()
         time.sleep(LOOP_DELAY)
+
+
 # =========================
 # Main
 # =========================
