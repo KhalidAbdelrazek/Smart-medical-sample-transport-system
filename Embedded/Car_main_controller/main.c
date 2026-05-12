@@ -119,25 +119,53 @@ int main(void)
     }
  
     // -------- Status LED --------
-    LED_Init('D', 7);
-    LED_On('D', 7);
+    LED_Init('C', 0);
+    LED_On('C', 0);
     _delay_ms(1000);
-    LED_Off('D', 7);
+    LED_Off('C', 0);
  
     // -------- UART Init --------
     UART_Init(9600);
     UART_Send_string("[DEBUG] UART Initialized @9600\r\n");
  
-    char received_byte;
+    char Commands;
  
     // -------- Main Loop --------
     while (1)
     {
-        received_byte = UART_Receive_data();
-        handle_command(received_byte);
-		// Fast activity LED blink instead of blocking
-		LED_On('D', 7);
-		_delay_ms(5);
-		LED_Off('D', 7);
+       Commands == UART_Receive_data();
+	   if (Commands == 'F')
+	   {
+		   UART_Send_string("Ack F Received");
+		   Push_Forward();
+		   _delay_ms(50);
+		   Decide_Movement();
+	   }
+	   else if (Commands == 'P')
+	   {
+		   UART_Send_string("Ack P Received");
+		   Pve_Rotate();
+		   _delay_ms(100);
+		   Push_Forward();
+	   }
+	   else if (Commands =='N')
+	   {
+		   UART_Send_string("Ack N Received");
+		   Nve_Rotate();
+		   _delay_ms(100);
+	   }
+	   else if (Commands == 'B')
+	   {
+		   UART_Send_string("Ack B Received");
+		   Push_Backward();
+		   _delay_ms(100);
+		   Back_Decide_Movement();
+	   }
+	   else if (Commands == 'S')
+	   {
+		   UART_Send_string("Ack S Received");
+		   Stop();
+	   }
+	  
     }
 }
