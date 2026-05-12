@@ -129,3 +129,14 @@ class MQTTController:
         else:
             logging.error(f"[ACK] Failed to publish (rc={result.rc})")
             return False
+            
+    def publish_raw(self, topic: str, payload: dict) -> bool:
+        payload_str = json.dumps(payload)
+        logging.info(f"[MQTT] Publishing to '{topic}': {payload_str}")
+        result = self.client.publish(topic, payload_str, qos=1)
+        if result.rc == mqtt.MQTT_ERR_SUCCESS:
+            logging.info(f"[MQTT] Published successfully (mid={result.mid})")
+            return True
+        else:
+            logging.error(f"[MQTT] Publish failed — rc={result.rc}")
+            return False
