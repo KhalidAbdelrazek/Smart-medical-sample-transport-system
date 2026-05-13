@@ -55,6 +55,48 @@ GYRO_SCALE_CORRECTION = 1.0
 GYRO_DEADBAND     = 0.5   # deg/s
 
 # =========================
+# Rotation Target Constants
+# =========================
+ROTATION_TARGET_MIN = 85.0   # degrees — acceptable lower bound
+ROTATION_TARGET_MAX = 90.0   # degrees — stop immediately at / above this
+
+# =========================
+# Shared IMU State
+# Yaw is written by the IMU thread and read by the main thread.
+# A threading.Lock protects concurrent access.
+# =========================
+_imu_lock     = threading.Lock()
+_shared_yaw   = 0.0          # current integrated yaw (degrees)
+_yaw_baseline = 0.0          # yaw value at the moment rotation starts
+
+
+def get_current_yaw() -> float:
+    """Thread-safe read of the latest absolute yaw."""
+    with _imu_lock:
+        return _shared_yaw
+
+
+def set_yaw_baseline():
+    """
+    Snapshot the current yaw so that rotation progress can be measured
+    as a delta from this point.  Call this just before issuing 'N'.
+    """
+    global _yaw_baseline
+    with _imu_lock:
+        _yaw_baseline = _shared_yaw
+    logging.info(f"[IMU] Yaw baseline set to {_yaw_baseline:.2f}°")
+
+
+def get_rotation_delta() -> float:
+    """
+    Returns how many degrees the robot has rotated since set_yaw_baseline()
+    was called.  The absolute value is used so the sign of gz does not matter.
+    """
+    with _imu_lock:
+        return abs(_shared_yaw - _yaw_baseline)
+
+
+# =========================
 # IMU Functions  (UNCHANGED)
 # =========================
 
@@ -150,14 +192,19 @@ def calibrate_gyro(bus):
 
 
 # =========================
-# IMU Background Thread  (UNCHANGED)
+# IMU Background Thread
+# Now also writes the live yaw to the shared _shared_yaw variable so the
+# main thread can read it without running a second I2C session.
 # =========================
 
 def imu_thread_func(stop_event: threading.Event):
     """
     Runs in a daemon thread alongside the main robot loop.
-    Reads the MPU6050 at ~50 Hz and logs the readings.
+    Reads the MPU6050 at ~50 Hz, integrates yaw, and exposes it via
+    the module-level _shared_yaw variable (protected by _imu_lock).
     """
+    global _shared_yaw
+
     try:
         bus = SMBus(1)
     except Exception as e:
@@ -177,17 +224,16 @@ def imu_thread_func(stop_event: threading.Event):
 
     try:
         while not stop_event.is_set():
-            # Gyroscope
             gx, gy, gz = get_gyro(bus, gyro_offsets)
 
-            # Yaw integration
             current_time  = time.time()
             dt            = current_time - previous_time
             previous_time = current_time
             yaw          += gz * dt
 
-            # Log yaw only
-#            logging.info("[IMU] Yaw = %.2f°", yaw)
+            # Write to shared state so main thread can read it
+            with _imu_lock:
+                _shared_yaw = yaw
 
             time.sleep(0.02)   # 50 Hz
 
@@ -196,6 +242,59 @@ def imu_thread_func(stop_event: threading.Event):
     finally:
         bus.close()
         logging.info("[IMU] I2C bus closed.")
+
+
+# =========================
+# Rotation Helper
+# Blocks until the robot has rotated >= ROTATION_TARGET_MIN degrees
+# relative to the yaw baseline captured by set_yaw_baseline().
+# Prints live yaw delta at ~10 Hz.
+# =========================
+
+def rotate_to_90(car: UARTCarController, shared_state: 'SharedState') -> None:
+    """
+    Sends 'N' (Nve_Rotate) to the ATmega and blocks until the IMU
+    yaw delta reaches the [85°, 90°] acceptance window, then sends 'S'.
+
+    State transitions:  ROTATING  →  AT_DOOR
+    """
+    print_state("ROTATING", "Starting 90° rotation using IMU yaw feedback...")
+    shared_state.update(current_state="ROTATING")
+
+    # Snapshot yaw reference point BEFORE issuing the rotate command
+    set_yaw_baseline()
+
+    # Tell ATmega to start negative rotation
+    print_uart_send("N\n")
+    car.nve_rotate()
+
+    logging.info("[ROTATE] Rotating... target %.1f°–%.1f°", ROTATION_TARGET_MIN, ROTATION_TARGET_MAX)
+
+    last_print_time = time.time()
+
+    while True:
+        delta = get_rotation_delta()
+
+        # Print yaw reading at ~10 Hz (every 0.1 s)
+        now = time.time()
+        if now - last_print_time >= 0.1:
+            print(f"  🔄 [IMU] Yaw delta = {delta:.2f}°  (target: {ROTATION_TARGET_MIN}°–{ROTATION_TARGET_MAX}°)")
+            logging.info("[ROTATE] Yaw delta = %.2f°", delta)
+            last_print_time = now
+
+        # Check acceptance window
+        if delta >= ROTATION_TARGET_MIN:
+            # Stop rotation
+            print_uart_send("S\n")
+            car.stop()
+            print(f"  ✅ [IMU] Target reached — Yaw delta = {delta:.2f}°. Rotation complete.")
+            logging.info("[ROTATE] Target reached at %.2f° — rotation stopped.", delta)
+            break
+
+        time.sleep(0.02)   # 50 Hz poll matches IMU update rate
+
+    print_state("AT_DOOR", "Rotation complete. Robot is at the door.")
+    shared_state.update(current_state="AT_DOOR")
 
 
 # =========================
@@ -250,11 +349,8 @@ def print_mqtt_event(direction: str, topic: str, payload):
     logging.info(f"[MQTT {direction.upper()}] [{topic}] {payload}")
 
 
-
 # =========================
 # Wait for ATmega stop signal ('s')
-# Blocks until ATmega sends 's', meaning both IR sensors read BLACK.
-# ATmega is running Push_Forward() / Forward_decide_mov() internally.
 # =========================
 
 def wait_for_atmega_stop(car: UARTCarController) -> None:
@@ -395,6 +491,13 @@ def main():
 
                             # ── Room match ────────────────────
                             if str(detected_room) == str(room):
+
+                                # ── NEW: Rotate 90° using IMU before publishing arrival ──
+                                # State transitions: SCANNING_ROOM → ROTATING → AT_DOOR
+                                rotate_to_90(car, shared_state)
+                                # ── End of rotation block ──────────────────────────────
+
+                                # Now transition to ARRIVED and publish as before
                                 print_state("ARRIVED", f"Room {room} confirmed! Publishing arrival.")
                                 shared_state.update(current_state="ARRIVED")
 
@@ -502,7 +605,7 @@ def main():
                             break
 
                         time.sleep(2.0)
-                        i += 1  # ✅ advance to next room only after fully completing current one
+                        i += 1  # advance to next room only after fully completing current one
 
                     if not go_to_storage:
                         logging.info("[ROBOT] All rooms in batch visited. Batch complete.")
