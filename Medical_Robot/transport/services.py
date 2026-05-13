@@ -61,10 +61,18 @@ def build_grouped_dispatch_payload(car, loaded_requests):
             "doctor_id": str(transport_request.requested_by_id) if transport_request.requested_by_id else None,
         })
 
+    def room_sort_key(room):
+
+        try:
+            return (0, int(room))
+        except (ValueError, TypeError):
+            return (1, room)
+
+
     return {
         "car_id": car.id,
         "batch_id": batch_id,
-        "grouped_by_room": grouped,
+        "grouped_by_room": dict(sorted(grouped.items(), key=lambda item: room_sort_key(item[0]))),
     }
 
 
