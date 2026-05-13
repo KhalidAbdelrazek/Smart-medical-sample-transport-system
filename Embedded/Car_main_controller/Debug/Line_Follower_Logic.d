@@ -8,7 +8,8 @@ Line_Follower_Logic.d Line_Follower_Logic.o: .././Line_Follower_Logic.c \
  c:\program\ files\microchip\xc8\v2.36\avr\avr\include\bits\alltypes.h \
  c:\program\ files\microchip\xc8\v2.36\avr\avr\include\bits\stdint.h \
  c:\program\ files\microchip\xc8\v2.36\avr\avr\include\util\delay_basic.h \
- c:\program\ files\microchip\xc8\v2.36\avr\avr\include\math.h
+ c:\program\ files\microchip\xc8\v2.36\avr\avr\include\math.h \
+ .././USART.h
 
 .././Button.h:
 
@@ -31,3 +32,5 @@ c:\program\ files\microchip\xc8\v2.36\avr\avr\include\bits\stdint.h:
 c:\program\ files\microchip\xc8\v2.36\avr\avr\include\util\delay_basic.h:
 
 c:\program\ files\microchip\xc8\v2.36\avr\avr\include\math.h:
+
+.././USART.h:
