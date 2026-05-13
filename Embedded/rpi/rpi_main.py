@@ -1,4 +1,4 @@
-# version 1.0 13/5/2026
+# version 1.1 13/5/2026 6:18 PM
 
 import logging
 import time
@@ -249,10 +249,7 @@ def print_mqtt_event(direction: str, topic: str, payload):
     print(f"  {arrow} [{topic}] → {payload}")
     logging.info(f"[MQTT {direction.upper()}] [{topic}] {payload}")
 
-def flush_input(self):
-    if self.ser and self.ser.is_open:
-        self.ser.reset_input_buffer()
-        logging.info("[UART] Input buffer flushed.")
+
 
 # =========================
 # Wait for ATmega stop signal ('s')
