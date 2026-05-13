@@ -79,27 +79,41 @@ class UARTCarController:
     def safe_read(self):
         """
         Returns:
-            str   — a valid token from ATmega ('OK', 'F', 'S', 'L', 'R', 's')
-            None  — nothing available yet
-            'ERROR' — I/O failure
+            str   — valid UART response
+            None  — nothing available
+            "ERROR" — UART failure
         """
+
         if self.ser is None or not getattr(self.ser, 'is_open', False):
             return "ERROR"
+
         try:
             if self.ser.in_waiting > 0:
-                line = self.ser.readline().decode(errors='ignore').strip()
+
+                raw = self.ser.readline()
+                line = raw.decode(errors='ignore').strip()
+
+                print(f"[UART RAW RX] {repr(line)}")
+
                 if line == "":
                     return None
-                # Accept: OK, movement echo chars, and the intersection stop signal 's'
-                if line in {"OK", "F", "B", "S", "L", "R", "P", "N", "s"}:
+
+                # Valid ACKs from ATmega
+                if line.startswith("OK:"):
                     return line
+
+                # Intersection signal
+                if line == "s":
+                    return line
+
                 logging.debug(f"[UART RX] Ignored garbage: '{line}'")
                 return None
+
             return None
+
         except Exception as e:
             logging.error(f"[{get_timestamp()}] UART read error: {e}")
             return "ERROR"
-
     # ── Resilient wrappers ────────────────────────────────────
 
     def send_command_and_reconnect_if_failed(self, cmd: str) -> bool:
@@ -122,31 +136,31 @@ class UARTCarController:
     def forward(self) -> bool:
         """Push_Forward() / Forward_decide_mov() on ATmega."""
         logging.info("[UART TX] 'F' → ATmega Push_Forward()")
-        return self.send_command_and_reconnect_if_failed("F\n")
+        return self.send_with_ack("F\n","OK:F")
 
     def backward(self) -> bool:
         """Push_Backward() / Backward_decide_mov() on ATmega."""
         logging.info("[UART TX] 'B' → ATmega Push_Backward()")
-        return self.send_command_and_reconnect_if_failed("B\n")
+        return self.send_with_ack("B\n","OK:B")
 
     def pve_rotate(self) -> bool:
         """Pve_Rotate() on ATmega (positive / clockwise rotation)."""
         logging.info("[UART TX] 'P' → ATmega Pve_Rotate()")
-        return self.send_command_and_reconnect_if_failed("P\n")
+        return self.send_with_ack("P\n","OK:P")
 
     def nve_rotate(self) -> bool:
         """Nve_Rotate() on ATmega (negative / counter-clockwise rotation)."""
         logging.info("[UART TX] 'N' → ATmega Nve_Rotate()")
-        return self.send_command_and_reconnect_if_failed("N\n")
+        return self.send_with_ack("N\n","OK:N")
 
     def stop(self) -> bool:
         """Stop_Car() on ATmega."""
         logging.info("[UART TX] 'S' → ATmega Stop_Car()")
-        return self.send_command_and_reconnect_if_failed("S\n")
+        return self.send_with_ack("S\n","OK:S")
 
     # Aliases kept for backward compatibility
-    def left(self)  -> bool: return self.send_command_and_reconnect_if_failed("L\n")
-    def right(self) -> bool: return self.send_command_and_reconnect_if_failed("R\n")
+    def left(self)  -> bool: return self.send_with_ack("L\n","OK:L")
+    def right(self) -> bool: return self.send_with_ack("R\n","OK:R")
 
     # ── Cleanup ───────────────────────────────────────────────
 
@@ -158,3 +172,43 @@ class UARTCarController:
             logging.info("[UART] Port closed.")
         except Exception:
             pass
+
+    def send_with_ack(self, cmd: str, expected_ack: str, timeout=2.0):
+        """
+        Send UART command and wait for ATmega ACK.
+        """
+
+        logging.info(f"[UART TX] Sending: {repr(cmd)}")
+
+        # Clear old garbage before sending
+        try:
+            self.ser.reset_input_buffer()
+        except Exception:
+            pass
+
+        # Send command
+        if not self.send_command_and_reconnect_if_failed(cmd):
+            return False
+
+        start = time.time()
+
+        while time.time() - start < timeout:
+
+            resp = self.read_and_reconnect_if_failed()
+
+            if resp is not None:
+
+                print(f"[UART RX] {resp}")
+                logging.info(f"[UART RX] {resp}")
+
+                if resp == expected_ack:
+                    print(f"[UART ACK] VERIFIED {expected_ack}")
+                    logging.info(f"[UART ACK] VERIFIED {expected_ack}")
+                    return True
+
+            time.sleep(0.01)
+
+        logging.error(f"[UART] ACK TIMEOUT waiting for {expected_ack}")
+        print(f"[UART ERROR] ACK TIMEOUT waiting for {expected_ack}")
+
+        return False
