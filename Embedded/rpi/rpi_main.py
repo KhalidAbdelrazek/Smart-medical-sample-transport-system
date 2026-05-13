@@ -1,4 +1,4 @@
-# version 1.2 13/5/2026 6:57 PM
+# version 1.3 14/5/2026 12:45 AM
 
 import logging
 import time
@@ -232,10 +232,21 @@ def imu_thread_func(stop_event: threading.Event):
             yaw          += gz * dt
 
             # Write to shared state so main thread can read it
+            # Write to shared state so main thread can read it
             with _imu_lock:
                 _shared_yaw = yaw
 
-            time.sleep(0.02)   # 50 Hz
+            # Print yaw at 10 Hz without affecting logic
+            if not hasattr(imu_thread_func, "_last_yaw_print"):
+                imu_thread_func._last_yaw_print = 0
+
+            now = time.time()
+            if now - imu_thread_func._last_yaw_print >= 0.1:
+                print(f"  🧭 [IMU] Current Yaw = {yaw:.2f}°")
+                logging.info(f"[IMU] Current Yaw = {yaw:.2f}°")
+                imu_thread_func._last_yaw_print = now
+
+            time.sleep(0.02)   # 50 Hz  # 50 Hz
 
     except Exception as e:
         logging.error(f"[IMU] Thread error: {e}")
