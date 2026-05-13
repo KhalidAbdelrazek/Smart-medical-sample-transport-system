@@ -249,6 +249,10 @@ def print_mqtt_event(direction: str, topic: str, payload):
     print(f"  {arrow} [{topic}] → {payload}")
     logging.info(f"[MQTT {direction.upper()}] [{topic}] {payload}")
 
+def flush_input(self):
+    if self.ser and self.ser.is_open:
+        self.ser.reset_input_buffer()
+        logging.info("[UART] Input buffer flushed.")
 
 # =========================
 # Wait for ATmega stop signal ('s')
@@ -353,12 +357,16 @@ def main():
                     mqtt_controller.publish_ack(batch_id)
                     print_mqtt_event("pub", f"transport/acks/{CAR_ID}", ack_payload)
 
-                    go_to_storage = False  # flag to abort remaining rooms
+                    go_to_storage  = False
+                    rooms_to_visit = list(rooms)
+                    i = 0
 
                     # ── Iterate through rooms ──────────────────
-                    for room in rooms:
+                    while i < len(rooms_to_visit):
                         if go_to_storage:
                             break
+
+                        room = rooms_to_visit[i]
 
                         print_state("MOVING_TO_ROOM", f"Target room: {room}")
                         shared_state.update(
@@ -368,10 +376,12 @@ def main():
 
                         # ── Room seek loop ─────────────────────
                         while True:
+                            # Flush stale UART bytes before commanding forward
+                            car.flush_input()
 
                             # Tell ATmega to start forward line-following
                             print_uart_send("F\n")
-                            car.forward()   # sends 'F\n' → ATmega calls Push_Forward() / Forward_decide_mov()
+                            car.forward()
 
                             # Block until ATmega detects intersection and sends 's'
                             wait_for_atmega_stop(car)
@@ -422,10 +432,9 @@ def main():
                                             print(f"  ⚠️  [CONTROL] Ignored msg: {ctrl_msg}")
                                             continue
 
-                                        current_room_index = rooms.index(room)
                                         next_room = (
-                                            rooms[current_room_index + 1]
-                                            if current_room_index + 1 < len(rooms)
+                                            rooms_to_visit[i + 1]
+                                            if i + 1 < len(rooms_to_visit)
                                             else None
                                         )
 
@@ -434,15 +443,14 @@ def main():
                                             print_state("RETURN_TO_STORAGE", "Proceed=STORAGE received — moving backward to storage.")
                                             shared_state.update(current_state="RETURN_TO_STORAGE")
 
+                                            car.flush_input()
                                             print_uart_send("B\n")
-                                            car.backward()  # Push_Backward() / Backward_decide_mov() on ATmega
+                                            car.backward()
                                             logging.info("[ROBOT] Moving BACKWARD toward STORAGE via ATmega Push_Backward()...")
                                             print(f"  ⏩ [MOVEMENT] Backward command sent to ATmega — waiting for STORAGE intersection signal...")
 
-                                            # Wait for ATmega to report the storage intersection
                                             wait_for_atmega_stop(car)
 
-                                            # Stop explicitly
                                             print_uart_send("S\n")
                                             car.stop()
 
@@ -468,15 +476,6 @@ def main():
                                                 current_state="MOVING_TO_ROOM",
                                                 current_room=next_room
                                             )
-
-                                            # Move forward slightly to clear the current intersection
-                                            print(f"  ➡️  [MOVEMENT] Clearing current intersection before proceeding...")
-                                            print_uart_send("F\n")
-                                            car.forward()
-                                            time.sleep(0.5)
-                                            print_uart_send("S\n")
-                                            car.stop()
-
                                             proceed_received = True
 
                                         else:
@@ -484,7 +483,6 @@ def main():
                                             print(f"  ⚠️  [CONTROL] Unexpected room '{cmd_room}' in proceed — ignoring.")
 
                                     except queue.Empty:
-                                        # Keep car stopped while waiting
                                         car.stop()
 
                                 break  # exit room seek loop — proceed received
@@ -493,12 +491,13 @@ def main():
                             else:
                                 logging.warning(f"[ROBOT] Room mismatch: expected '{room}', got '{detected_room}'. Advancing.")
                                 print(f"  ⚠️  [CAMERA] Mismatch — expected '{room}', got '{detected_room}'. Advancing past intersection...")
+                                car.flush_input()
                                 print_uart_send("F\n")
                                 car.forward()
                                 time.sleep(0.5)
                                 print_uart_send("S\n")
                                 car.stop()
-                                # Loop back to send 'F' again to ATmega for next intersection
+                                # Loop back to room seek loop for next intersection
 
                         if go_to_storage:
                             logging.info("[ROBOT] Batch aborted — car returned to STORAGE.")
@@ -506,6 +505,7 @@ def main():
                             break
 
                         time.sleep(2.0)
+                        i += 1  # ✅ advance to next room only after fully completing current one
 
                     if not go_to_storage:
                         logging.info("[ROBOT] All rooms in batch visited. Batch complete.")
@@ -527,7 +527,6 @@ def main():
         logging.error(f"[FATAL] System crashed: {e}")
         print(f"  💥 [FATAL] {e}")
     finally:
-        # Stop IMU thread first
         imu_stop_event.set()
         imu_thread.join(timeout=3)
         logging.info("[MAIN] IMU thread stopped.")
