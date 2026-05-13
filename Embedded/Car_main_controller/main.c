@@ -5,7 +5,7 @@
  * Author : NADER
  *
  * Fix: 's' is sent ONCE from main.c only, after motors settle.
- *      Decide_Movement() no longer sends 's' — it just stops.
+ *      Decide_Movement() no longer sends 's' ï¿½ it just stops.
  */
 
 #include <xc.h>
@@ -71,7 +71,7 @@ int main(void)
 
                 if (Left_IR == 1 && Right_IR == 1)
                 {
-                    // Intersection detected — stop motors
+                    // Intersection detected ï¿½ stop motors
                     Stop();
                     _delay_ms(50);          // let motors fully settle before sending
 
@@ -114,7 +114,7 @@ int main(void)
             UART_Send_string("OK:P\r\n");
             while (1)
 			{
-				Move_Right();
+				
 				Commands = UART_Receive_data();
 				if (Commands == 'S')
 				{
@@ -123,6 +123,7 @@ int main(void)
 					
 					break;
 				}
+                Move_Right();
 			}
             
         }
@@ -133,7 +134,7 @@ int main(void)
             UART_Send_string("OK:N\r\n");
              while (1)
              {
-	             Move_Left();
+	            
 	             Commands = UART_Receive_data();
 	             if (Commands == 'S')
 	             {
@@ -142,6 +143,7 @@ int main(void)
 		             
 		             break;
 	             }
+                 Move_Left();
              }
             
         }
