@@ -262,7 +262,7 @@ def rotate_to_90(car: UARTCarController, shared_state: 'SharedState') -> None:
     shared_state.update(current_state="ROTATING")
 
     # Snapshot yaw reference point BEFORE issuing the rotate command
-    set_yaw_baseline()
+    # set_yaw_baseline()
 
     # Tell ATmega to start negative rotation
     print_uart_send("N\n")
@@ -401,6 +401,12 @@ def main():
         # Start IMU thread before the main loop
         imu_thread.start()
         logging.info("[MAIN] IMU thread started.")
+ 
+        # ── Wait for IMU to produce first reading, then lock baseline ──
+        logging.info("[MAIN] Waiting for IMU to stabilize before locking yaw baseline...")
+        time.sleep(2.0)          # give calibrate_gyro + first reads time to run
+        set_yaw_baseline()
+        logging.info("[MAIN] Yaw baseline locked at IDLE — will not change again.")
 
         # ── UART ──────────────────────────────────────────────
         shared_state.update(uart_status="CONNECTING")
