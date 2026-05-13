@@ -112,16 +112,38 @@ int main(void)
         else if (Commands == 'P')
         {
             UART_Send_string("OK:P\r\n");
-            Pve_Rotate();
-            _delay_ms(100);
+            while (1)
+			{
+				Move_Right();
+				Commands = UART_Receive_data();
+				if (Commands == 'S')
+				{
+					Stop();
+					_delay_ms(50);
+					
+					break;
+				}
+			}
+            
         }
 
         // ?? NEGATIVE ROTATE ??????????????????????????????????
         else if (Commands == 'N')
         {
             UART_Send_string("OK:N\r\n");
-            Nve_Rotate();
-            _delay_ms(100);
+             while (1)
+             {
+	             Move_Left();
+	             Commands = UART_Receive_data();
+	             if (Commands == 'S')
+	             {
+		             Stop();
+		             _delay_ms(50);
+		             
+		             break;
+	             }
+             }
+            
         }
 
         // ?? STOP ?????????????????????????????????????????????
