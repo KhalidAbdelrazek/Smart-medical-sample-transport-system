@@ -458,7 +458,7 @@ def main():
                                             storage_payload = {
                                                 "car_id":    int(CAR_ID),
                                                 "room":      "STORAGE",
-                                                "timestamp": datetime.datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%SZ")
+                                                "timestamp": datetime.datetime.now(datetime.UTC).strftime("%Y-%m-%dT%H:%M:%SZ")
                                             }
                                             mqtt_controller.publish_raw(storage_topic, storage_payload)
                                             print_mqtt_event("pub", storage_topic, storage_payload)
