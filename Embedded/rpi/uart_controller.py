@@ -212,3 +212,8 @@ class UARTCarController:
         print(f"[UART ERROR] ACK TIMEOUT waiting for {expected_ack}")
 
         return False
+
+    def flush_input(self):
+        if self.ser and self.ser.is_open:
+            self.ser.reset_input_buffer()
+            logging.info("[UART] Input buffer flushed.")
