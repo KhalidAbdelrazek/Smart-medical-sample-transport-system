@@ -77,7 +77,7 @@ int Push_Forward(void)
 	Move_Up();
 	_delay_ms(500);
 	Stop();
-	_delay_ms(250);
+	//_delay_ms(250);
 }
 
 
@@ -86,7 +86,7 @@ int Push_Backward(void)
 	Move_Down();
 	_delay_ms(250);
 	Stop();
-	_delay_ms(250);
+	//_delay_ms(250);
 }
 
 int Pve_Rotate(char pve_state)
