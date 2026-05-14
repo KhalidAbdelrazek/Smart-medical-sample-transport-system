@@ -19,7 +19,7 @@ class RoomSelectorCard extends StatelessWidget {
   Widget build(BuildContext context) {
     // Ideally this list comes from the View Model or an API, 
     // but we extract it cleanly for now.
-    final rooms = ['Room A', 'Room B', 'Room C'];
+    final rooms = ['1', '2', '3'];
 
     return Container(
       decoration: BoxDecoration(
