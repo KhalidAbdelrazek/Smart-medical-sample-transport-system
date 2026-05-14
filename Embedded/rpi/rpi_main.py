@@ -487,14 +487,15 @@ def main():
                         # ── Room seek loop ─────────────────────
                         while True:
                             # Flush stale UART bytes before commanding forward
-                            car.flush_input()
+                            if i == 0:
+                                car.flush_input()
+                                # Tell ATmega to start forward line-following
+                                print_uart_send("F\n")
+                                car.forward()
+                                # Block until ATmega detects intersection and sends 's'
+                                wait_for_atmega_stop(car)
 
-                            # Tell ATmega to start forward line-following
-                            print_uart_send("F\n")
-                            car.forward()
-
-                            # Block until ATmega detects intersection and sends 's'
-                            wait_for_atmega_stop(car)
+                            
 
                             # ATmega already stopped itself; RPi records the stop
                             print_state("SCANNING_ROOM", f"Intersection reached — scanning camera for room number...")
@@ -591,21 +592,21 @@ def main():
                                                 # ── Proceed to STORAGE ─────────────
                                                 if cmd_room.lower() == "storage":
                                                     print_uart_send("B\n")
-                                                    car.safe_write("B\n")   # raw write — exits ATmega 'P' loop immediately
+                                                    car.backward()   # raw write — exits ATmega 'P' loop immediately
                                                 # ── Proceed to next room ────────────
                                                 else:
                                                     print_uart_send("F\n")
-                                                    car.safe_write("F\n")   # raw write — exits ATmega 'P' loop immediately
+                                                    car.forward()   # raw write — exits ATmega 'P' loop immediately
                                                 print(f"  ✅ [IMU] +90° target reached — Yaw delta = {delta:.2f}°. Rotation complete.")
                                                 logging.info("[ROTATE+] Target reached at %.2f°", delta)
                                                 break
-                                            time.sleep(0.02)
-                                        print_state("AT_CORRIDOR", "Positive rotation complete. Robot back on corridor.")
-                                        shared_state.update(current_state="AT_CORRIDOR")
+                                        #     time.sleep(0.02)
+                                        # print_state("AT_CORRIDOR", "Positive rotation complete. Robot back on corridor.")
+                                        # shared_state.update(current_state="AT_CORRIDOR")
 
-                                        # ── Step 3: Wait for ATmega 's' after rotation exit move ──
-                                        print_state("MOVING_TO_DOOR", f"Moving toward {'STORAGE' if cmd_room.lower() == 'storage' else 'next room'}...")
-                                        shared_state.update(current_state="MOVING_TO_DOOR")
+                                        # # ── Step 3: Wait for ATmega 's' after rotation exit move ──
+                                        # print_state("MOVING_TO_DOOR", f"Moving toward {'STORAGE' if cmd_room.lower() == 'storage' else 'next room'}...")
+                                        # shared_state.update(current_state="MOVING_TO_DOOR")
                                         wait_for_atmega_stop(car)
 
                                         # ── Proceed to STORAGE ─────────────
@@ -647,6 +648,7 @@ def main():
                                                 current_room=next_room
                                             )
                                             proceed_received = True
+                                            wait_for_atmega_stop(car)
 
                                         else:
                                             logging.warning(f"[ROBOT] Ignored control msg (unexpected room '{cmd_room}'): {ctrl_msg}")
