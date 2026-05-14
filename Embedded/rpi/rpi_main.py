@@ -1,4 +1,4 @@
-# version 1.4 14/5/2026 2:25 PM
+# version 1.6 14/5/2026 4:28 PM
 
 import logging
 import time
@@ -296,8 +296,8 @@ def rotate_to_90(car: UARTCarController, shared_state: 'SharedState') -> None:
         # Check acceptance window
         if delta >= ROTATION_TARGET_MIN:
             # Stop rotation
-            print_uart_send("S\n")
-            car.stop()
+            print_uart_send("F\n")
+            car.forward()
             print(f"  ✅ [IMU] Target reached — Yaw delta = {delta:.2f}°. Rotation complete.")
             logging.info("[ROTATE] Target reached at %.2f° — rotation stopped.", delta)
             break
@@ -513,6 +513,16 @@ def main():
                                 # State transitions: SCANNING_ROOM → ROTATING → AT_DOOR
                                 rotate_to_90(car, shared_state)
                                 # ── End of rotation block ──────────────────────────────
+
+                                                                # ── Move forward after rotation until ATmega detects intersection ──
+                                print_state("MOVING_TO_DOOR", f"Moving forward into room {room} after rotation...")
+                                shared_state.update(current_state="MOVING_TO_DOOR")
+                                # car.flush_input()
+                                # print_uart_send("F\n")
+                                # car.forward()
+                                wait_for_atmega_stop(car)
+                                # ── End of forward-to-door block ──────────────────────────────────
+
 
                                 # Now transition to ARRIVED and publish as before
                                 print_state("ARRIVED", f"Room {room} confirmed! Publishing arrival.")
