@@ -1,4 +1,4 @@
-# version 1.6 14/5/2026 4:28 PM
+# version 1.7 15/5/2026 5:46 PM
 
 import logging
 import time
@@ -564,6 +564,49 @@ def main():
                                             if i + 1 < len(rooms_to_visit)
                                             else None
                                         )
+                                        # ── Step 1: Move BACKWARD until intersection ──────────────
+                                        print_state("LEAVING_ROOM", f"Proceed received — moving backward out of room {room}...")
+                                        shared_state.update(current_state="LEAVING_ROOM")
+                                        car.flush_input()
+                                        print_uart_send("B\n")
+                                        car.backward()
+                                        wait_for_atmega_stop(car)
+
+                                        # ── Step 2: Rotate +90° using IMU (mirrors rotate_to_90 but uses 'P') ──
+                                        print_state("ROTATING", "Starting +90° rotation using IMU yaw feedback...")
+                                        shared_state.update(current_state="ROTATING")
+                                        # set_yaw_baseline()
+                                        print_uart_send("P\n")
+                                        car.pve_rotate()
+                                        logging.info("[ROTATE] Rotating +ve... target %.1f°–%.1f°", ROTATION_TARGET_MIN, ROTATION_TARGET_MAX)
+                                        last_print_time = time.time()
+                                        while True:
+                                            delta = get_rotation_delta()
+                                            now = time.time()
+                                            if now - last_print_time >= 0.1:
+                                                print(f"  🔄 [IMU] Yaw delta = {delta:.2f}°  (target: {ROTATION_TARGET_MIN}°–{ROTATION_TARGET_MAX}°)")
+                                                logging.info("[ROTATE+] Yaw delta = %.2f°", delta)
+                                                last_print_time = now
+                                            if delta <= 5:
+                                                # ── Proceed to STORAGE ─────────────
+                                                if cmd_room.lower() == "storage":
+                                                    print_uart_send("B\n")
+                                                    car.safe_write("B\n")   # raw write — exits ATmega 'P' loop immediately
+                                                # ── Proceed to next room ────────────
+                                                else:
+                                                    print_uart_send("F\n")
+                                                    car.safe_write("F\n")   # raw write — exits ATmega 'P' loop immediately
+                                                print(f"  ✅ [IMU] +90° target reached — Yaw delta = {delta:.2f}°. Rotation complete.")
+                                                logging.info("[ROTATE+] Target reached at %.2f°", delta)
+                                                break
+                                            time.sleep(0.02)
+                                        print_state("AT_CORRIDOR", "Positive rotation complete. Robot back on corridor.")
+                                        shared_state.update(current_state="AT_CORRIDOR")
+
+                                        # ── Step 3: Wait for ATmega 's' after rotation exit move ──
+                                        print_state("MOVING_TO_DOOR", f"Moving toward {'STORAGE' if cmd_room.lower() == 'storage' else 'next room'}...")
+                                        shared_state.update(current_state="MOVING_TO_DOOR")
+                                        wait_for_atmega_stop(car)
 
                                         # ── Proceed to STORAGE ─────────────
                                         if cmd_room.lower() == "storage":

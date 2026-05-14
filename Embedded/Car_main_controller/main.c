@@ -116,13 +116,44 @@ int main(void)
 			{
 				
 				Commands = UART_Receive_data();
-				if (Commands == 'S')
-				{
-					Stop();
-					_delay_ms(50);
-					
-					break;
-				}
+	             if (Commands == 'F')
+	             {
+					 UART_Send_string("OK:F\r\n");
+		             while(1)
+					 {
+                        char Left_IR  = Button_Read('D', 5);
+                        char Right_IR = Button_Read('D', 6);
+
+                        if (Left_IR == 1 && Right_IR == 1)
+                        {
+                            Stop();
+                            _delay_ms(50);
+                            UART_Send_string("s\r\n");
+                            break;
+                        }
+                        Decide_Movement();
+                     }
+					 break;
+	             } 
+				 else if (Commands == 'B') 
+				 {
+					 UART_Send_string("OK:B\r\n");
+                        while(1)
+						{
+                            char Left_IR  = Button_Read('D', 5);
+                            char Right_IR = Button_Read('D', 6);
+
+                            if (Left_IR == 1 && Right_IR == 1)
+                            {
+                                Stop();
+                                _delay_ms(50);
+                                UART_Send_string("s\r\n");
+                                break;
+                             }
+                                Back_Decide_Movement();
+                        }
+						break;
+	             }
                 Move_Right();
 			}
             
