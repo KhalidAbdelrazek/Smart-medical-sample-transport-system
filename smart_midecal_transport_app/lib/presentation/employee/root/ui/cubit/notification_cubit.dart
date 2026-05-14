@@ -197,66 +197,66 @@ class NotificationCubit extends Cubit<NotificationState> {
   }
 
   Future<void> _runConfirmDelivery(
-    String requestId,
-    List<String> sampleCodes,
-  ) async {
+  String requestId,
+  List<String> sampleCodes,
+) async {
+  emit(
+    state.copyWith(
+      actionInFlightIds: {...state.actionInFlightIds, requestId},
+    ),
+  );
+
+  // 1️⃣ Confirm the delivery
+  final deliveryResult =
+      await _repository.confirmDelivery(requestId: requestId);
+  if (isClosed) return;
+
+  final deliveryError = deliveryResult.fold((f) => f.errorMessage, (_) => null);
+  if (deliveryError != null) {
     emit(
-      state.copyWith(
-        actionInFlightIds: {...state.actionInFlightIds, requestId},
-      ),
+      state
+          .copyWith(
+            actionInFlightIds: _without(state.actionInFlightIds, requestId),
+          )
+          .withError(deliveryError),
     );
+    return;
+  }
 
-    // 1️⃣  Confirm the delivery
-    final deliveryResult =
-        await _repository.confirmDelivery(requestId: requestId);
-    if (isClosed) return;
+  
 
-    final deliveryError = deliveryResult.fold((f) => f.errorMessage, (_) => null);
-    if (deliveryError != null) {
+  final handoffResult = await _repository.confirmReturnHandoff(
+    sampleCodes: sampleCodes,
+  );
+  if (isClosed) return;
+
+  handoffResult.fold(
+    (failure) {
+      final nextItems =
+          state.items.where((i) => i.requestId != requestId).toList();
       emit(
         state
             .copyWith(
+              items: nextItems,
               actionInFlightIds: _without(state.actionInFlightIds, requestId),
             )
-            .withError(deliveryError),
+            .withError(failure.errorMessage),
       );
-      return;
-    }
-
-    // 2️⃣  Confirm the return-handoff (even with an empty list)
-    final handoffResult = await _repository.confirmReturnHandoff(
-      sampleCodes: sampleCodes,
-    );
-    if (isClosed) return;
-
-    handoffResult.fold(
-      (failure) {
-        // Delivery succeeded but handoff failed — still remove card, show error.
-        final nextItems =
-            state.items.where((i) => i.requestId != requestId).toList();
-        emit(
-          state
-              .copyWith(
-                items: nextItems,
-                actionInFlightIds: _without(state.actionInFlightIds, requestId),
-              )
-              .withError(failure.errorMessage),
-        );
-      },
-      (message) {
-        final nextItems =
-            state.items.where((i) => i.requestId != requestId).toList();
-        emit(
-          state
-              .copyWith(
-                items: nextItems,
-                actionInFlightIds: _without(state.actionInFlightIds, requestId),
-              )
-              .withSuccess(message ?? 'Delivery confirmed successfully'),
-        );
-      },
-    );
-  }
+    },
+    (message) {
+      final nextItems =
+          state.items.where((i) => i.requestId != requestId).toList();
+      emit(
+        state
+            .copyWith(
+              items: nextItems,
+              actionInFlightIds: _without(state.actionInFlightIds, requestId),
+            )
+            .withSuccess(message ?? 'Delivery confirmed successfully'),
+      );
+    },
+  );
+}
 
   // ─────────────────────────────────────────────
   // Reject
