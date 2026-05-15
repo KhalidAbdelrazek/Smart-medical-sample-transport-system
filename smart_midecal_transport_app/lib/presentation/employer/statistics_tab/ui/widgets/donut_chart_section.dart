@@ -178,7 +178,7 @@ class _EmptyChart extends StatelessWidget {
               color: theme.dividerColor,
             ),
             SizedBox(height: 8.h),
-            Text('No data for this period', style: theme.textTheme.bodySmall),
+            Text('extra.no_data_period'.tr(), style: theme.textTheme.bodySmall),
           ],
         ),
       ),
