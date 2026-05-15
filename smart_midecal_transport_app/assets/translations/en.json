@@ -61,7 +61,16 @@
     "settings": "Settings"
   },
   "employee": {
-    "total" : "Total",
+    "total": "Total",
+    "pendingg": "Pending",
+    "approved": "Approved",
+    "rejected": "Rejected",
+    "unknown": "Unknown",
+    "id": "ID",
+    "d_ago": "d ago",
+    "h_ago": "h ago",
+    "m_ago": "m ago",
+    "just_now": "Just now",
     "storage_activity": "Storage Activity",
     "total_actions": "Total Actions",
     "cars_dispatched": "Cars Dispatched",

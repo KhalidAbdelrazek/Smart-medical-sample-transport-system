@@ -155,7 +155,7 @@ class BloodSampleCard extends StatelessWidget {
                         ),
                         if (request.id != null)
                           Text(
-                            'ID: ${request.id}',
+                            '${'employee.id'.tr()}: ${request.id}',
                             style: theme.textTheme.labelSmall?.copyWith(
                               color: AppColors.labelColor,
                             ),

@@ -22,25 +22,25 @@ _StatusConfig _statusConfig(String? status) {
       return _StatusConfig(
         color: AppColors.warning,
         icon: Icons.hourglass_empty_rounded,
-        label: 'Pending',
+        label: 'employee.pendingg'.tr(),
       );
     case 'approved':
       return _StatusConfig(
         color: AppColors.success,
         icon: Icons.check_circle_rounded,
-        label: 'Approved',
+        label: 'employee.approved'.tr(),
       );
     case 'rejected':
       return _StatusConfig(
         color: AppColors.error,
         icon: Icons.cancel_rounded,
-        label: 'Rejected',
+        label: 'employee.rejected'.tr(),
       );
     default:
       return _StatusConfig(
         color: AppColors.labelColor,
         icon: Icons.info_outline_rounded,
-        label: status ?? 'Unknown',
+        label: status ?? 'employee.unknown'.tr(),
       );
   }
 }
@@ -134,7 +134,7 @@ class ReturnRequestCard extends StatelessWidget {
                           ),
                         ),
                         Text(
-                          'ID: ${returnRequest.id}',
+                          '${'employee.id'.tr()}: ${returnRequest.id}',
                           style: theme.textTheme.labelSmall?.copyWith(
                             color: AppColors.labelColor,
                           ),
@@ -285,13 +285,13 @@ class ReturnRequestCard extends StatelessWidget {
     final difference = now.difference(dateTime);
 
     if (difference.inDays > 0) {
-      return '${difference.inDays}d ago';
+      return '${difference.inDays}${'employee.d_ago'.tr()}';
     } else if (difference.inHours > 0) {
-      return '${difference.inHours}h ago';
+      return '${difference.inHours}${'employee.h_ago'.tr()}';
     } else if (difference.inMinutes > 0) {
-      return '${difference.inMinutes}m ago';
+      return '${difference.inMinutes}${'employee.m_ago'.tr()}';
     } else {
-      return 'Just now';
+      return 'employee.just_now'.tr();
     }
   }
 }
