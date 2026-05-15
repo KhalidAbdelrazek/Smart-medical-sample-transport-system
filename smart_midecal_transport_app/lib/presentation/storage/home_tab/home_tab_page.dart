@@ -98,18 +98,18 @@ class _DashboardContent extends StatelessWidget {
     return ListView(
       padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 20.h),
       children: [
-        // ── Header (Matching Admin/Doctor Style) ───────────────────────
-        _DashboardHeader(
-          employeeName: state.employeeName,
-          shift: state.currentShift,
-          theme: theme,
-        ),
-        SizedBox(height: 24.h),
+        // // ── Header (Matching Admin/Doctor Style) ───────────────────────
+        // _DashboardHeader(
+        //   employeeName: state.employeeName,
+        //   shift: state.currentShift,
+        //   theme: theme,
+        // ),
+        // SizedBox(height: 24.h),
 
         // ── Activity Cards Section ─────────────────────────────────────
         _SectionLabel(
           icon: Icons.bar_chart_rounded,
-          title: 'Storage Activity',
+          title: 'employee.storage_activity'.tr(),
           color: const Color(0xFF10B981),
           theme: theme,
         ),
@@ -126,25 +126,25 @@ class _DashboardContent extends StatelessWidget {
             StatsCard(
               icon: Icons.analytics_rounded,
               color: AppColors.info,
-              label: 'total actions'.tr(),
+              label: 'employee.total_actions'.tr(),
               value: state.totalactions.toString(),
             ),
             StatsCard(
               icon: Icons.local_shipping_rounded,
               color: AppColors.success,
-              label: 'cars dispatched'.tr(),
+              label: 'employee.cars_dispatched'.tr(),
               value: state.cardispatch.toString(),
             ),
             StatsCard(
               icon: Icons.add_box_rounded,
               color: const Color(0xFF10B981),
-              label: 'sample added to car'.tr(),
+              label: 'employee.sample_added_to_car'.tr(),
               value: state.sampleaddedtocar.toString(),
             ),
             StatsCard(
               icon: Icons.indeterminate_check_box_rounded,
               color: AppColors.warning,
-              label: 'sample removed from car'.tr(),
+              label: 'employee.sample_removed_from_car'.tr(),
               value: state.sampleremovedfromcar.toString(),
             ),
           ],
@@ -157,7 +157,7 @@ class _DashboardContent extends StatelessWidget {
               child: StatsCard(
                 icon: Icons.sync_alt_rounded,
                 color: const Color(0xFF8B5CF6),
-                label: 'transport request update'.tr(),
+                label: 'employee.transport_request_update'.tr(),
                 value: state.transportrequestupdate.toString(),
               ),
             ),
@@ -166,7 +166,7 @@ class _DashboardContent extends StatelessWidget {
               child: StatsCard(
                 icon: Icons.more_horiz_rounded,
                 color: AppColors.labelColor,
-                label: 'other'.tr(),
+                label: 'employee.other'.tr(),
                 value: state.other.toString(),
               ),
             ),
@@ -184,32 +184,32 @@ class _DashboardContent extends StatelessWidget {
         SizedBox(height: 14.h),
 
         DonutChartSection(
-          title: 'Action Breakdown',
-          centerLabel: 'Actions',
+          title: 'employee.action_breakdown'.tr(),
+          centerLabel: 'employee.actions'.tr(),
           total: state.totalactions,
           segments: [
             if (state.cardispatch > 0)
               ChartSegment(
-                label: 'Dispatch',
+                label: 'employee.dispatch'.tr(),
                 value: state.cardispatch,
                 percentage: (state.cardispatch / state.totalactions * 100),
               ),
             if (state.sampleaddedtocar > 0)
               ChartSegment(
-                label: 'Added',
+                label: 'employee.added'.tr(),
                 value: state.sampleaddedtocar,
                 percentage: (state.sampleaddedtocar / state.totalactions * 100),
               ),
             if (state.sampleremovedfromcar > 0)
               ChartSegment(
-                label: 'Removed',
+                label: 'employee.removed'.tr(),
                 value: state.sampleremovedfromcar,
                 percentage:
                     (state.sampleremovedfromcar / state.totalactions * 100),
               ),
             if (state.transportrequestupdate > 0)
               ChartSegment(
-                label: 'Updates',
+                label: 'employee.updates'.tr(),
                 value: state.transportrequestupdate,
                 percentage:
                     (state.transportrequestupdate / state.totalactions * 100),
