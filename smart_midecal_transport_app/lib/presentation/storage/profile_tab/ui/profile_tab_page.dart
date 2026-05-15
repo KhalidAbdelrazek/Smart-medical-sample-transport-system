@@ -54,7 +54,7 @@ class _ProfileTabPageState extends State<ProfileTabPage>
             Navigator.pushNamedAndRemoveUntil(
               context,
               RouteNames.register,
-              (route) => false,
+              (routes) => false,
             );
           }
         },
