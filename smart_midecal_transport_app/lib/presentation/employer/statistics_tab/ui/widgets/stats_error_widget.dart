@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:smart_midecal_transport_app/core/theme/color.dart';
@@ -85,7 +86,7 @@ class StatsErrorWidget extends StatelessWidget {
                 child: ElevatedButton.icon(
                   onPressed: onRetry,
                   icon: const Icon(Icons.refresh_rounded, size: 18),
-                  label: const Text('Try Again'),
+                  label: Text('extra.try_again'.tr()),
                 ),
               ),
 
@@ -96,7 +97,7 @@ class StatsErrorWidget extends StatelessWidget {
                 child: ElevatedButton.icon(
                   onPressed: onLogout,
                   icon: const Icon(Icons.logout_rounded, size: 18),
-                  label: const Text('Login Again'),
+                  label: Text('extra.login_again'.tr()),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: AppColors.warning,
                   ),
@@ -105,7 +106,7 @@ class StatsErrorWidget extends StatelessWidget {
               SizedBox(height: 12.h),
               TextButton(
                 onPressed: onRetry,
-                child: const Text('Retry'),
+                child: Text('my_requests.retry'.tr()),
               ),
             ],
           ],
