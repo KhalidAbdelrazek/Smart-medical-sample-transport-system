@@ -78,10 +78,11 @@ class ConfirmReturnHandoffSerializer(serializers.Serializer):
     """Doctor confirms return handoff for explicit sample codes."""
     sample_codes = serializers.ListField(
         child=serializers.CharField(),
-        required=True,
-        allow_empty=False,
+        required=False,
+        default=[],
+        allow_empty=True,
         help_text=(
-            "Required list of sample codes to hand off now. "
+            "Optional list of sample codes to hand off now. "
             "Endpoint loads only eligible samples from this list."
         ),
     )
@@ -96,8 +97,6 @@ class ConfirmReturnHandoffSerializer(serializers.Serializer):
             if code not in seen:
                 seen.add(code)
                 normalized.append(code)
-        if not normalized:
-            raise serializers.ValidationError("At least one valid sample code is required.")
         return normalized
 
 

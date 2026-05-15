@@ -997,8 +997,6 @@ def confirm_return_handoff(doctor, sample_codes):
             str(code).strip() for code in sample_codes if str(code).strip()
         )
     )
-    if not sample_codes:
-        raise ValidationError("At least one valid sample code is required.")
 
     # Find the delivery car currently at the doctor's room
     active_delivery = TransportRequest.objects.filter(
