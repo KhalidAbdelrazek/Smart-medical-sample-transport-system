@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:dio/dio.dart';
 import 'package:either_dart/either.dart';
@@ -42,7 +43,7 @@ class NotificationDsImpl extends NotificationDs{
         // 1. Check for specific Token Expiration / Invalid Token
         if (returnedCarsResponseDm.errors?.code == "token_not_valid") {
           return Left(
-            ServerError(errorMessage: "Session expired. Please login again."),
+            ServerError(errorMessage: 'extra.session_expired'.tr()),
           );
         }
 
@@ -58,7 +59,7 @@ class NotificationDsImpl extends NotificationDs{
           ServerError(errorMessage: returnedCarsResponseDm.message?.toString() ?? "Server Error"),
         );
       } else {
-        return Left(NetworkError(errorMessage: "No Internet Connection"));
+        return Left(NetworkError(errorMessage: 'extra.no_internet_lower'.tr()));
       }
     } catch (e) {
       return Left(
@@ -95,7 +96,7 @@ class NotificationDsImpl extends NotificationDs{
         // 1. Check for specific Token Expiration / Invalid Token
         if (confirmCarReturnDm.errors?.code == "token_not_valid") {
           return Left(
-            ServerError(errorMessage: "Session expired. Please login again."),
+            ServerError(errorMessage: 'extra.session_expired'.tr()),
           );
         }
 
@@ -110,7 +111,7 @@ class NotificationDsImpl extends NotificationDs{
           ServerError(errorMessage: confirmCarReturnDm.message?.toString() ?? "Server Error"),
         );
       } else {
-        return Left(NetworkError(errorMessage: "No Internet Connection"));
+        return Left(NetworkError(errorMessage: 'extra.no_internet_lower'.tr()));
       }
     } catch (e) {
       return Left(
