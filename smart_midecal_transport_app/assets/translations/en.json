@@ -20,7 +20,7 @@
   },
   "sign_in": {
     "admin_portal_description": "Sign in to manage the system",
-    "admin_portal": "بوابة الادارة",
+    "admin_portal": "Admin Portal",
     "switch_to_admin_login": "Switch to Admin Login",
     "switch_to_employee_login": "Switch to Employee Login",
     "app_title": "Smart Medical Transport",
