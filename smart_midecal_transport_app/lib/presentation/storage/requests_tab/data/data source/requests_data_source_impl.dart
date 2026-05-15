@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:dio/dio.dart';
 import 'package:either_dart/either.dart';
@@ -46,7 +47,7 @@ class RequestsDataSourceImpl implements RequestsDataSource {
           ),
         );
       } else {
-        return Left(NetworkError(errorMessage: "Network Error"));
+        return Left(NetworkError(errorMessage: 'errors.network_error'.tr()));
       }
     } catch (e) {
       return Left(ServerError(errorMessage: e.toString()));
@@ -86,7 +87,7 @@ class RequestsDataSourceImpl implements RequestsDataSource {
           ),
         );
       } else {
-        return Left(NetworkError(errorMessage: "Network Error"));
+        return Left(NetworkError(errorMessage: 'errors.network_error'.tr()));
       }
     } catch (e) {
       return Left(ServerError(errorMessage: e.toString()));
@@ -120,7 +121,7 @@ class RequestsDataSourceImpl implements RequestsDataSource {
           ServerError(errorMessage: dispatchCarResponseDm.errors.toString()),
         );
       } else {
-        return Left(NetworkError(errorMessage: "Network Error"));
+        return Left(NetworkError(errorMessage: 'errors.network_error'.tr()));
       }
     } catch (e) {
       return Left(ServerError(errorMessage: e.toString()));
@@ -153,7 +154,7 @@ class RequestsDataSourceImpl implements RequestsDataSource {
             : 'Failed to remove sample from car';
         return Left(ServerError(errorMessage: errorMsg));
       } else {
-        return Left(NetworkError(errorMessage: "Network Error"));
+        return Left(NetworkError(errorMessage: 'errors.network_error'.tr()));
       }
     } catch (e) {
       return Left(ServerError(errorMessage: e.toString()));

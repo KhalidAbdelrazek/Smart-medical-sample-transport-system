@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:equatable/equatable.dart';
 import 'package:injectable/injectable.dart';
@@ -31,7 +32,7 @@ class ReturnApprovalCubit extends Cubit<ReturnApprovalState> {
       // For now, just emit success
       emit(
         ReturnApprovalActionSuccess(
-          message: 'Return requests approved successfully',
+          message: 'extra.return_approved'.tr(),
           returnRequests: [], // TODO: Return updated list
         ),
       );
@@ -46,7 +47,7 @@ class ReturnApprovalCubit extends Cubit<ReturnApprovalState> {
       // For now, just emit success
       emit(
         ReturnApprovalActionSuccess(
-          message: 'Return requests rejected successfully',
+          message: 'extra.return_rejected'.tr(),
           returnRequests: [], // TODO: Return updated list
         ),
       );
