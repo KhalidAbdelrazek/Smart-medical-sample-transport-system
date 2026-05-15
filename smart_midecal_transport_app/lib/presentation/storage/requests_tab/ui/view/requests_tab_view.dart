@@ -38,27 +38,27 @@ class _RequestsTabViewState extends State<RequestsTabView>
     return Column(
       children: [
         // Tab Bar
-        Container(
-          color: theme.cardColor,
-          child: TabBar(
-            controller: _tabController,
-            indicatorColor: isDark
-                ? AppColors.primaryDark
-                : AppColors.primaryLight,
-            labelColor: isDark ? AppColors.primaryDark : AppColors.primaryLight,
-            unselectedLabelColor: AppColors.labelColor,
-            tabs: [
-              Tab(
-                text: 'requests.transport_requests'.tr(),
-                icon: Icon(Icons.local_shipping_outlined, size: 20.sp),
-              ),
-              Tab(
-                text: 'requests.return_approval'.tr(),
-                icon: Icon(Icons.assignment_return_outlined, size: 20.sp),
-              ),
-            ],
-          ),
-        ),
+        // Container(
+        //   color: theme.cardColor,
+        //   child: TabBar(
+        //     controller: _tabController,
+        //     indicatorColor: isDark
+        //         ? AppColors.primaryDark
+        //         : AppColors.primaryLight,
+        //     labelColor: isDark ? AppColors.primaryDark : AppColors.primaryLight,
+        //     unselectedLabelColor: AppColors.labelColor,
+        //     tabs: [
+        //       Tab(
+        //         text: 'requests.transport_requests'.tr(),
+        //         icon: Icon(Icons.local_shipping_outlined, size: 20.sp),
+        //       ),
+        //       // Tab(
+        //       //   text: 'requests.return_approval'.tr(),
+        //       //   icon: Icon(Icons.assignment_return_outlined, size: 20.sp),
+        //       // ),
+        //     ],
+        //   ),
+        // ),
 
         // Tab Bar View
         Expanded(
