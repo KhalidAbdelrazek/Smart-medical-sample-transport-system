@@ -84,7 +84,7 @@ class ReturnRequestCard extends StatelessWidget {
         child: Opacity(opacity: value, child: child),
       ),
       child: Container(
-        margin: EdgeInsets.only(bottom: 14.h),
+        margin: EdgeInsetsDirectional.only(bottom: 14.h),
         decoration: BoxDecoration(
           color: theme.cardColor,
           borderRadius: BorderRadius.circular(18.r),
