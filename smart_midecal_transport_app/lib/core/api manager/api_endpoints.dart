@@ -16,8 +16,8 @@ abstract class ApiEndPoints {
       '${ApiConstants.baseUrl}api/analytics/dashboard/';
 
   // ── Restrictions ──────────────────────────────────────────────────────────
-  static String restrictionsStatus (String type) =>
-      '${ApiConstants.baseUrl}api/restrictions/status/$type/';
+  static String get restrictionsStatus =>
+      '${ApiConstants.baseUrl}api/restrictions/status/';
   static const restrictDoctorSamples =
       '${ApiConstants.baseUrl}api/restrictions/restrict-doctor-samples/';
   static const restrictStorageSamples =
@@ -45,6 +45,6 @@ abstract class ApiEndPoints {
   static String confirmReturnedCar =
       '${ApiConstants.baseUrl}/api/transport/confirm-car-return/';
 
- static String confirmReturnHandoff() =>
-      '${ApiConstants.baseUrl}/api/transport/confirm-return-handoff/';     
+  static String confirmReturnHandoff() =>
+      '${ApiConstants.baseUrl}/api/transport/confirm-return-handoff/';
 }

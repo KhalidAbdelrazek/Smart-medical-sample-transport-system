@@ -1,4 +1,3 @@
-import 'package:either_dart/either.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:injectable/injectable.dart';
 import 'package:smart_midecal_transport_app/core/error/failures.dart';
@@ -19,48 +18,76 @@ class RestrictionsCubit extends Cubit<RestrictionsState> {
     await _fetchAll();
   }
 
-  Future<void> refresh() async {
-    await _fetchAll();
-  }
+  Future<void> refresh() async => _fetchAll();
 
   Future<void> _fetchAll() async {
-    final results = await Future.wait([
-      _repository.getRestrictionsStatus(type: 'doctor'),
-      _repository.getRestrictionsStatus(type: 'storage'),
-    ]);
+    List<DoctorsSamplesEntity> doctors = [];
+    List<StorageSamplesEntity> storageList = [];
+    bool carRestricted = false;
 
-    final doctorResult = results[0];
-    final storageResult = results[1];
-
-    List<PersonEntity>? doctors;
-    List<PersonEntity>? storage;
-
-    doctorResult.fold(
-      (failure) {
-        emit(RestrictionsError(failure.errorMessage, isNetwork: failure is NetworkError));
-      },
-      (list) => doctors = list,
+    // Sequential — prevents SQLite "database is locked" on the backend
+    final doctorResult = await _repository.getRestrictionsStatus(
+      type: 'doctor',
     );
-
-    if (state is RestrictionsError) return;
-
-    storageResult.fold(
-      (failure) {
-        emit(RestrictionsError(failure.errorMessage, isNetwork: failure is NetworkError));
+    final failed1 = doctorResult.fold(
+      (f) {
+        emit(RestrictionsError(f.errorMessage, isNetwork: f is NetworkError));
+        return true;
       },
-      (list) => storage = list,
+      (entity) {
+        doctors =
+            entity.data?.doctorSamples
+                ?.whereType<DoctorsSamplesEntity>()
+                .toList() ??
+            [];
+        return false;
+      },
     );
+    if (failed1) return;
 
-    if (state is RestrictionsError) return;
+    final storageResult = await _repository.getRestrictionsStatus(
+      type: 'storage',
+    );
+    final failed2 = storageResult.fold(
+      (f) {
+        emit(RestrictionsError(f.errorMessage, isNetwork: f is NetworkError));
+        return true;
+      },
+      (entity) {
+        storageList =
+            entity.data?.storageSamples
+                ?.whereType<StorageSamplesEntity>()
+                .toList() ??
+            [];
+        return false;
+      },
+    );
+    if (failed2) return;
 
-    if (doctors != null && storage != null) {
-      emit(RestrictionsLoaded(
-        doctors: doctors!,
-        storageEmployees: storage!,
-      ));
-    }
+    final carResult = await _repository.getRestrictionsStatus(type: 'car');
+    final failed3 = carResult.fold(
+      (f) {
+        emit(RestrictionsError(f.errorMessage, isNetwork: f is NetworkError));
+        return true;
+      },
+      (entity) {
+        carRestricted = entity.data?.transportCar?.isRestricted ?? false;
+        return false;
+      },
+    );
+    if (failed3) return;
+
+    final prev = _loaded;
+    emit(
+      RestrictionsLoaded(
+        doctors: doctors,
+        storageEmployees: storageList,
+        carRestricted: carRestricted,
+        isDoctorExpanded: prev?.isDoctorExpanded ?? false,
+        isStorageExpanded: prev?.isStorageExpanded ?? false,
+      ),
+    );
   }
-
   // ─── Global toggles ────────────────────────────────────────────────────
 
   Future<void> toggleDoctorGlobal(bool value) async {
@@ -68,20 +95,26 @@ class RestrictionsCubit extends Cubit<RestrictionsState> {
     if (s == null || s.isDoctorLoading) return;
 
     emit(s.copyWith(isDoctorLoading: true));
-    final targetType = value ? RestrictionType.globalRestrict : RestrictionType.allUnrestrict;
+    final targetType = value
+        ? RestrictionType.globalRestrict
+        : RestrictionType.allUnrestrict;
 
     final result = await _repository.restrictDoctorSamples(type: targetType);
-    result.fold(
-      (f) => emit(s.copyWith(isDoctorLoading: false)),
-      (_) async {
-        // Refresh full list to get updated status
-        final refreshResult = await _repository.getRestrictionsStatus(type: 'doctor');
-        refreshResult.fold(
-          (f) => emit(s.copyWith(isDoctorLoading: false)),
-          (list) => emit(s.copyWith(doctors: list, isDoctorLoading: false)),
-        );
-      },
-    );
+    result.fold((f) => emit(s.copyWith(isDoctorLoading: false)), (_) async {
+      final refreshResult = await _repository.getRestrictionsStatus(
+        type: 'doctor',
+      );
+      refreshResult.fold((f) => emit(s.copyWith(isDoctorLoading: false)), (
+        entity,
+      ) {
+        final updated =
+            entity.data?.doctorSamples
+                ?.whereType<DoctorsSamplesEntity>()
+                .toList() ??
+            s.doctors;
+        emit(s.copyWith(doctors: updated, isDoctorLoading: false));
+      });
+    });
   }
 
   Future<void> toggleStorageGlobal(bool value) async {
@@ -89,19 +122,26 @@ class RestrictionsCubit extends Cubit<RestrictionsState> {
     if (s == null || s.isStorageLoading) return;
 
     emit(s.copyWith(isStorageLoading: true));
-    final targetType = value ? RestrictionType.globalRestrict : RestrictionType.allUnrestrict;
+    final targetType = value
+        ? RestrictionType.globalRestrict
+        : RestrictionType.allUnrestrict;
 
     final result = await _repository.restrictStorageSamples(type: targetType);
-    result.fold(
-      (f) => emit(s.copyWith(isStorageLoading: false)),
-      (_) async {
-        final refreshResult = await _repository.getRestrictionsStatus(type: 'storage');
-        refreshResult.fold(
-          (f) => emit(s.copyWith(isStorageLoading: false)),
-          (list) => emit(s.copyWith(storageEmployees: list, isStorageLoading: false)),
-        );
-      },
-    );
+    result.fold((f) => emit(s.copyWith(isStorageLoading: false)), (_) async {
+      final refreshResult = await _repository.getRestrictionsStatus(
+        type: 'storage',
+      );
+      refreshResult.fold((f) => emit(s.copyWith(isStorageLoading: false)), (
+        entity,
+      ) {
+        final updated =
+            entity.data?.storageSamples
+                ?.whereType<StorageSamplesEntity>()
+                .toList() ??
+            s.storageEmployees;
+        emit(s.copyWith(storageEmployees: updated, isStorageLoading: false));
+      });
+    });
   }
 
   Future<void> toggleCarRestriction(bool value, {String reason = ''}) async {
@@ -109,7 +149,10 @@ class RestrictionsCubit extends Cubit<RestrictionsState> {
     if (s == null || s.isCarLoading) return;
 
     emit(s.copyWith(isCarLoading: true));
-    final result = await _repository.restrictTransportCar(status: value, reason: reason);
+    final result = await _repository.restrictTransportCar(
+      status: value,
+      reason: reason,
+    );
     result.fold(
       (f) => emit(s.copyWith(isCarLoading: false)),
       (_) => emit(s.copyWith(carRestricted: value, isCarLoading: false)),
@@ -123,23 +166,27 @@ class RestrictionsCubit extends Cubit<RestrictionsState> {
     if (s == null || s.isDoctorLoading) return;
 
     emit(s.copyWith(isDoctorLoading: true));
-    final targetType = value ? RestrictionType.partialRestrict : RestrictionType.partialUnrestrict;
+    final targetType = value
+        ? RestrictionType.partialRestrict
+        : RestrictionType.partialUnrestrict;
 
     final result = await _repository.restrictDoctorSamples(
       type: targetType,
       userIds: [id],
     );
-
-    result.fold(
-      (f) => emit(s.copyWith(isDoctorLoading: false)),
-      (_) {
-        final updated = s.doctors.map((d) {
-          if (d.id == id) return d.copyWith(isRestricted: value);
-          return d;
-        }).toList();
-        emit(s.copyWith(doctors: updated, isDoctorLoading: false));
-      },
-    );
+    result.fold((f) => emit(s.copyWith(isDoctorLoading: false)), (_) {
+      final updated = s.doctors.map((d) {
+        if (d.id == id) {
+          return DoctorsSamplesEntity(
+            id: d.id,
+            name: d.name,
+            isRestricted: value,
+          );
+        }
+        return d;
+      }).toList();
+      emit(s.copyWith(doctors: updated, isDoctorLoading: false));
+    });
   }
 
   Future<void> toggleIndividualStorage(String id, bool value) async {
@@ -147,23 +194,27 @@ class RestrictionsCubit extends Cubit<RestrictionsState> {
     if (s == null || s.isStorageLoading) return;
 
     emit(s.copyWith(isStorageLoading: true));
-    final targetType = value ? RestrictionType.partialRestrict : RestrictionType.partialUnrestrict;
+    final targetType = value
+        ? RestrictionType.partialRestrict
+        : RestrictionType.partialUnrestrict;
 
     final result = await _repository.restrictStorageSamples(
       type: targetType,
       userIds: [id],
     );
-
-    result.fold(
-      (f) => emit(s.copyWith(isStorageLoading: false)),
-      (_) {
-        final updated = s.storageEmployees.map((e) {
-          if (e.id == id) return e.copyWith(isRestricted: value);
-          return e;
-        }).toList();
-        emit(s.copyWith(storageEmployees: updated, isStorageLoading: false));
-      },
-    );
+    result.fold((f) => emit(s.copyWith(isStorageLoading: false)), (_) {
+      final updated = s.storageEmployees.map((e) {
+        if (e.id == id) {
+          return StorageSamplesEntity(
+            id: e.id,
+            name: e.name,
+            isRestricted: value,
+          );
+        }
+        return e;
+      }).toList();
+      emit(s.copyWith(storageEmployees: updated, isStorageLoading: false));
+    });
   }
 
   // ─── UI Helpers ────────────────────────────────────────────────────────

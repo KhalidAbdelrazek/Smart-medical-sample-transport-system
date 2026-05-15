@@ -13,15 +13,13 @@ class RestrictionsError extends RestrictionsState {
 }
 
 class RestrictionsLoaded extends RestrictionsState {
-  final List<PersonEntity> doctors;
-  final List<PersonEntity> storageEmployees;
+  final List<DoctorsSamplesEntity> doctors;
+  final List<StorageSamplesEntity> storageEmployees;
   final bool carRestricted;
 
-  // Section Expansion
   final bool isDoctorExpanded;
   final bool isStorageExpanded;
 
-  // Loading flags for individual sections
   final bool isDoctorLoading;
   final bool isStorageLoading;
   final bool isCarLoading;
@@ -37,16 +35,16 @@ class RestrictionsLoaded extends RestrictionsState {
     this.isCarLoading = false,
   });
 
-  // Computed Properties for Global Toggles
   bool get isAllDoctorsRestricted =>
-      doctors.isNotEmpty && doctors.every((d) => d.isRestricted);
+      doctors.isNotEmpty && doctors.every((d) => d.isRestricted == true);
 
   bool get isAllStorageRestricted =>
-      storageEmployees.isNotEmpty && storageEmployees.every((e) => e.isRestricted);
+      storageEmployees.isNotEmpty &&
+      storageEmployees.every((e) => e.isRestricted == true);
 
   RestrictionsLoaded copyWith({
-    List<PersonEntity>? doctors,
-    List<PersonEntity>? storageEmployees,
+    List<DoctorsSamplesEntity>? doctors,
+    List<StorageSamplesEntity>? storageEmployees,
     bool? carRestricted,
     bool? isDoctorExpanded,
     bool? isStorageExpanded,
