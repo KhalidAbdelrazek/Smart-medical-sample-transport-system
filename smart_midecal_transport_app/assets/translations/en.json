@@ -19,6 +19,8 @@
     "onboarding_5_button": "Start Now"
   },
   "sign_in": {
+    "switch_to_admin_login": "Switch to Admin Login",
+    "switch_to_employee_login": "Switch to Employee Login",
     "app_title": "Smart Medical Transport",
     "login_failed": "Login Failed",
     "something_went_wrong": "Something went wrong, Please try again later",
@@ -37,6 +39,8 @@
   "errors": {
     "server_error": "Server error",
     "invalid_credential": "Invalid email or password.",
+    "network_error": "Network error",
+    "unknown_error": "An error occurred while logging in",
     "email_required": "Email is required",
     "email_invalid": "Invalid email format",
     "password_required": "Password is required",
