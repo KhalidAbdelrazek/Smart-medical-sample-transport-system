@@ -61,6 +61,7 @@
     "settings": "Settings"
   },
   "employee": {
+    "total" : "Total",
     "storage_activity": "Storage Activity",
     "total_actions": "Total Actions",
     "cars_dispatched": "Cars Dispatched",
