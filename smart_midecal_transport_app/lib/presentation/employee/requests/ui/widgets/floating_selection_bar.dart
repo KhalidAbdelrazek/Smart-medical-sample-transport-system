@@ -1,4 +1,5 @@
-﻿import 'package:flutter/material.dart';
+﻿import 'package:easy_localization/easy_localization.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:smart_midecal_transport_app/core/theme/color.dart';
 
@@ -74,8 +75,7 @@ class FloatingSelectionBar extends StatelessWidget {
                         fontSize: 15.sp,
                       ),
                     ),
-                    Text(
-                      'Tap "Request" to submit',
+                    Text('extra.tap_request'.tr(),
                       style: TextStyle(
                         color: Colors.white.withValues(alpha: 0.7),
                         fontSize: 11.sp,
@@ -108,8 +108,7 @@ class FloatingSelectionBar extends StatelessWidget {
                             color: AppColors.buttonColor,
                           ),
                         )
-                      : Text(
-                          'Request',
+                      : Text('extra.request'.tr(),
                           style: TextStyle(
                             fontWeight: FontWeight.bold,
                             fontSize: 14.sp,
