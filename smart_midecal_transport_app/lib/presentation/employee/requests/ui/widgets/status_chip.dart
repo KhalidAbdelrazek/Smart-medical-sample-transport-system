@@ -1,4 +1,5 @@
-﻿import 'package:flutter/material.dart';
+﻿import 'package:easy_localization/easy_localization.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:smart_midecal_transport_app/core/theme/color.dart';
 
@@ -17,6 +18,10 @@ class StatusChip extends StatelessWidget {
       'OUT_FOR_DELIVERY' => AppColors.success,
       _ => Colors.grey,
     };
+    // translate statused
+    String translatedStatus = status.toLowerCase() == "in_storage" ? "in_storage".tr() : 
+    status.toLowerCase() == "requested" ? "requested".tr() : 
+    status.toLowerCase() == "out_for_delivery" ? "out_for_delivery".tr() : "";
 
     return Container(
       padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 3.h),
