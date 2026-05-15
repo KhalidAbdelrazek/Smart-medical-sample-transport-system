@@ -91,11 +91,15 @@ class _EmployeeLoginScreenState extends State<EmployeeLoginScreen>
             DialogUtils.showMessage(
               context: context,
               title: "sign_in.login_failed".tr(),
-              message: state.message,
+              message: state.message == 'Invalid email or password.'
+                  ? "errors.invalid_credential".tr()
+                  : state.message == 'Network error'
+                  ? "errors.network_error".tr()
+                  : "errors.unknown_error".tr(),
               posActionName: "sign_in.ok".tr(),
-              posAction: () {
-                Navigator.pop(context);
-              },
+              // posAction: () {
+              //   Navigator.pop(context);
+              // },
             );
           }
         },

@@ -18,8 +18,12 @@
     "onboarding_5_button": "ابدأ الآن"
   },
   "sign_in": {
+    "switch_to_admin_login": "الانتقال إلى تسجيل دخول المدير",
+    "switch_to_employee_login": "الانتقال إلى تسجيل دخول الموظف",
     "app_title": "النقل الطبي الذكي",
     "subtitle": "تسجيل الدخول إلى حسابك",
+    "login_failed": "فشل تسجيل الدخول",
+    "ok": "حسنا",
     "email": "البريد الإلكتروني",
     "password": "كلمة المرور",
     "remember_me": "تذكرني",
@@ -31,6 +35,10 @@
     }
   },
   "errors": {
+    "network_error": "خطأ في الشبكة",
+    "unknown_error": "حدث خطأ أثناء تسجيل الدخول",
+    "invalid_credential": "البريد الإلكتروني أو كلمة المرور غير صحيحة",
+    "server_error": "خطأ في الخادم",
     "email_required": "البريد الإلكتروني مطلوب",
     "email_invalid": "صيغة البريد الإلكتروني غير صحيحة",
     "password_required": "كلمة المرور مطلوبة",
