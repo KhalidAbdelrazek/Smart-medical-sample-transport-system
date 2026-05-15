@@ -7,6 +7,7 @@
     "explore_button": "Explore Now",
     "finish_button": "Finish",
     "next_button": "Next",
+    "switch_to_admin_login": "Switch to Admin Login",
     "onboarding_1_title": "Revolutionizing Medical Logistics",
     "onboarding_1_description": "Experience a smarter, faster, and safer way to transport medical samples across hospital departments using our autonomous robotic system.",
     "onboarding_2_title": "Safe & Contactless Sample Transport",
@@ -19,7 +20,10 @@
   },
   "sign_in": {
     "app_title": "Smart Medical Transport",
+    "login_failed": "Login Failed",
+    "something_went_wrong": "Something went wrong, Please try again later",
     "subtitle": "Sign in to your account",
+    "ok": "Ok",
     "email": "Email",
     "password": "Password",
     "remember_me": "Remember me",
@@ -31,6 +35,8 @@
     }
   },
   "errors": {
+    "server_error": "Server error",
+    "invalid_credential": "Invalid email or password.",
     "email_required": "Email is required",
     "email_invalid": "Invalid email format",
     "password_required": "Password is required",

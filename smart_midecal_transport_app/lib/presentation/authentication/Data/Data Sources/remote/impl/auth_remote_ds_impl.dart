@@ -39,7 +39,7 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
         }
         return Left(
           ServerError(
-            errorMessage: loginEmployeeResponseDm.message ?? "Server Error",
+            errorMessage: loginEmployeeResponseDm.errors ?? "Server Error",
           ),
         );
       } else {

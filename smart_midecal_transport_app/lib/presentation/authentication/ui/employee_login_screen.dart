@@ -78,12 +78,25 @@ class _EmployeeLoginScreenState extends State<EmployeeLoginScreen>
             } else {
               DialogUtils.showMessage(
                 context: context,
-                message: "Something went wrong, Please try again later",
+                title: "sign_in.login_failed".tr(),
+                message: "sign_in.something_went_wrong".tr(),
+                posActionName: "sign_in.ok".tr(),
+                posAction: () {
+                  Navigator.pop(context);
+                },
               );
             }
           } else if (state is EmployeeLoginError) {
             DialogUtils.hideLoading(context);
-            DialogUtils.showMessage(context: context, message: state.message);
+            DialogUtils.showMessage(
+              context: context,
+              title: "sign_in.login_failed".tr(),
+              message: state.message,
+              posActionName: "sign_in.ok".tr(),
+              posAction: () {
+                Navigator.pop(context);
+              },
+            );
           }
         },
         child: Scaffold(
@@ -180,7 +193,7 @@ class _EmployeeLoginScreenState extends State<EmployeeLoginScreen>
                           context,
                           RouteNames.adminLogin,
                         ),
-                        child: const Text("Switch to Admin Login"),
+                        child: const Text("sign_in.switch_to_admin_login"),
                       ),
                     ],
                   ),

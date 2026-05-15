@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -71,10 +72,21 @@ class _AdminLoginScreenState extends State<AdminLoginScreen>
           } else if (state is AdminLoginSuccess) {
             DialogUtils.hideLoading(context);
             // Navigate to Admin Dashboard (sharing root for now or separate)
-            Navigator.pushReplacementNamed(context, RouteNames.employerMainScreen);
+            Navigator.pushReplacementNamed(
+              context,
+              RouteNames.employerMainScreen,
+            );
           } else if (state is AdminLoginError) {
             DialogUtils.hideLoading(context);
-            DialogUtils.showMessage(context: context, message: state.message);
+            DialogUtils.showMessage(
+              context: context,
+              title: "sign_in.login_failed".tr(),
+              message: state.message ?? "sign_in.something_went_wrong".tr(),
+              posActionName: "sign_in.ok".tr(),
+              posAction: () {
+                Navigator.pop(context);
+              },
+            );
           }
         },
         child: Scaffold(
