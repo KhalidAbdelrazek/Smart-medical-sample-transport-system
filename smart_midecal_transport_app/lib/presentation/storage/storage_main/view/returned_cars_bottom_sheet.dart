@@ -47,7 +47,7 @@ class _ReturnedCarsBottomSheetContent extends StatelessWidget {
               // Drag Handle
               Center(
                 child: Container(
-                  margin: EdgeInsets.only(top: 12.h, bottom: 8.h),
+                  margin: EdgeInsetsDirectional.only(top: 12.h, bottom: 8.h),
                   width: 40.w,
                   height: 4.h,
                   decoration: BoxDecoration(
