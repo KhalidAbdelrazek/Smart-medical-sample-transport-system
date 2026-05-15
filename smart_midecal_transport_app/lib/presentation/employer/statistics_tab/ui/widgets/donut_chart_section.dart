@@ -1,4 +1,5 @@
 import 'package:donut_chart/donut_chart.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:smart_midecal_transport_app/presentation/employer/statistics_tab/ui/cubit/statistics_state.dart';
@@ -74,7 +75,7 @@ class DonutChartSection extends StatelessWidget {
                   borderRadius: BorderRadius.circular(8.r),
                 ),
                 child: Text(
-                  'Total: $total',
+                  '${"employee.total".tr()} : $total',
                   style: TextStyle(
                     color: theme.primaryColor,
                     fontSize: 11.sp,
