@@ -1,4 +1,5 @@
-﻿import 'package:flutter/material.dart';
+﻿import 'package:easy_localization/easy_localization.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:smart_midecal_transport_app/core/di/di.dart';
@@ -73,7 +74,7 @@ class _EmployeeRequestsView extends StatelessWidget {
         else if (state is BloodSampleTokenExpired) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: const Text('Session expired. Please log in again.'),
+              content: Text('my_requests.session_expired'.tr()),
               backgroundColor: AppColors.warning,
               behavior: SnackBarBehavior.floating,
               shape: RoundedRectangleBorder(
@@ -184,7 +185,7 @@ class _EmployeeRequestsView extends StatelessWidget {
   Widget _buildEmptyState(ThemeData theme) {
     return Center(
       child: Padding(
-        padding: EdgeInsets.only(top: 80.h),
+        padding: EdgeInsetsDirectional.only(top: 80.h),
         child: Column(
           children: [
             Icon(
@@ -193,15 +194,13 @@ class _EmployeeRequestsView extends StatelessWidget {
               color: theme.disabledColor.withValues(alpha: 0.4),
             ),
             SizedBox(height: 16.h),
-            Text(
-              'No samples selected',
+            Text('extra.no_samples_selected'.tr(),
               style: theme.textTheme.titleMedium?.copyWith(
                 color: theme.disabledColor,
               ),
             ),
             SizedBox(height: 8.h),
-            Text(
-              'Search for a patient to add samples to your request',
+            Text('extra.search_patient'.tr(),
               textAlign: TextAlign.center,
               style: theme.textTheme.bodyMedium?.copyWith(
                 color: AppColors.labelColor,
