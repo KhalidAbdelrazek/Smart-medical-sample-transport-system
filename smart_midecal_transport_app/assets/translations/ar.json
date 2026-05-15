@@ -18,6 +18,8 @@
     "onboarding_5_button": "ابدأ الآن"
   },
   "sign_in": {
+    "admin_portal_description": "تسجيل الدخول لإدارة النظام",
+    "admin_portal": "بوابة الادارة",
     "switch_to_admin_login": "الانتقال إلى تسجيل دخول المدير",
     "switch_to_employee_login": "الانتقال إلى تسجيل دخول الموظف",
     "app_title": "النقل الطبي الذكي",

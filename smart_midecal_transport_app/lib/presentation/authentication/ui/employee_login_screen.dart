@@ -97,9 +97,6 @@ class _EmployeeLoginScreenState extends State<EmployeeLoginScreen>
                   ? "errors.network_error".tr()
                   : "errors.unknown_error".tr(),
               posActionName: "sign_in.ok".tr(),
-              // posAction: () {
-              //   Navigator.pop(context);
-              // },
             );
           }
         },
@@ -197,7 +194,7 @@ class _EmployeeLoginScreenState extends State<EmployeeLoginScreen>
                           context,
                           RouteNames.adminLogin,
                         ),
-                        child: const Text("sign_in.switch_to_admin_login"),
+                        child: Text("sign_in.switch_to_admin_login".tr()),
                       ),
                     ],
                   ),

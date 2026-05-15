@@ -81,11 +81,12 @@ class _AdminLoginScreenState extends State<AdminLoginScreen>
             DialogUtils.showMessage(
               context: context,
               title: "sign_in.login_failed".tr(),
-              message: state.message ?? "sign_in.something_went_wrong".tr(),
+              message: state.message == 'Invalid email or password.'
+                  ? "errors.invalid_credential".tr()
+                  : state.message == 'Network error'
+                  ? "errors.network_error".tr()
+                  : "errors.unknown_error".tr(),
               posActionName: "sign_in.ok".tr(),
-              posAction: () {
-                Navigator.pop(context);
-              },
             );
           }
         },
@@ -133,7 +134,7 @@ class _AdminLoginScreenState extends State<AdminLoginScreen>
                       ),
                       SizedBox(height: 24.h),
                       Text(
-                        "Admin Portal",
+                        "sign_in.admin_portal".tr(),
                         style: theme.textTheme.displayMedium?.copyWith(
                           fontSize: 26.sp,
                           color: theme.primaryColor,
@@ -142,7 +143,7 @@ class _AdminLoginScreenState extends State<AdminLoginScreen>
                       ),
                       SizedBox(height: 8.h),
                       Text(
-                        "Sign in to manage the system",
+                        "sign_in.admin_portal_description".tr(),
                         style: theme.textTheme.bodyMedium?.copyWith(
                           color: theme.textTheme.bodyMedium?.color?.withOpacity(
                             0.7,
@@ -182,7 +183,12 @@ class _AdminLoginScreenState extends State<AdminLoginScreen>
                           context,
                           RouteNames.register,
                         ),
-                        child: const Text("Switch to Employee Login"),
+                        child: Text(
+                          "sign_in.switch_to_employee_login".tr(),
+                          style: theme.textTheme.bodyMedium?.copyWith(
+                            color: theme.primaryColor,
+                          ),
+                        ),
                       ),
                     ],
                   ),

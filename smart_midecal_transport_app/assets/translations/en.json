@@ -19,6 +19,8 @@
     "onboarding_5_button": "Start Now"
   },
   "sign_in": {
+    "admin_portal_description": "Sign in to manage the system",
+    "admin_portal": "بوابة الادارة",
     "switch_to_admin_login": "Switch to Admin Login",
     "switch_to_employee_login": "Switch to Employee Login",
     "app_title": "Smart Medical Transport",
