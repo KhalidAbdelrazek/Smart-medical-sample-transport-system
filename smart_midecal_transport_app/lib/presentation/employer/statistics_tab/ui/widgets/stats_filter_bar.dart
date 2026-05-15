@@ -27,7 +27,7 @@ class StatsFilterBar extends StatelessWidget {
         children: filterLabels.entries.map((entry) {
           final isSelected = entry.key == selectedFilter;
           return Padding(
-            padding: EdgeInsets.only(right: 8.w),
+            padding: EdgeInsetsDirectional.only(end: 8.w),
             child: _FilterChip(
               label: entry.value,
               isSelected: isSelected,

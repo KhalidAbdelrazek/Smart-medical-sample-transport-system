@@ -168,7 +168,7 @@ class DonutChartSkeleton extends StatelessWidget {
                   children: List.generate(
                     4,
                     (i) => Padding(
-                      padding: EdgeInsets.only(bottom: 10.h),
+                      padding: EdgeInsetsDirectional.only(bottom: 10.h),
                       child: const LegendSkeleton(),
                     ),
                   ),
