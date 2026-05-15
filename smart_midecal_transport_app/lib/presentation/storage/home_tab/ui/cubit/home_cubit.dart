@@ -41,8 +41,8 @@ class HomeCubit extends Cubit<HomeState> {
             role: data.role,
 
             // UI-only (can later come from profile module)
-            employeeName: "Ahmed Hassan",
-            currentShift: "Morning (7:00 - 15:00)",
+            // employeeName: "Ahmed Hassan",
+            // currentShift: "Morning (7:00 - 15:00)",
           ),
         ),
       );

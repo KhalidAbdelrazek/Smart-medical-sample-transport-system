@@ -1,4 +1,5 @@
 import 'dart:math';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 
 class AdvancedDonutChart extends StatefulWidget {
@@ -18,7 +19,7 @@ class _AdvancedDonutChartState extends State<AdvancedDonutChart> {
     final total = widget.data.values.fold(0.0, (a, b) => a + b);
 
     if (total == 0) {
-      return const Center(child: Text("No data available"));
+      return Center(child: Text("employee.no_data".tr()));
     }
 
     return SizedBox(
@@ -36,7 +37,9 @@ class _AdvancedDonutChartState extends State<AdvancedDonutChart> {
             child: CustomPaint(
               size: const Size(200, 200),
               painter: _DonutPainter(
-                data: widget.data.map((key, value) => MapEntry(key, value.toDouble())),
+                data: widget.data.map(
+                  (key, value) => MapEntry(key, value.toDouble()),
+                ),
                 selectedIndex: selectedIndex,
               ),
             ),
@@ -51,7 +54,10 @@ class _AdvancedDonutChartState extends State<AdvancedDonutChart> {
               Text(
                 selectedIndex == null
                     ? total.toInt().toString()
-                    : widget.data.values.elementAt(selectedIndex!).toInt().toString(),
+                    : widget.data.values
+                          .elementAt(selectedIndex!)
+                          .toInt()
+                          .toString(),
                 style: const TextStyle(fontWeight: FontWeight.bold),
               ),
             ],
@@ -61,7 +67,6 @@ class _AdvancedDonutChartState extends State<AdvancedDonutChart> {
     );
   }
 }
-
 
 class _DonutPainter extends CustomPainter {
   final Map<String, double> data;
@@ -81,12 +86,7 @@ class _DonutPainter extends CustomPainter {
 
     double startAngle = -pi / 2;
 
-    final colors = [
-      Colors.green,
-      Colors.orange,
-      Colors.blue,
-      Colors.red,
-    ];
+    final colors = [Colors.green, Colors.orange, Colors.blue, Colors.red];
 
     int i = 0;
 
@@ -132,7 +132,7 @@ class _DonutPainter extends CustomPainter {
           text: "$label\n${value.toInt()} ($percent%)",
           style: const TextStyle(color: Colors.black, fontSize: 10),
         ),
-        textDirection: TextDirection.ltr,
+        // textDirection: TextDirection.ltr,
       );
 
       textPainter.layout();

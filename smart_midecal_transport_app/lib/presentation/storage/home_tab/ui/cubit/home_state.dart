@@ -17,8 +17,8 @@ class HomeLoaded extends HomeState {
   final String role;
 
   /// UI-only fields (not from backend entity)
-  final String employeeName;
-  final String currentShift;
+  // final String employeeName;
+  // final String currentShift;
 
   HomeLoaded({
     required this.totalactions,
@@ -29,8 +29,8 @@ class HomeLoaded extends HomeState {
     required this.other,
     required this.period,
     required this.role,
-    required this.employeeName,
-    required this.currentShift,
+    // required this.employeeName,
+    // required this.currentShift,
   });
 }
 
