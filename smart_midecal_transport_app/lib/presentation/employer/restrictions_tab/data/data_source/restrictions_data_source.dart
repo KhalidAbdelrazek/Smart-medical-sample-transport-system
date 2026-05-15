@@ -3,7 +3,7 @@ import 'package:smart_midecal_transport_app/core/error/failures.dart';
 import 'package:smart_midecal_transport_app/presentation/employer/restrictions_tab/domain/entities/restrictions_entity.dart';
 
 abstract class RestrictionsDataSource {
-  Future<Either<Failures, List<PersonEntity>>> getRestrictionsStatus({
+  Future<Either<Failures, RestrictionsEntity>> getRestrictionsStatus({
     required String type,
   });
 

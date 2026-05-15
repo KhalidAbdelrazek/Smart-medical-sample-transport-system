@@ -54,7 +54,7 @@ class RestrictionsDataSourceImpl implements RestrictionsDataSource {
     }
     try {
       final response = await apiManager.getData(
-        path: '${ApiEndPoints.restrictionsStatus}?type=$type',
+        path: "${ApiEndPoints.restrictionsStatus}?query=$type",
         options: _authOptions(),
       );
       print(response.data);

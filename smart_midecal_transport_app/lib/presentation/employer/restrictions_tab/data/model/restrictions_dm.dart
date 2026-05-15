@@ -1,26 +1,26 @@
 import 'package:smart_midecal_transport_app/presentation/employer/restrictions_tab/domain/entities/restrictions_entity.dart';
 
-class PersonModel extends PersonEntity {
-  PersonModel({
-    super.id,
-    super.name,
-    super.email,
-    super.isRestricted,
+class RestrictionsDm extends RestrictionsEntity {
+  RestrictionsDm({super.success, super.message, super.data, super.errors});
+}
+
+class DoctorsOrStorageRestrictionsDm
+    extends DoctorsOrStorageRestrictionsEntity {
+  DoctorsOrStorageRestrictionsDm({
+    super.storageSamples,
+    super.doctorSamples,
+    super.transportCar,
   });
+}
 
-  factory PersonModel.fromJson(Map<String, dynamic> json) {
-    return PersonModel(
-      id: json['id'] as String?,
-      name: (json['name'] ?? json['full_name'] ?? json['username']) as String?,
-      email: json['email'] as String?,
-      isRestricted: json['is_restricted'] ?? false,
-    );
-  }
+class StorageSamplesDm extends StorageSamplesEntity {
+  StorageSamplesDm({super.id, super.name, super.isRestricted});
+}
 
-  static List<PersonModel> fromJsonList(dynamic json) {
-    if (json is List) {
-      return json.map((e) => PersonModel.fromJson(e as Map<String, dynamic>)).toList();
-    }
-    return [];
-  }
+class DoctorsSamplesDm extends DoctorsSamplesEntity {
+  DoctorsSamplesDm({super.id, super.name, super.isRestricted});
+}
+
+class TransportCarDm extends TransportCarEntity {
+  TransportCarDm({super.mode, super.isRestricted});
 }

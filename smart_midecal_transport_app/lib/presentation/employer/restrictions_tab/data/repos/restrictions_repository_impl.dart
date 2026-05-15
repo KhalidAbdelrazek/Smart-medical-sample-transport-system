@@ -12,7 +12,7 @@ class RestrictionsRepositoryImpl implements RestrictionsRepository {
   RestrictionsRepositoryImpl(this.remote);
 
   @override
-  Future<Either<Failures, List<PersonEntity>>> getRestrictionsStatus({
+  Future<Either<Failures, RestrictionsEntity>> getRestrictionsStatus({
     required String type,
   }) =>
       remote.getRestrictionsStatus(type: type);
