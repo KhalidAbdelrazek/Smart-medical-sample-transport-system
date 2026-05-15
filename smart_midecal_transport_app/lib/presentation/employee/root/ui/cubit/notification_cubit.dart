@@ -12,10 +12,8 @@ import 'package:smart_midecal_transport_app/presentation/employee/root/ui/widget
 
 @injectable
 class NotificationCubit extends Cubit<NotificationState> {
-  NotificationCubit(
-    this._repository,
-    this._soundService,
-  ) : super(NotificationState.initial());
+  NotificationCubit(this._repository, this._soundService)
+    : super(NotificationState.initial());
 
   final NotificationRepository _repository;
   final NotificationSoundService _soundService;
@@ -49,8 +47,7 @@ class NotificationCubit extends Cubit<NotificationState> {
 
   void acknowledgeEntryAnimation(String requestId) {
     if (!state.enteringIds.contains(requestId)) return;
-    final nextEntering = Set<String>.from(state.enteringIds)
-      ..remove(requestId);
+    final nextEntering = Set<String>.from(state.enteringIds)..remove(requestId);
     final next = state.copyWith(enteringIds: nextEntering);
     if (next.dataSignature != state.dataSignature) {
       emit(next);
@@ -68,8 +65,8 @@ class NotificationCubit extends Cubit<NotificationState> {
           emit(state.withError(failure.errorMessage));
         },
         (response) {
-          final rows = response.data?.arrivals ??
-              const <NotificationArrivalsEntity>[];
+          final rows =
+              response.data?.arrivals ?? const <NotificationArrivalsEntity>[];
           final returnOffer = response.data?.returnOffer ?? false;
           final returnableSamples =
               response.data?.returnableSamples ?? const [];
@@ -82,14 +79,12 @@ class NotificationCubit extends Cubit<NotificationState> {
 
           if (withExtra.dataSignature == state.dataSignature) return;
 
-          final previousIds =
-              state.items.map((e) => e.requestId).toSet();
+          final previousIds = state.items.map((e) => e.requestId).toSet();
           final newIds = withExtra.items
               .map((e) => e.requestId)
               .where((id) => !previousIds.contains(id))
               .toSet();
-          final playSound =
-              !state.isInitialLoading && newIds.isNotEmpty;
+          final playSound = !state.isInitialLoading && newIds.isNotEmpty;
           String? soundStatus;
           if (playSound) {
             for (final e in withExtra.items) {
@@ -169,175 +164,223 @@ class NotificationCubit extends Cubit<NotificationState> {
   }
 
   // ─────────────────────────────────────────────
-  // Accept: show return-handoff dialog first
+  // Accept
   // ─────────────────────────────────────────────
 
   /// Called when the user taps "Accept" on a notification card.
-  /// If [returnOffer] is true, shows the return-handoff dialog.
-  /// After the user decides, calls [confirmDelivery] then [confirmReturnHandoff].
-  Future<void> onAcceptTapped(
-    BuildContext context,
-    String requestId,
-  ) async {
+  /// If [returnOffer] is true, shows the return-handoff dialog and
+  /// then calls confirmReturnHandoff with the user's selection.
+  /// If [returnOffer] is false, only confirmDelivery is called —
+  /// confirmReturnHandoff is intentionally skipped.
+  Future<void> onAcceptTapped(BuildContext context, String requestId) async {
     if (state.actionInFlightIds.contains(requestId)) return;
 
     if (state.returnOffer && state.returnableSamples.isNotEmpty) {
       // Show the dialog and wait for the user's selection.
-      // null means the dialog was dismissed without a decision.
+      // null  → dismissed without a decision → do nothing
+      // []    → user chose "No" → send empty list
+      // [...] → user selected samples → send those codes
       final selectedCodes = await ReturnHandoffDialog.show(
         context,
         returnableSamples: state.returnableSamples,
       );
-      if (selectedCodes == null) return; // user dismissed — do nothing
-      await _runConfirmDelivery(requestId, selectedCodes);
+      if (selectedCodes == null) return;
+      await _runConfirmDelivery(requestId, selectedCodes, sendHandoff: true);
     } else {
-      // No return offer — just confirm delivery with an empty list.
-      await _runConfirmDelivery(requestId, const []);
+      // No return offer — just confirm delivery; do NOT call confirmReturnHandoff.
+      await _runConfirmDelivery(requestId, const [], sendHandoff: false);
     }
   }
 
   Future<void> _runConfirmDelivery(
-  String requestId,
-  List<String> sampleCodes,
-) async {
-  emit(
-    state.copyWith(
-      actionInFlightIds: {...state.actionInFlightIds, requestId},
-    ),
-  );
-
-  // 1️⃣ Confirm the delivery
-  final deliveryResult =
-      await _repository.confirmDelivery(requestId: requestId);
-  if (isClosed) return;
-
-  final deliveryError = deliveryResult.fold((f) => f.errorMessage, (_) => null);
-  if (deliveryError != null) {
+    String requestId,
+    List<String> sampleCodes, {
+    required bool sendHandoff,
+  }) async {
     emit(
-      state
-          .copyWith(
-            actionInFlightIds: _without(state.actionInFlightIds, requestId),
-          )
-          .withError(deliveryError),
+      state.copyWith(
+        actionInFlightIds: {...state.actionInFlightIds, requestId},
+      ),
     );
-    return;
+
+    // 1️⃣ Confirm the delivery
+    final deliveryResult = await _repository.confirmDelivery(
+      requestId: requestId,
+    );
+    if (isClosed) return;
+
+    final deliveryError = deliveryResult.fold(
+      (f) => f.errorMessage,
+      (_) => null,
+    );
+    if (deliveryError != null) {
+      emit(
+        state
+            .copyWith(
+              actionInFlightIds: _without(state.actionInFlightIds, requestId),
+            )
+            .withError(deliveryError),
+      );
+      return;
+    }
+
+    // 2️⃣ Only call confirmReturnHandoff when the dialog was shown
+    //    (i.e. returnOffer was true and the user made a decision).
+    if (!sendHandoff) {
+      final nextItems = state.items
+          .where((i) => i.requestId != requestId)
+          .toList();
+      emit(
+        state
+            .copyWith(
+              items: nextItems,
+              actionInFlightIds: _without(state.actionInFlightIds, requestId),
+            )
+            .withSuccess('Delivery confirmed successfully'),
+      );
+      return;
+    }
+
+    final handoffResult = await _repository.confirmReturnHandoff(
+      sampleCodes: sampleCodes,
+    );
+    if (isClosed) return;
+
+    handoffResult.fold(
+      (failure) {
+        final nextItems = state.items
+            .where((i) => i.requestId != requestId)
+            .toList();
+        emit(
+          state
+              .copyWith(
+                items: nextItems,
+                actionInFlightIds: _without(state.actionInFlightIds, requestId),
+              )
+              .withError(failure.errorMessage),
+        );
+      },
+      (message) {
+        final nextItems = state.items
+            .where((i) => i.requestId != requestId)
+            .toList();
+        emit(
+          state
+              .copyWith(
+                items: nextItems,
+                actionInFlightIds: _without(state.actionInFlightIds, requestId),
+              )
+              .withSuccess(message ?? 'Delivery confirmed successfully'),
+        );
+      },
+    );
   }
-
-  
-
-  final handoffResult = await _repository.confirmReturnHandoff(
-    sampleCodes: sampleCodes,
-  );
-  if (isClosed) return;
-
-  handoffResult.fold(
-    (failure) {
-      final nextItems =
-          state.items.where((i) => i.requestId != requestId).toList();
-      emit(
-        state
-            .copyWith(
-              items: nextItems,
-              actionInFlightIds: _without(state.actionInFlightIds, requestId),
-            )
-            .withError(failure.errorMessage),
-      );
-    },
-    (message) {
-      final nextItems =
-          state.items.where((i) => i.requestId != requestId).toList();
-      emit(
-        state
-            .copyWith(
-              items: nextItems,
-              actionInFlightIds: _without(state.actionInFlightIds, requestId),
-            )
-            .withSuccess(message ?? 'Delivery confirmed successfully'),
-      );
-    },
-  );
-}
 
   // ─────────────────────────────────────────────
   // Reject
   // ─────────────────────────────────────────────
 
-  Future<void> onRejectTapped(
-  BuildContext context,
-  String requestId,
-) async {
-  if (state.actionInFlightIds.contains(requestId)) return;
+  /// Called when the user taps "Reject" on a notification card.
+  /// Same handoff logic as Accept — dialog is only shown when
+  /// returnOffer is true, and confirmReturnHandoff is only called
+  /// when the dialog was actually presented to the user.
+  Future<void> onRejectTapped(BuildContext context, String requestId) async {
+    if (state.actionInFlightIds.contains(requestId)) return;
 
-  if (state.returnOffer && state.returnableSamples.isNotEmpty) {
-    final selectedCodes = await ReturnHandoffDialog.show(
-      context,
-      returnableSamples: state.returnableSamples,
-    );
-    if (selectedCodes == null) return; // dismissed — do nothing
-    await _runRejectDelivery(requestId, selectedCodes);
-  } else {
-    await _runRejectDelivery(requestId, const []);
+    if (state.returnOffer && state.returnableSamples.isNotEmpty) {
+      final selectedCodes = await ReturnHandoffDialog.show(
+        context,
+        returnableSamples: state.returnableSamples,
+      );
+      if (selectedCodes == null) return;
+      await _runRejectDelivery(requestId, selectedCodes, sendHandoff: true);
+    } else {
+      // No return offer — just reject delivery; do NOT call confirmReturnHandoff.
+      await _runRejectDelivery(requestId, const [], sendHandoff: false);
+    }
   }
-}
 
-Future<void> _runRejectDelivery(
-  String requestId,
-  List<String> sampleCodes,
-) async {
-  emit(
-    state.copyWith(
-      actionInFlightIds: {...state.actionInFlightIds, requestId},
-    ),
-  );
-
-  final result = await _repository.rejectDelivery(requestId: requestId);
-  if (isClosed) return;
-
-  final rejectError = result.fold((f) => f.errorMessage, (_) => null);
-  if (rejectError != null) {
+  Future<void> _runRejectDelivery(
+    String requestId,
+    List<String> sampleCodes, {
+    required bool sendHandoff,
+  }) async {
     emit(
-      state
-          .copyWith(
-            actionInFlightIds: _without(state.actionInFlightIds, requestId),
-          )
-          .withError(rejectError),
+      state.copyWith(
+        actionInFlightIds: {...state.actionInFlightIds, requestId},
+      ),
     );
-    return;
+
+    // 1️⃣ Reject the delivery
+    final result = await _repository.rejectDelivery(requestId: requestId);
+    if (isClosed) return;
+
+    final rejectError = result.fold((f) => f.errorMessage, (_) => null);
+    if (rejectError != null) {
+      emit(
+        state
+            .copyWith(
+              actionInFlightIds: _without(state.actionInFlightIds, requestId),
+            )
+            .withError(rejectError),
+      );
+      return;
+    }
+
+    // 2️⃣ Only call confirmReturnHandoff when the dialog was shown.
+    if (!sendHandoff) {
+      final nextItems = state.items
+          .where((i) => i.requestId != requestId)
+          .toList();
+      emit(
+        state
+            .copyWith(
+              items: nextItems,
+              actionInFlightIds: _without(state.actionInFlightIds, requestId),
+            )
+            .withSuccess('Delivery rejected successfully'),
+      );
+      return;
+    }
+
+    final handoffResult = await _repository.confirmReturnHandoff(
+      sampleCodes: sampleCodes,
+    );
+    if (isClosed) return;
+
+    handoffResult.fold(
+      (failure) {
+        final nextItems = state.items
+            .where((i) => i.requestId != requestId)
+            .toList();
+        emit(
+          state
+              .copyWith(
+                items: nextItems,
+                actionInFlightIds: _without(state.actionInFlightIds, requestId),
+              )
+              .withError(failure.errorMessage),
+        );
+      },
+      (message) {
+        final nextItems = state.items
+            .where((i) => i.requestId != requestId)
+            .toList();
+        emit(
+          state
+              .copyWith(
+                items: nextItems,
+                actionInFlightIds: _without(state.actionInFlightIds, requestId),
+              )
+              .withSuccess(message ?? 'Delivery rejected successfully'),
+        );
+      },
+    );
   }
 
-  // ✅ Send handoff after reject too
-  final handoffResult = await _repository.confirmReturnHandoff(
-    sampleCodes: sampleCodes,
-  );
-  if (isClosed) return;
-
-  handoffResult.fold(
-    (failure) {
-      final nextItems =
-          state.items.where((i) => i.requestId != requestId).toList();
-      emit(
-        state
-            .copyWith(
-              items: nextItems,
-              actionInFlightIds: _without(state.actionInFlightIds, requestId),
-            )
-            .withError(failure.errorMessage),
-      );
-    },
-    (message) {
-      final nextItems =
-          state.items.where((i) => i.requestId != requestId).toList();
-      emit(
-        state
-            .copyWith(
-              items: nextItems,
-              actionInFlightIds: _without(state.actionInFlightIds, requestId),
-            )
-            .withSuccess(message ?? 'Delivery rejected successfully'),
-      );
-    },
-  );
-}
+  // ─────────────────────────────────────────────
+  // Helpers
+  // ─────────────────────────────────────────────
 
   Set<String> _without(Set<String> set, String id) {
     return {...set}..remove(id);

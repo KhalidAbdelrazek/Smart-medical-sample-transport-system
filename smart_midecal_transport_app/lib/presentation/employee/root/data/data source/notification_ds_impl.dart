@@ -16,8 +16,8 @@ class NotificationDsImpl implements NotificationDataSource {
 
   @override
   Future<Either<Failures, NotificationResponseDm>> getNotifications() async {
-    final List<ConnectivityResult> connectivityResult =
-        await Connectivity().checkConnectivity();
+    final List<ConnectivityResult> connectivityResult = await Connectivity()
+        .checkConnectivity();
     try {
       String? token = SharedPrefService.instance.getAccessToken();
       if (!connectivityResult.contains(ConnectivityResult.none)) {
@@ -37,9 +37,7 @@ class NotificationDsImpl implements NotificationDataSource {
           return Right(notificationResponseDm);
         }
         return Left(
-          ServerError(
-            errorMessage: notificationResponseDm.errors.toString(),
-          ),
+          ServerError(errorMessage: notificationResponseDm.errors.toString()),
         );
       } else {
         return Left(NetworkError(errorMessage: "Network Error"));
@@ -50,10 +48,11 @@ class NotificationDsImpl implements NotificationDataSource {
   }
 
   @override
-  Future<Either<Failures, String?>> confirmDelivery(
-      {required String requestId}) async {
-    final List<ConnectivityResult> connectivityResult =
-        await Connectivity().checkConnectivity();
+  Future<Either<Failures, String?>> confirmDelivery({
+    required String requestId,
+  }) async {
+    final List<ConnectivityResult> connectivityResult = await Connectivity()
+        .checkConnectivity();
     try {
       String? token = SharedPrefService.instance.getAccessToken();
       if (!connectivityResult.contains(ConnectivityResult.none)) {
@@ -72,8 +71,8 @@ class NotificationDsImpl implements NotificationDataSource {
         }
         return Left(
           ServerError(
-            errorMessage: response.data["message"]?.toString() ??
-                "Unreliable Error",
+            errorMessage:
+                response.data["message"]?.toString() ?? "Unreliable Error",
           ),
         );
       } else {
@@ -85,10 +84,11 @@ class NotificationDsImpl implements NotificationDataSource {
   }
 
   @override
-  Future<Either<Failures, String?>> rejectDelivery(
-      {required String requestId}) async {
-    final List<ConnectivityResult> connectivityResult =
-        await Connectivity().checkConnectivity();
+  Future<Either<Failures, String?>> rejectDelivery({
+    required String requestId,
+  }) async {
+    final List<ConnectivityResult> connectivityResult = await Connectivity()
+        .checkConnectivity();
     try {
       String? token = SharedPrefService.instance.getAccessToken();
       if (!connectivityResult.contains(ConnectivityResult.none)) {
@@ -107,8 +107,8 @@ class NotificationDsImpl implements NotificationDataSource {
         }
         return Left(
           ServerError(
-            errorMessage: response.data["message"]?.toString() ??
-                "Unreliable Error",
+            errorMessage:
+                response.data["message"]?.toString() ?? "Unreliable Error",
           ),
         );
       } else {
@@ -123,15 +123,15 @@ class NotificationDsImpl implements NotificationDataSource {
   Future<Either<Failures, String?>> confirmReturnHandoff({
     required List<String> sampleCodes,
   }) async {
-    final List<ConnectivityResult> connectivityResult =
-        await Connectivity().checkConnectivity();
-      
+    final List<ConnectivityResult> connectivityResult = await Connectivity()
+        .checkConnectivity();
+
     try {
+      print("Confirm Handoff with samples : $sampleCodes");
       String? token = SharedPrefService.instance.getAccessToken();
       if (!connectivityResult.contains(ConnectivityResult.none)) {
-       
         var response = await apiManager.postData(
-          path: ApiEndPoints.confirmReturnHandoff(), 
+          path: ApiEndPoints.confirmReturnHandoff(),
           data: {"sample_codes": sampleCodes},
           options: Options(
             headers: {
@@ -139,9 +139,7 @@ class NotificationDsImpl implements NotificationDataSource {
               "Authorization": "Bearer $token",
             },
             validateStatus: (status) => true,
-            
           ),
-          
         );
         if (response.statusCode! >= 200 && response.statusCode! < 300) {
           return Right(
@@ -151,8 +149,8 @@ class NotificationDsImpl implements NotificationDataSource {
         }
         return Left(
           ServerError(
-            errorMessage: response.data["message"]?.toString() ??
-                "Unreliable Error",
+            errorMessage:
+                response.data["message"]?.toString() ?? "Unreliable Error",
           ),
         );
       } else {
