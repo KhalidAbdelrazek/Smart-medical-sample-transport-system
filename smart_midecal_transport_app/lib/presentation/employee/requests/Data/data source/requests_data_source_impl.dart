@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:dio/dio.dart';
 import 'package:either_dart/either.dart';
@@ -49,7 +50,7 @@ class RequestsDataSourceImpl implements RequestsDataSource {
           ),
         );
       } else {
-        return Left(NetworkError(errorMessage: "Network Error"));
+        return Left(NetworkError(errorMessage: 'errors.network_error'.tr()));
       }
     } catch (e) {
       return Left(ServerError(errorMessage: e.toString()));
@@ -66,7 +67,7 @@ class RequestsDataSourceImpl implements RequestsDataSource {
         await Connectivity().checkConnectivity();
 
     if (connectivityResult.contains(ConnectivityResult.none)) {
-      return Left(NetworkError(errorMessage: "No internet connection"));
+      return Left(NetworkError(errorMessage: 'extra.no_internet_lower'.tr()));
     }
 
     try {
@@ -125,7 +126,7 @@ class RequestsDataSourceImpl implements RequestsDataSource {
   Future<Either<Failures, List<TransportRequestEntity>>> fetchMyRequests() async {
     final connectivity = await Connectivity().checkConnectivity();
     if (connectivity.contains(ConnectivityResult.none)) {
-      return Left(NetworkError(errorMessage: 'No internet connection'));
+      return Left(NetworkError(errorMessage: 'extra.no_internet_lower'.tr()));
     }
     try {
       final token = SharedPrefService.instance.getAccessToken();
@@ -171,7 +172,7 @@ class RequestsDataSourceImpl implements RequestsDataSource {
   Future<Either<Failures, bool>> cancelRequest(String requestId) async {
     final connectivity = await Connectivity().checkConnectivity();
     if (connectivity.contains(ConnectivityResult.none)) {
-      return Left(NetworkError(errorMessage: 'No internet connection'));
+      return Left(NetworkError(errorMessage: 'extra.no_internet_lower'.tr()));
     }
     try {
       final token = SharedPrefService.instance.getAccessToken();
