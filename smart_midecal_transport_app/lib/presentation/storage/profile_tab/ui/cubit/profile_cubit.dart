@@ -40,6 +40,7 @@ class ProfileCubit extends Cubit<ProfileState> {
   /// Logout
   Future<void> logout() async {
     await SharedPrefService.instance.clearTokens();
+    await SharedPrefService.instance.clearRole();
     emit(ProfileLoggedOut());
   }
 }

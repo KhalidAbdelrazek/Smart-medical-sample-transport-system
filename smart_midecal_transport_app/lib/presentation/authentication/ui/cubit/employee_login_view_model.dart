@@ -55,6 +55,7 @@ class EmployeeLoginViewModel extends Cubit<EmployeeLoginState> {
           response.access!,
           response.refresh!,
         );
+        await SharedPrefService.instance.saveRole(response.user!.role.toString());
         emit(EmployeeLoginSuccess(response.user!.role!));
       } else {
         emit(EmployeeLoginError(response.message ?? "Login failed"));
