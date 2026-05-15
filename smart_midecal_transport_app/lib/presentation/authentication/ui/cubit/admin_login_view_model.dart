@@ -49,7 +49,7 @@ class AdminLoginViewModel extends Cubit<AdminLoginState> {
             response.data!.access!,
             response.data!.refresh!,
           );
-          await SharedPrefService.instance.saveRole(response.data!.role.toString());
+          await SharedPrefService.instance.saveRole("ADMIN");
           emit(AdminLoginSuccess());
         } else {
           emit(AdminLoginError(message: response.message));
