@@ -4,7 +4,7 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:smart_midecal_transport_app/core/theme/color.dart';
 
 import 'blood_samples_view.dart';
-import 'return_approval_view.dart';
+// import 'return_approval_view.dart';
 
 /// Requests Tab View — Contains tabs for Transport Requests and Return Approval
 class RequestsTabView extends StatefulWidget {
@@ -69,7 +69,7 @@ class _RequestsTabViewState extends State<RequestsTabView>
               BloodSamplesView(),
 
               // Return Approval Tab
-              ReturnApprovalView(),
+              // ReturnApprovalView(),
             ],
           ),
         ),

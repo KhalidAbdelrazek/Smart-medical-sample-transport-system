@@ -86,6 +86,7 @@ class RequestsDataSourceImpl implements RequestsDataSource {
           validateStatus: (status) => true,
         ),
       );
+      print(response.data);
 
       // ── Case A: Token expired / invalid (401) ─────────────────────────────
       if (response.statusCode == 401) {
