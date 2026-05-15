@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:dio/dio.dart';
 import 'package:either_dart/either.dart';
@@ -19,7 +20,7 @@ class MyRequestsDataSourceImpl implements MyRequestsDataSource {
   Future<Either<Failures, List<TransportMyRequestModel>>> fetchMyRequests() async {
     final connectivity = await Connectivity().checkConnectivity();
     if (connectivity.contains(ConnectivityResult.none)) {
-      return Left(NetworkError(errorMessage: 'No internet connection'));
+      return Left(NetworkError(errorMessage: 'extra.no_internet_lower'.tr()));
     }
     try {
       final token = SharedPrefService.instance.getAccessToken();
@@ -65,7 +66,7 @@ class MyRequestsDataSourceImpl implements MyRequestsDataSource {
   Future<Either<Failures, bool>> cancelRequest(String requestId) async {
     final connectivity = await Connectivity().checkConnectivity();
     if (connectivity.contains(ConnectivityResult.none)) {
-      return Left(NetworkError(errorMessage: 'No internet connection'));
+      return Left(NetworkError(errorMessage: 'extra.no_internet_lower'.tr()));
     }
     try {
       final token = SharedPrefService.instance.getAccessToken();
