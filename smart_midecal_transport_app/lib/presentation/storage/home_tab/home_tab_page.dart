@@ -284,8 +284,7 @@ class _DashboardHeader extends StatelessWidget {
             children: [
               Icon(Icons.warehouse_rounded, size: 14.sp, color: Colors.white),
               SizedBox(width: 5.w),
-              Text(
-                'STORAGE',
+              Text('extra.storage'.tr(),
                 style: TextStyle(
                   color: Colors.white,
                   fontSize: 11.sp,
