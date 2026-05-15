@@ -46,7 +46,7 @@ class RestrictionsDataSourceImpl implements RestrictionsDataSource {
   // ─── GET restrictions/status/ ────────────────────────────────────────────
 
   @override
-  Future<Either<Failures, List<PersonEntity>>> getRestrictionsStatus({
+  Future<Either<Failures, RestrictionsEntity>> getRestrictionsStatus({
     required String type,
   }) async {
     if (!await _hasNetwork()) {
@@ -54,20 +54,20 @@ class RestrictionsDataSourceImpl implements RestrictionsDataSource {
     }
     try {
       final response = await apiManager.getData(
-        path: "${ApiEndPoints.restrictionsStatus}?query=$type",
+        path: ApiEndPoints.restrictionsStatus,
+        queryParameters: {'query': type},
         options: _authOptions(),
       );
-      print(response.data);
-      final code = response.statusCode ?? 0;
-      if (code >= 200 && code < 300) {
-        final data = response.data;
-        if (data is Map<String, dynamic> && data['data'] != null) {
-          return Right(PersonModel.fromJsonList(data['data']));
-        }
-        return const Right([]);
+
+      final dm = RestrictionsDm.fromJson(response.data);
+      // print(dm.errors);
+      if (response.statusCode! >= 200 && response.statusCode! < 300) {
+        return Right(dm);
       }
-      return _parseError(response);
+      return Left(ServerError(errorMessage: dm.message ?? 'Server Error'));
     } catch (e) {
+      // throw Exception(e);
+      // log(e.toString());
       return Left(ServerError(errorMessage: e.toString()));
     }
   }

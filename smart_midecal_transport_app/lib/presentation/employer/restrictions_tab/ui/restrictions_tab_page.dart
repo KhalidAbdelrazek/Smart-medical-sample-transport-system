@@ -129,13 +129,14 @@ class _LoadedBody extends StatelessWidget {
           expandedContent: Column(
             children: state.doctors.asMap().entries.map((entry) {
               final index = entry.key;
-              final doctor = entry.value;
+              final doctor = entry.value; // DoctorsSamplesEntity
               return Column(
                 children: [
                   UserRestrictionTile(
                     name: doctor.name ?? 'Unknown Doctor',
-                    isRestricted: doctor.isRestricted,
-                    onToggle: (v) => cubit.toggleIndividualDoctor(doctor.id!, v),
+                    isRestricted: doctor.isRestricted ?? false,
+                    onToggle: (v) =>
+                        cubit.toggleIndividualDoctor(doctor.id!, v),
                     isLoading: state.isDoctorLoading,
                   ),
                   if (index != state.doctors.length - 1)
@@ -161,15 +162,16 @@ class _LoadedBody extends StatelessWidget {
           isLoading: state.isStorageLoading,
           onGlobalToggle: (v) => cubit.toggleStorageGlobal(v),
           onExpandToggle: cubit.toggleStorageExpanded,
+          // Storage section expandedContent:
           expandedContent: Column(
             children: state.storageEmployees.asMap().entries.map((entry) {
               final index = entry.key;
-              final employee = entry.value;
+              final employee = entry.value; // StorageSamplesEntity
               return Column(
                 children: [
                   UserRestrictionTile(
                     name: employee.name ?? 'Unknown Employee',
-                    isRestricted: employee.isRestricted,
+                    isRestricted: employee.isRestricted ?? false,
                     onToggle: (v) =>
                         cubit.toggleIndividualStorage(employee.id!, v),
                     isLoading: state.isStorageLoading,
@@ -201,7 +203,7 @@ class _LoadedBody extends StatelessWidget {
           activeColor: AppColors.warning,
           expandedContent: const SizedBox.shrink(),
         ),
-        
+
         SizedBox(height: 40.h),
       ],
     );
