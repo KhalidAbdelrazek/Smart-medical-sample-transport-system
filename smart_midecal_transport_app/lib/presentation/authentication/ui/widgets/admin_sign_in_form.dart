@@ -23,7 +23,7 @@ class AdminSignInForm extends StatelessWidget {
           child: Column(
             children: [
               CustomTextField(
-                label: "Admin ID",
+                label: "employee.email".tr(),
                 controller: cubit.idController,
                 keyboardType: TextInputType.text,
                 prefixIcon: Icons.badge,
@@ -61,7 +61,7 @@ class AdminSignInForm extends StatelessWidget {
               SizedBox(height: 20.h),
               CustomButton(
                 body: Text(
-                  "Admin Login",
+                  "sign_in.sign_in_button".tr(),
                   style: TextStyle(
                     color: Colors.white,
                     fontSize: 16.sp,
