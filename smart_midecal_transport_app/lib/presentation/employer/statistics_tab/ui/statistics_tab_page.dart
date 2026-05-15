@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -73,7 +74,7 @@ class _StatisticsTabPageState extends State<StatisticsTabPage>
     if (state is StatisticsTokenExpired) {
       return StatsErrorWidget(
         key: const ValueKey('token_expired'),
-        message: 'Your session has expired. Please log in again to continue.',
+        message: 'extra.session_expired_long'.tr(),
         isTokenExpired: true,
         onRetry: () => context.read<StatisticsCubit>().loadData(),
         // TODO: wire onLogout to your auth cubit logout method
@@ -134,7 +135,7 @@ class _DashboardContent extends StatelessWidget {
         // ── Doctor Section ───────────────────────────────────────────────
         _SectionLabel(
           icon: Icons.medical_services_rounded,
-          title: 'Doctor Requests',
+          title: 'extra.doctor_requests'.tr(),
           color: AppColors.info,
           theme: theme,
         ),
@@ -152,25 +153,25 @@ class _DashboardContent extends StatelessWidget {
             DashboardStatsCard(
               icon: Icons.assignment_rounded,
               color: AppColors.info,
-              label: 'Total Requests',
+              label: 'extra.total_requests'.tr(),
               value: '${d.totalRequests ?? 0}',
             ),
             DashboardStatsCard(
               icon: Icons.check_circle_rounded,
               color: AppColors.success,
-              label: 'Successful',
+              label: 'extra.successful'.tr(),
               value: '${d.successful ?? 0}',
             ),
             DashboardStatsCard(
               icon: Icons.cancel_rounded,
               color: AppColors.error,
-              label: 'Failed',
+              label: 'extra.failed'.tr(),
               value: '${d.failed ?? 0}',
             ),
             DashboardStatsCard(
               icon: Icons.do_not_disturb_on_rounded,
               color: AppColors.warning,
-              label: 'Cancelled',
+              label: 'my_requests.status_cancelled'.tr(),
               value: '${d.cancelled ?? 0}',
             ),
           ],
@@ -181,7 +182,7 @@ class _DashboardContent extends StatelessWidget {
         DashboardStatsCard(
           icon: Icons.pending_actions_rounded,
           color: const Color(0xFF8B5CF6),
-          label: 'Pending Requests',
+          label: 'employer.pending_requests'.tr(),
           value: '${d.pending ?? 0}',
         ),
         SizedBox(height: 20.h),
@@ -191,10 +192,10 @@ class _DashboardContent extends StatelessWidget {
           duration: const Duration(milliseconds: 400),
           child: DonutChartSection(
             key: ValueKey('doctor_chart_${state.selectedFilter}'),
-            title: 'Request Breakdown',
+            title: 'extra.request_breakdown'.tr(),
             segments: state.doctorSegments,
             total: d.totalRequests ?? 0,
-            centerLabel: 'Requests',
+            centerLabel: 'nav.requests'.tr(),
           ),
         ),
         SizedBox(height: 28.h),
@@ -202,7 +203,7 @@ class _DashboardContent extends StatelessWidget {
         // ── Storage Section ──────────────────────────────────────────────
         _SectionLabel(
           icon: Icons.warehouse_rounded,
-          title: 'Storage Activity',
+          title: 'employee.storage_activity'.tr(),
           color: const Color(0xFF10B981),
           theme: theme,
         ),
@@ -220,25 +221,25 @@ class _DashboardContent extends StatelessWidget {
             DashboardStatsCard(
               icon: Icons.bar_chart_rounded,
               color: const Color(0xFF10B981),
-              label: 'Total Actions',
+              label: 'employee.total_actions'.tr(),
               value: '${s.totalActions ?? 0}',
             ),
             DashboardStatsCard(
               icon: Icons.local_shipping_rounded,
               color: AppColors.info,
-              label: 'Car Dispatch',
+              label: 'extra.car_dispatch'.tr(),
               value: '${s.carDispatch ?? 0}',
             ),
             DashboardStatsCard(
               icon: Icons.add_box_rounded,
               color: AppColors.success,
-              label: 'Sample Added',
+              label: 'extra.sample_added'.tr(),
               value: '${s.sampleAddedToCar ?? 0}',
             ),
             DashboardStatsCard(
               icon: Icons.indeterminate_check_box_rounded,
               color: AppColors.warning,
-              label: 'Sample Removed',
+              label: 'extra.sample_removed'.tr(),
               value: '${s.sampleRemovedFromCar ?? 0}',
             ),
           ],
@@ -252,7 +253,7 @@ class _DashboardContent extends StatelessWidget {
               child: DashboardStatsCard(
                 icon: Icons.sync_alt_rounded,
                 color: const Color(0xFF8B5CF6),
-                label: 'Transport Updates',
+                label: 'extra.transport_updates'.tr(),
                 value: '${s.transportRequestUpdate ?? 0}',
               ),
             ),
@@ -261,7 +262,7 @@ class _DashboardContent extends StatelessWidget {
               child: DashboardStatsCard(
                 icon: Icons.more_horiz_rounded,
                 color: AppColors.labelColor,
-                label: 'Other Actions',
+                label: 'extra.other_actions'.tr(),
                 value: '${s.other ?? 0}',
               ),
             ),
@@ -274,10 +275,10 @@ class _DashboardContent extends StatelessWidget {
           duration: const Duration(milliseconds: 400),
           child: DonutChartSection(
             key: ValueKey('storage_chart_${state.selectedFilter}'),
-            title: 'Activity Breakdown',
+            title: 'extra.activity_breakdown'.tr(),
             segments: state.storageSegments,
             total: s.totalActions ?? 0,
-            centerLabel: 'Actions',
+            centerLabel: 'employee.actions'.tr(),
           ),
         ),
         SizedBox(height: 32.h),
@@ -308,8 +309,7 @@ class _DashboardHeader extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(
-                'Analytics Dashboard',
+              Text('extra.analytics_dashboard'.tr(),
                 style: theme.textTheme.headlineSmall?.copyWith(
                   fontWeight: FontWeight.w800,
                   fontSize: 20.sp,
@@ -353,8 +353,7 @@ class _DashboardHeader extends StatelessWidget {
               Icon(Icons.admin_panel_settings_rounded,
                   size: 14.sp, color: Colors.white),
               SizedBox(width: 5.w),
-              Text(
-                'ADMIN',
+              Text('extra.admin'.tr(),
                 style: TextStyle(
                   color: Colors.white,
                   fontSize: 11.sp,
