@@ -124,7 +124,6 @@ extension GetItInjectableX on _i174.GetIt {
     _i526.EnvironmentFilter? environmentFilter,
   }) {
     final gh = _i526.GetItHelper(this, environment, environmentFilter);
-    gh.factory<_i834.ReturnApprovalCubit>(() => _i834.ReturnApprovalCubit());
     gh.singleton<_i949.ApiManager>(() => _i949.ApiManager());
     gh.lazySingleton<_i786.NotificationSoundService>(
       () => _i786.NotificationSoundService(),

@@ -3,7 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:smart_midecal_transport_app/core/di/di.dart';
 
 import 'cubit/blood_samples_cubit.dart';
-import 'cubit/return_approval_cubit.dart';
+// import 'cubit/return_approval_cubit.dart';
 import 'view/requests_tab_view.dart';
 
 /// Requests Tab Page — Transport Requests and Return Approval
@@ -16,19 +16,19 @@ class RequestsTabPage extends StatefulWidget {
 
 class _RequestsTabPageState extends State<RequestsTabPage> {
   late final BloodSamplesCubit _bloodSamplesCubit;
-  late final ReturnApprovalCubit _returnApprovalCubit;
+  // late final ReturnApprovalCubit _returnApprovalCubit;
 
   @override
   void initState() {
     super.initState();
     _bloodSamplesCubit = getIt<BloodSamplesCubit>()..loadRequests();
-    _returnApprovalCubit = getIt<ReturnApprovalCubit>()..loadReturnRequests();
+    // _returnApprovalCubit = getIt<ReturnApprovalCubit>()..loadReturnRequests();
   }
 
   @override
   void dispose() {
     _bloodSamplesCubit.close();
-    _returnApprovalCubit.close();
+    // _returnApprovalCubit.close();
     super.dispose();
   }
 
@@ -37,7 +37,7 @@ class _RequestsTabPageState extends State<RequestsTabPage> {
     return MultiBlocProvider(
       providers: [
         BlocProvider.value(value: _bloodSamplesCubit),
-        BlocProvider.value(value: _returnApprovalCubit),
+        // BlocProvider.value(value: _returnApprovalCubit),
       ],
       child: const RequestsTabView(),
     );
