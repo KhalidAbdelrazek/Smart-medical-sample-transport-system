@@ -5,7 +5,7 @@ import 'package:smart_midecal_transport_app/presentation/employer/restrictions_t
 abstract class RestrictionsRepository {
   /// Fetch current restrictions status for doctors or storage employees.
   /// [type] — 'doctor' | 'storage'
-  Future<Either<Failures, List<PersonEntity>>> getRestrictionsStatus({
+  Future<Either<Failures, RestrictionsEntity>> getRestrictionsStatus({
     required String type,
   });
 

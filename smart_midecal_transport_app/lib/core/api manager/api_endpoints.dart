@@ -16,8 +16,8 @@ abstract class ApiEndPoints {
       '${ApiConstants.baseUrl}api/analytics/dashboard/';
 
   // ── Restrictions ──────────────────────────────────────────────────────────
-  static const restrictionsStatus =
-      '${ApiConstants.baseUrl}api/restrictions/status/';
+  static String restrictionsStatus (String type) =>
+      '${ApiConstants.baseUrl}api/restrictions/status/$type/';
   static const restrictDoctorSamples =
       '${ApiConstants.baseUrl}api/restrictions/restrict-doctor-samples/';
   static const restrictStorageSamples =

@@ -33,32 +33,69 @@ extension RestrictionTypeX on RestrictionType {
   }
 }
 
-// ─── Restrictions Status ───────────────────────────────────────────────────
+// {
+//     "success": true,
+//     "message": "Current system restrictions fetched successfully.",
+//     "data": {
+//         "storage_samples": [
+//             {
+//                 "id": "f5f8b6fe-2121-4376-b266-422ad46778f9",
+//                 "name": "Storage Employee One",
+//                 "is_restricted": false
+//             },
+//             {
+//                 "id": "f50b7a42-fb99-4354-ae71-f5d61ba7f6e4",
+//                 "name": "Storage Employee Two",
+//                 "is_restricted": false
+//             }
+//         ]
+//     },
+//     "errors": null
+// }
 
-class PersonEntity {
+
+class RestrictionsEntity {
+  final bool? success;
+  final String? message;
+  final DoctorsOrStorageRestrictionsEntity? data;
+  final String? errors;
+
+  RestrictionsEntity({
+    this.success,
+    this.message,
+    this.data,
+    this.errors,
+  });
+}
+
+class DoctorsOrStorageRestrictionsEntity {
+  final List<StorageSamplesEntity>? storageSamples;
+  final List<DoctorsSamplesEntity>? doctorSamples;
+  final TransportCarEntity? transportCar;
+  DoctorsOrStorageRestrictionsEntity({
+    this.storageSamples,
+    this.doctorSamples,
+    this.transportCar,
+  });
+}
+
+class StorageSamplesEntity {
   final String? id;
   final String? name;
-  final String? email;
-  final bool isRestricted;
+  final bool? isRestricted;
 
-  PersonEntity({
-    this.id,
-    this.name,
-    this.email,
-    this.isRestricted = false,
-  });
+  StorageSamplesEntity({this.id, this.name, this.isRestricted});
+}
+class DoctorsSamplesEntity{
+  final String? id;
+  final String? name;
+  final bool? isRestricted;
 
-  PersonEntity copyWith({
-    String? id,
-    String? name,
-    String? email,
-    bool? isRestricted,
-  }) {
-    return PersonEntity(
-      id: id ?? this.id,
-      name: name ?? this.name,
-      email: email ?? this.email,
-      isRestricted: isRestricted ?? this.isRestricted,
-    );
-  }
+  DoctorsSamplesEntity({this.id, this.name, this.isRestricted});
+} 
+
+class TransportCarEntity{
+  final String? mode;
+  final bool? isRestricted;
+  TransportCarEntity({this.mode, this.isRestricted});
 }
