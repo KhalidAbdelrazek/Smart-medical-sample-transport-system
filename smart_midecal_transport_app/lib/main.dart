@@ -83,7 +83,8 @@ class MyApp extends StatelessWidget {
           initialRoute: SharedPrefService.instance.getAccessToken() != null
               ? SharedPrefService.instance.getRole() == 'DOCTOR'
                   ? RouteNames.root
-                  : RouteNames.storageScreen
+                  : SharedPrefService.instance.getRole() == 'ADMIN'
+                  ? RouteNames.register : RouteNames.storageScreen
               : SharedPrefService.instance.onBoardingViewed() ?? false
               ? RouteNames.register
               : RouteNames.onBoarding,
