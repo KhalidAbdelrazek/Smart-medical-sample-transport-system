@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:injectable/injectable.dart';
 import 'package:smart_midecal_transport_app/core/error/failures.dart';
@@ -89,7 +90,7 @@ class StatisticsCubit extends Cubit<StatisticsState> {
     final storage = data.storage;
 
     if (doctors == null || storage == null) {
-      emit(StatisticsError(message: 'Incomplete data received'));
+      emit(StatisticsError(message: 'extra.incomplete_data'.tr()));
       return;
     }
 
