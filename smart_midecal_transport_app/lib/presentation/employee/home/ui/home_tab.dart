@@ -123,25 +123,25 @@ class _DashboardContent extends StatelessWidget {
             EmployeeStatsCard(
               icon: Icons.assignment_rounded,
               color: AppColors.info,
-              label: 'Total Requests',
+              label: 'extra.total_requests'.tr(),
               value: state.totalRequests.toString(),
             ),
             EmployeeStatsCard(
               icon: Icons.check_circle_rounded,
               color: AppColors.success,
-              label: 'Successful',
+              label: 'extra.successful'.tr(),
               value: state.successfulRequests.toString(),
             ),
             EmployeeStatsCard(
               icon: Icons.cancel_rounded,
               color: AppColors.error,
-              label: 'Cancelled',
+              label: 'my_requests.status_cancelled'.tr(),
               value: state.cancelledRequests.toString(),
             ),
             EmployeeStatsCard(
               icon: Icons.do_not_disturb_on_rounded,
               color: AppColors.warning,
-              label: 'Failed',
+              label: 'extra.failed'.tr(),
               value: state.failedRequests.toString(),
             ),
           ],
@@ -155,7 +155,7 @@ class _DashboardContent extends StatelessWidget {
               child: EmployeeStatsCard(
                 icon: Icons.pending_actions_rounded,
                 color: const Color(0xFF8B5CF6),
-                label: 'Pending',
+                label: 'my_requests.status_pending'.tr(),
                 value: state.pendingRequests.toString(),
               ),
             ),
@@ -164,7 +164,7 @@ class _DashboardContent extends StatelessWidget {
               child: EmployeeStatsCard(
                 icon: Icons.trending_up_rounded,
                 color: AppColors.success,
-                label: 'Success Rate',
+                label: 'extra.success_rate'.tr(),
                 value: '${state.successRate.toStringAsFixed(1)}%',
               ),
             ),
@@ -182,34 +182,34 @@ class _DashboardContent extends StatelessWidget {
         SizedBox(height: 14.h),
 
         DonutChartSection(
-          title: 'Request Breakdown',
-          centerLabel: 'Requests',
+          title: 'extra.request_breakdown'.tr(),
+          centerLabel: 'nav.requests'.tr(),
           total: state.totalRequests,
           // Convert your basic state data into the ChartSegment list required by the widget
           segments: [
             ChartSegment(
-              label: 'Successful',
+              label: 'extra.successful'.tr(),
               value: state.successfulRequests,
               percentage: state.totalRequests > 0
                   ? (state.successfulRequests / state.totalRequests * 100)
                   : 0,
             ),
             ChartSegment(
-              label: 'Pending',
+              label: 'my_requests.status_pending'.tr(),
               value: state.pendingRequests,
               percentage: state.totalRequests > 0
                   ? (state.pendingRequests / state.totalRequests * 100)
                   : 0,
             ),
             ChartSegment(
-              label: 'Cancelled',
+              label: 'my_requests.status_cancelled'.tr(),
               value: state.cancelledRequests,
               percentage: state.totalRequests > 0
                   ? (state.cancelledRequests / state.totalRequests * 100)
                   : 0,
             ),
             ChartSegment(
-              label: 'Failed',
+              label: 'extra.failed'.tr(),
               value: state.failedRequests,
               percentage: state.totalRequests > 0
                   ? (state.failedRequests / state.totalRequests * 100)
@@ -291,8 +291,7 @@ class _DashboardHeader extends StatelessWidget {
                 color: Colors.white,
               ),
               SizedBox(width: 5.w),
-              Text(
-                'DOCTOR',
+              Text('extra.doctor'.tr(),
                 style: TextStyle(
                   color: Colors.white,
                   fontSize: 11.sp,
