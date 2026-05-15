@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:dio/dio.dart';
 import 'package:either_dart/either.dart';
@@ -23,7 +24,7 @@ class AdminStatsDataSourceImpl implements AdminStatsDataSource {
     final connectivityResult = await Connectivity().checkConnectivity();
 
     if (connectivityResult.contains(ConnectivityResult.none)) {
-      return Left(NetworkError(errorMessage: 'No internet connection'));
+      return Left(NetworkError(errorMessage: 'extra.no_internet_lower'.tr()));
     }
 
     try {
@@ -66,7 +67,7 @@ class AdminStatsDataSourceImpl implements AdminStatsDataSource {
         return Left(ServerError(errorMessage: message ?? 'Server error'));
       }
 
-      return Left(ServerError(errorMessage: 'Unexpected server error'));
+      return Left(ServerError(errorMessage: 'extra.unexpected_server_error'.tr()));
     } catch (e) {
       return Left(ServerError(errorMessage: e.toString()));
     }
