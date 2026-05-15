@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:donut_chart/donut_chart.dart';
@@ -41,8 +42,7 @@ class _EmployeeDonutChartState extends State<EmployeeDonutChart> {
         padding: EdgeInsets.all(16.w),
         decoration: _decoration(theme),
         child: Center(
-          child: Text(
-            "No data available",
+          child: Text('employee.no_data'.tr(),
             style: theme.textTheme.bodyMedium,
           ),
         ),
@@ -56,8 +56,7 @@ class _EmployeeDonutChartState extends State<EmployeeDonutChart> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            "Requests Distribution",
+          Text('employee.requests_distribution'.tr(),
             style: theme.textTheme.titleMedium?.copyWith(
               fontWeight: FontWeight.w600,
             ),
@@ -74,22 +73,22 @@ class _EmployeeDonutChartState extends State<EmployeeDonutChart> {
                 tooltipBgColor: Colors.grey.withValues(alpha: 0.8),
                 data: [
                   DonutSectionModel(
-                    label: "Pending",
+                    label: 'my_requests.status_pending'.tr(),
                     value: widget.pending.toDouble(),
                     color: AppColors.warning,
                   ),
                   DonutSectionModel(
-                    label: "Cancelled",
+                    label: 'my_requests.status_cancelled'.tr(),
                     value: widget.cancelled.toDouble(),
                     color: AppColors.error,
                   ),
                   DonutSectionModel(
-                    label: "Failed",
+                    label: 'extra.failed'.tr(),
                     value: widget.failed.toDouble(),
                     color: Colors.black,
                   ),
                   DonutSectionModel(
-                    label: "Success",
+                    label: 'extra.success'.tr(),
                     value: widget.success.toDouble(),
                     color: AppColors.success,
                   ),
