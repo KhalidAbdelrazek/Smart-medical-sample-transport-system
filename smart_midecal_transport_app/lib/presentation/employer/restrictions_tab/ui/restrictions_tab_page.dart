@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -85,7 +86,7 @@ class _RestrictionsTabPageState extends State<RestrictionsTabPage>
             const SizedBox(height: 16),
             ElevatedButton(
               onPressed: () => _cubit.loadData(),
-              child: const Text('Retry'),
+              child: Text('my_requests.retry'.tr()),
             ),
           ],
         ),
@@ -119,8 +120,8 @@ class _LoadedBody extends StatelessWidget {
 
         // ── Doctor Restrictions ──────────────────────────────────────
         RestrictionsCard(
-          title: 'Doctor Restrictions',
-          subtitle: 'Manage operational access for all doctors',
+          title: 'extra.doctor_restrictions'.tr(),
+          subtitle: 'extra.manage_doctors'.tr(),
           isGlobalOn: state.isAllDoctorsRestricted,
           isExpanded: state.isDoctorExpanded,
           isLoading: state.isDoctorLoading,
@@ -155,8 +156,8 @@ class _LoadedBody extends StatelessWidget {
 
         // ── Storage Restrictions ─────────────────────────────────────
         RestrictionsCard(
-          title: 'Storage Restrictions',
-          subtitle: 'Manage sample loading access for employees',
+          title: 'extra.storage_restrictions'.tr(),
+          subtitle: 'extra.manage_storage'.tr(),
           isGlobalOn: state.isAllStorageRestricted,
           isExpanded: state.isStorageExpanded,
           isLoading: state.isStorageLoading,
@@ -192,8 +193,8 @@ class _LoadedBody extends StatelessWidget {
 
         // ── Transport Car Restriction ────────────────────────────────
         RestrictionsCard(
-          title: 'Transport Car',
-          subtitle: 'Prevent the car from dispatching requests',
+          title: 'requests.transport_car'.tr(),
+          subtitle: 'extra.prevent_dispatch'.tr(),
           isGlobalOn: state.carRestricted,
           isExpanded: false,
           isLoading: state.isCarLoading,
@@ -220,8 +221,7 @@ class _PageHeader extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          'System Control',
+        Text('extra.system_control'.tr(),
           style: TextStyle(
             fontSize: 26.sp,
             fontWeight: FontWeight.w800,
@@ -230,8 +230,7 @@ class _PageHeader extends StatelessWidget {
           ),
         ),
         SizedBox(height: 6.h),
-        Text(
-          'Manage operational restrictions and safety protocols across the entire transport network.',
+        Text('extra.manage_restrictions'.tr(),
           style: TextStyle(
             fontSize: 14.sp,
             height: 1.4,

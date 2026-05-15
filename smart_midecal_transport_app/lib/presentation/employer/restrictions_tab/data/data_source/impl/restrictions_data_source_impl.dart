@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:dio/dio.dart';
 import 'package:either_dart/either.dart';
@@ -40,7 +41,7 @@ class RestrictionsDataSourceImpl implements RestrictionsDataSource {
       final message = data['message'] as String?;
       return Left(ServerError(errorMessage: message ?? 'Server error'));
     }
-    return Left(ServerError(errorMessage: 'Unexpected server error'));
+    return Left(ServerError(errorMessage: 'extra.unexpected_server_error'.tr()));
   }
 
   // ─── GET restrictions/status/ ────────────────────────────────────────────
@@ -50,7 +51,7 @@ class RestrictionsDataSourceImpl implements RestrictionsDataSource {
     required String type,
   }) async {
     if (!await _hasNetwork()) {
-      return Left(NetworkError(errorMessage: 'No internet connection'));
+      return Left(NetworkError(errorMessage: 'extra.no_internet_lower'.tr()));
     }
     try {
       final response = await apiManager.getData(
@@ -81,7 +82,7 @@ class RestrictionsDataSourceImpl implements RestrictionsDataSource {
     String reason = '',
   }) async {
     if (!await _hasNetwork()) {
-      return Left(NetworkError(errorMessage: 'No internet connection'));
+      return Left(NetworkError(errorMessage: 'extra.no_internet_lower'.tr()));
     }
     try {
       final response = await apiManager.postData(
@@ -110,7 +111,7 @@ class RestrictionsDataSourceImpl implements RestrictionsDataSource {
     String reason = '',
   }) async {
     if (!await _hasNetwork()) {
-      return Left(NetworkError(errorMessage: 'No internet connection'));
+      return Left(NetworkError(errorMessage: 'extra.no_internet_lower'.tr()));
     }
     try {
       final response = await apiManager.postData(
@@ -138,7 +139,7 @@ class RestrictionsDataSourceImpl implements RestrictionsDataSource {
     String reason = '',
   }) async {
     if (!await _hasNetwork()) {
-      return Left(NetworkError(errorMessage: 'No internet connection'));
+      return Left(NetworkError(errorMessage: 'extra.no_internet_lower'.tr()));
     }
     try {
       final response = await apiManager.postData(
