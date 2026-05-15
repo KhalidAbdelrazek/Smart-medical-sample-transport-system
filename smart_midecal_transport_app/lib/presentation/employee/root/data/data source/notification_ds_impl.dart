@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:dio/dio.dart';
 import 'package:either_dart/either.dart';
@@ -40,7 +41,7 @@ class NotificationDsImpl implements NotificationDataSource {
           ServerError(errorMessage: notificationResponseDm.errors.toString()),
         );
       } else {
-        return Left(NetworkError(errorMessage: "Network Error"));
+        return Left(NetworkError(errorMessage: 'errors.network_error'.tr()));
       }
     } catch (e) {
       return Left(ServerError(errorMessage: e.toString()));
@@ -76,7 +77,7 @@ class NotificationDsImpl implements NotificationDataSource {
           ),
         );
       } else {
-        return Left(NetworkError(errorMessage: "Network Error"));
+        return Left(NetworkError(errorMessage: 'errors.network_error'.tr()));
       }
     } catch (e) {
       return Left(ServerError(errorMessage: e.toString()));
@@ -112,7 +113,7 @@ class NotificationDsImpl implements NotificationDataSource {
           ),
         );
       } else {
-        return Left(NetworkError(errorMessage: "Network Error"));
+        return Left(NetworkError(errorMessage: 'errors.network_error'.tr()));
       }
     } catch (e) {
       return Left(ServerError(errorMessage: e.toString()));
@@ -154,7 +155,7 @@ class NotificationDsImpl implements NotificationDataSource {
           ),
         );
       } else {
-        return Left(NetworkError(errorMessage: "Network Error"));
+        return Left(NetworkError(errorMessage: 'errors.network_error'.tr()));
       }
     } catch (e) {
       return Left(ServerError(errorMessage: e.toString()));

@@ -64,8 +64,8 @@ class NotificationBottomSheet {
                           }
 
                           if (state.items.isEmpty) {
-                            return const Center(
-                              child: Text("No Notifications"),
+                            return Center(
+                              child: Text('extra.no_notifications'.tr()),
                             );
                           }
 
