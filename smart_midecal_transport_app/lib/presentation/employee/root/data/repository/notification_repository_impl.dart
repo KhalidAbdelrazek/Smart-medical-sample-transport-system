@@ -17,14 +17,16 @@ class NotificationRepositoryImpl implements NotificationRepository {
   }
 
   @override
-  Future<Either<Failures, String?>> confirmDelivery(
-      {required String requestId}) {
+  Future<Either<Failures, String?>> confirmDelivery({
+    required String requestId,
+  }) {
     return notificationDataSource.confirmDelivery(requestId: requestId);
   }
 
   @override
-  Future<Either<Failures, String?>> rejectDelivery(
-      {required String requestId}) {
+  Future<Either<Failures, String?>> rejectDelivery({
+    required String requestId,
+  }) {
     return notificationDataSource.rejectDelivery(requestId: requestId);
   }
 
@@ -33,6 +35,7 @@ class NotificationRepositoryImpl implements NotificationRepository {
     required List<String> sampleCodes,
   }) {
     return notificationDataSource.confirmReturnHandoff(
-        sampleCodes: sampleCodes);
+      sampleCodes: sampleCodes,
+    );
   }
 }
