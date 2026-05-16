@@ -25,7 +25,6 @@ class DashboardStatsCard extends StatelessWidget {
     return Container(
       padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 15.4.h),
       decoration: BoxDecoration(
-        
         color: theme.cardColor,
         borderRadius: BorderRadius.circular(16.r),
         border: Border.all(color: theme.dividerColor.withValues(alpha: 0.3)),
