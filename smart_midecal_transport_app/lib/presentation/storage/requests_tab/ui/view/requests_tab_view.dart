@@ -1,7 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:easy_localization/easy_localization.dart';
-import 'package:smart_midecal_transport_app/core/theme/color.dart';
 
 import 'blood_samples_view.dart';
 // import 'return_approval_view.dart';
@@ -32,9 +29,6 @@ class _RequestsTabViewState extends State<RequestsTabView>
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
-
     return Column(
       children: [
         // Tab Bar
