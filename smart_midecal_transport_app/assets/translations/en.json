@@ -6,7 +6,11 @@
     "with_doctor": "With Doctor",
     "dispatched": "Dispatched",
     "sample_selected": "Sample Selected",
-    "samples_selected": "Samples Selected"
+    "samples_selected": "Samples Selected",
+    "loaded": "Loaded",
+    "returned": "Returned",
+    "please_select_at_least_one_patient_sample": "Please select at least one patient sample",
+    "please_select_room": "Please select a room"
   },
   "main_character": {
     "robot_name": "MedBot"
