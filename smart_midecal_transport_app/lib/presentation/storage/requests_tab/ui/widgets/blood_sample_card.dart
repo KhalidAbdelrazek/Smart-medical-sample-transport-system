@@ -269,9 +269,9 @@ class BloodSampleCard extends StatelessWidget {
                     SizedBox(
                       width: double.infinity,
                       child: isActionLoading
-                          ? const _LoadingButton(
+                          ? _LoadingButton(
                               color: AppColors.success,
-                              labelKey: 'requests.adding',
+                              labelKey: 'requests.adding'.tr(),
                             )
                           : FilledButton.icon(
                               onPressed: onAddToCar,
@@ -287,8 +287,7 @@ class BloodSampleCard extends StatelessWidget {
                                       )
                                     : AppColors.success,
                                 foregroundColor: Colors.white,
-                                padding:
-                                    EdgeInsets.symmetric(vertical: 13.h),
+                                padding: EdgeInsets.symmetric(vertical: 13.h),
                                 shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(12.r),
                                 ),
@@ -303,9 +302,9 @@ class BloodSampleCard extends StatelessWidget {
                     SizedBox(
                       width: double.infinity,
                       child: isActionLoading
-                          ? const _LoadingButton(
+                          ? _LoadingButton(
                               color: AppColors.error,
-                              labelKey: 'requests.removing',
+                              labelKey: 'requests.removing'.tr(),
                             )
                           : OutlinedButton.icon(
                               onPressed: onRemoveFromCar,
@@ -322,8 +321,7 @@ class BloodSampleCard extends StatelessWidget {
                                 side: BorderSide(
                                   color: AppColors.error.withValues(alpha: 0.6),
                                 ),
-                                padding:
-                                    EdgeInsets.symmetric(vertical: 13.h),
+                                padding: EdgeInsets.symmetric(vertical: 13.h),
                                 shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(12.r),
                                 ),
@@ -386,10 +384,7 @@ class _LoadingButton extends StatelessWidget {
   final Color color;
   final String labelKey;
 
-  const _LoadingButton({
-    required this.color,
-    required this.labelKey,
-  });
+  const _LoadingButton({required this.color, required this.labelKey});
 
   @override
   Widget build(BuildContext context) {
