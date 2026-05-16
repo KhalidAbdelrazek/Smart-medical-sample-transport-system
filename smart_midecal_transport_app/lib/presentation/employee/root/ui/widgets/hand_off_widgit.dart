@@ -12,9 +12,7 @@ import 'package:smart_midecal_transport_app/presentation/employee/root/domain/en
 ///   • `[]` (empty)    – user chose "No" (send empty list to backend)
 ///   • `[codes...]`    – user chose "Yes" and selected samples
 class ReturnHandoffDialog extends StatefulWidget {
-  const ReturnHandoffDialog._({
-    required this.returnableSamples,
-  });
+  const ReturnHandoffDialog._({required this.returnableSamples});
 
   final List<ReturnableSamplesEntity> returnableSamples;
 
@@ -26,9 +24,8 @@ class ReturnHandoffDialog extends StatefulWidget {
     return showDialog<List<String>>(
       context: context,
       barrierDismissible: false,
-      builder: (_) => ReturnHandoffDialog._(
-        returnableSamples: returnableSamples,
-      ),
+      builder: (_) =>
+          ReturnHandoffDialog._(returnableSamples: returnableSamples),
     );
   }
 
@@ -44,9 +41,7 @@ class _ReturnHandoffDialogState extends State<ReturnHandoffDialog> {
   void _selectAll() {
     setState(() {
       _selected.addAll(
-        widget.returnableSamples
-            .map((s) => s.sampleCode)
-            .whereType<String>(),
+        widget.returnableSamples.map((s) => s.sampleCode).whereType<String>(),
       );
     });
   }
@@ -110,8 +105,9 @@ class _ReturnHandoffDialogState extends State<ReturnHandoffDialog> {
           // Title
           Text(
             'employee.return_handoff_title'.tr(),
-            style: theme.textTheme.titleMedium
-                ?.copyWith(fontWeight: FontWeight.w700),
+            style: theme.textTheme.titleMedium?.copyWith(
+              fontWeight: FontWeight.w700,
+            ),
             textAlign: TextAlign.center,
           ),
           SizedBox(height: 8.h),
@@ -121,8 +117,9 @@ class _ReturnHandoffDialogState extends State<ReturnHandoffDialog> {
             'employee.return_handoff_subtitle'.tr(
               args: ['${widget.returnableSamples.length}'],
             ),
-            style: theme.textTheme.bodyMedium
-                ?.copyWith(color: scheme.onSurfaceVariant),
+            style: theme.textTheme.bodyMedium?.copyWith(
+              color: scheme.onSurfaceVariant,
+            ),
             textAlign: TextAlign.center,
           ),
           SizedBox(height: 24.h),
@@ -175,8 +172,9 @@ class _ReturnHandoffDialogState extends State<ReturnHandoffDialog> {
               Expanded(
                 child: Text(
                   'employee.return_handoff_select_title'.tr(),
-                  style: theme.textTheme.titleMedium
-                      ?.copyWith(fontWeight: FontWeight.w700),
+                  style: theme.textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.w700,
+                  ),
                 ),
               ),
             ],
@@ -195,12 +193,12 @@ class _ReturnHandoffDialogState extends State<ReturnHandoffDialog> {
                 ),
                 child: Text(
                   'employee.return_handoff_select_all'.tr(),
-                  style: theme.textTheme.labelMedium
-                      ?.copyWith(color: scheme.primary),
+                  style: theme.textTheme.labelMedium?.copyWith(
+                    color: scheme.primary,
+                  ),
                 ),
               ),
-              Text('·',
-                  style: TextStyle(color: scheme.onSurfaceVariant)),
+              Text('·', style: TextStyle(color: scheme.onSurfaceVariant)),
               TextButton(
                 onPressed: _clearAll,
                 style: TextButton.styleFrom(
@@ -209,8 +207,9 @@ class _ReturnHandoffDialogState extends State<ReturnHandoffDialog> {
                 ),
                 child: Text(
                   'employee.return_handoff_clear'.tr(),
-                  style: theme.textTheme.labelMedium
-                      ?.copyWith(color: scheme.error),
+                  style: theme.textTheme.labelMedium?.copyWith(
+                    color: scheme.error,
+                  ),
                 ),
               ),
             ],
@@ -238,7 +237,9 @@ class _ReturnHandoffDialogState extends State<ReturnHandoffDialog> {
                   borderRadius: BorderRadius.circular(8.r),
                   child: Padding(
                     padding: EdgeInsets.symmetric(
-                        vertical: 10.h, horizontal: 4.w),
+                      vertical: 10.h,
+                      horizontal: 4.w,
+                    ),
                     child: Row(
                       children: [
                         // Checkbox
@@ -317,9 +318,7 @@ class _ReturnHandoffDialogState extends State<ReturnHandoffDialog> {
                 child: FilledButton.icon(
                   onPressed: _selected.isEmpty
                       ? null
-                      : () => Navigator.of(context).pop(
-                            _selected.toList(),
-                          ),
+                      : () => Navigator.of(context).pop(_selected.toList()),
                   icon: const Icon(Icons.send_rounded, size: 16),
                   label: Text(
                     'employee.return_handoff_confirm'.tr(
