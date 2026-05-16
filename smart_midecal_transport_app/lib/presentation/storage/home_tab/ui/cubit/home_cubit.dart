@@ -2,8 +2,6 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:injectable/injectable.dart';
 import 'package:smart_midecal_transport_app/presentation/storage/home_tab/domain/repos/static_storage_repo.dart';
 
-
-
 import 'home_state.dart';
 
 @injectable
@@ -28,7 +26,8 @@ class HomeCubit extends Cubit<HomeState> {
       final result = await repo.getStatistics();
 
       result.fold(
-        (failure) => emit(HomeError("Failed to load data: ${failure.toString()}")),
+        (failure) =>
+            emit(HomeError("Failed to load data: ${failure.toString()}")),
         (data) => emit(
           HomeLoaded(
             totalactions: data.totalactions,
