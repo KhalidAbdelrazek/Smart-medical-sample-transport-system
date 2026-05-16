@@ -15,9 +15,7 @@ class DispatchCarResponseEntity {
 class DispatchDataEntity {
   final List<TransportRequestEntity>? dispatchedRequests;
 
-  DispatchDataEntity({
-    this.dispatchedRequests,
-  });
+  DispatchDataEntity({this.dispatchedRequests});
 }
 
 class TransportRequestEntity {
@@ -70,10 +68,5 @@ class CarEntity {
   final String? status;
   final String? createdAt;
 
-  CarEntity({
-    this.id,
-    this.carNumber,
-    this.status,
-    this.createdAt,
-  });
+  CarEntity({this.id, this.carNumber, this.status, this.createdAt});
 }
