@@ -67,7 +67,9 @@ class AdminStatsDataSourceImpl implements AdminStatsDataSource {
         return Left(ServerError(errorMessage: message ?? 'Server error'));
       }
 
-      return Left(ServerError(errorMessage: 'extra.unexpected_server_error'.tr()));
+      return Left(
+        ServerError(errorMessage: 'extra.unexpected_server_error'.tr()),
+      );
     } catch (e) {
       return Left(ServerError(errorMessage: e.toString()));
     }
