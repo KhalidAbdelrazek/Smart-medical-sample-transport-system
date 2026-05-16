@@ -72,10 +72,12 @@ class StatisticsCubit extends Cubit<StatisticsState> {
       return;
     }
 
-    emit(StatisticsError(
-      message: failure.errorMessage,
-      isNetwork: failure is NetworkError,
-    ));
+    emit(
+      StatisticsError(
+        message: failure.errorMessage,
+        isNetwork: failure is NetworkError,
+      ),
+    );
   }
 
   void _handleSuccess(dynamic entity) {
@@ -94,14 +96,16 @@ class StatisticsCubit extends Cubit<StatisticsState> {
       return;
     }
 
-    emit(StatisticsLoaded(
-      doctors: doctors,
-      storage: storage,
-      period: data.period ?? '',
-      selectedFilter: _selectedFilter,
-      doctorSegments: _buildDoctorSegments(doctors),
-      storageSegments: _buildStorageSegments(storage),
-    ));
+    emit(
+      StatisticsLoaded(
+        doctors: doctors,
+        storage: storage,
+        period: data.period ?? '',
+        selectedFilter: _selectedFilter,
+        doctorSegments: _buildDoctorSegments(doctors),
+        storageSegments: _buildStorageSegments(storage),
+      ),
+    );
   }
 
   // ─── Chart segment builders (ViewModel logic) ─────────────────────────
@@ -119,11 +123,13 @@ class StatisticsCubit extends Cubit<StatisticsState> {
 
     return items
         .where((e) => e.$2 > 0)
-        .map((e) => ChartSegment(
-              label: e.$1,
-              value: e.$2,
-              percentage: _pct(e.$2, total),
-            ))
+        .map(
+          (e) => ChartSegment(
+            label: e.$1,
+            value: e.$2,
+            percentage: _pct(e.$2, total),
+          ),
+        )
         .toList();
   }
 
@@ -141,11 +147,13 @@ class StatisticsCubit extends Cubit<StatisticsState> {
 
     return items
         .where((e) => e.$2 > 0)
-        .map((e) => ChartSegment(
-              label: e.$1,
-              value: e.$2,
-              percentage: _pct(e.$2, total),
-            ))
+        .map(
+          (e) => ChartSegment(
+            label: e.$1,
+            value: e.$2,
+            percentage: _pct(e.$2, total),
+          ),
+        )
         .toList();
   }
 
