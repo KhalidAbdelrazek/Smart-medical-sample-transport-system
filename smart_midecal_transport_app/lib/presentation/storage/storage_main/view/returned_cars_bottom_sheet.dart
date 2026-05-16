@@ -31,7 +31,7 @@ class _ReturnedCarsBottomSheetContent extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
-    
+
     return DraggableScrollableSheet(
       initialChildSize: 0.6,
       minChildSize: 0.4,
@@ -65,9 +65,9 @@ class _ReturnedCarsBottomSheetContent extends StatelessWidget {
                     Text(
                       'storage.returned_cars_tab'.tr(),
                       style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                            fontWeight: FontWeight.w700,
-                            color: scheme.onSurface,
-                          ),
+                        fontWeight: FontWeight.w700,
+                        color: scheme.onSurface,
+                      ),
                     ),
                     IconButton(
                       icon: const Icon(Icons.close_rounded),
@@ -88,7 +88,8 @@ class _ReturnedCarsBottomSheetContent extends StatelessWidget {
                       messenger.showSnackBar(
                         SnackBar(
                           content: Text(
-                            state.message ?? 'storage.return_confirm_success'.tr(),
+                            state.message ??
+                                'storage.return_confirm_success'.tr(),
                           ),
                           behavior: SnackBarBehavior.floating,
                         ),
@@ -119,15 +120,17 @@ class _ReturnedCarsBottomSheetContent extends StatelessWidget {
     );
   }
 
-  Widget _buildBody(BuildContext context, StorageState state, ScrollController scrollController) {
+  Widget _buildBody(
+    BuildContext context,
+    StorageState state,
+    ScrollController scrollController,
+  ) {
     if (state is StorageInitial || state is StorageLoading) {
       // Re-use the skeleton but make it scrollable if needed
       return ListView(
         controller: scrollController,
         padding: EdgeInsets.zero,
-        children: const [
-           ReturnedCarsSkeleton(key: ValueKey('skeleton')),
-        ],
+        children: const [ReturnedCarsSkeleton(key: ValueKey('skeleton'))],
       );
     }
     if (state is StorageError) {
@@ -182,11 +185,7 @@ class _ReturnedCarsBottomSheetContent extends StatelessWidget {
 }
 
 class _ErrorPane extends StatelessWidget {
-  const _ErrorPane({
-    super.key,
-    required this.message,
-    required this.onRetry,
-  });
+  const _ErrorPane({super.key, required this.message, required this.onRetry});
 
   final String message;
   final VoidCallback onRetry;
@@ -201,11 +200,7 @@ class _ErrorPane extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(
-              Icons.cloud_off_outlined,
-              size: 52.sp,
-              color: scheme.error,
-            ),
+            Icon(Icons.cloud_off_outlined, size: 52.sp, color: scheme.error),
             SizedBox(height: 16.h),
             Text(
               'storage.returned_cars_error_title'.tr(),
@@ -274,8 +269,8 @@ class _CarsListPane extends StatelessWidget {
               child: Text(
                 'storage.returned_cars_empty'.tr(),
                 style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                      color: scheme.onSurfaceVariant,
-                    ),
+                  color: scheme.onSurfaceVariant,
+                ),
                 textAlign: TextAlign.center,
               ),
             ),
@@ -306,7 +301,8 @@ class _CarsListPane extends StatelessWidget {
                 final actionId = _carActionId(car);
                 return _ReturnedCarCard(
                   car: car,
-                  isConfirming: loadingCarId != null && actionId == loadingCarId,
+                  isConfirming:
+                      loadingCarId != null && actionId == loadingCarId,
                   onConfirm: loadingCarId != null || actionId == null
                       ? null
                       : () => cubit.confirmReturnedCar(actionId),
@@ -362,7 +358,10 @@ class _LastUpdatedRowState extends State<_LastUpdatedRow> {
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
-    final seconds = _tick.difference(widget.lastUpdated).inSeconds.clamp(0, 86400);
+    final seconds = _tick
+        .difference(widget.lastUpdated)
+        .inSeconds
+        .clamp(0, 86400);
     return Row(
       children: [
         Icon(
@@ -533,9 +532,9 @@ class _StatusChip extends StatelessWidget {
       child: Text(
         status,
         style: Theme.of(context).textTheme.labelMedium?.copyWith(
-              color: scheme.onSecondaryContainer,
-              fontWeight: FontWeight.w600,
-            ),
+          color: scheme.onSecondaryContainer,
+          fontWeight: FontWeight.w600,
+        ),
       ),
     );
   }
