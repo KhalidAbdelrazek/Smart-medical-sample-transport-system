@@ -23,8 +23,7 @@ class StorageMainCubit extends Cubit<StorageState> {
   }
 
   /// Manual refresh (e.g. pull-to-refresh).
-  Future<void> refresh() =>
-      _fetchReturnedCars(trigger: _FetchTrigger.manual);
+  Future<void> refresh() => _fetchReturnedCars(trigger: _FetchTrigger.manual);
 
   Future<void> confirmReturnedCar(int carId) async {
     if (state is ConfirmLoading) return;
@@ -49,13 +48,7 @@ class StorageMainCubit extends Cubit<StorageState> {
       return;
     }
 
-    emit(
-      ConfirmLoading(
-        carId: carId,
-        cars: cars,
-        lastUpdated: lastUpdated,
-      ),
-    );
+    emit(ConfirmLoading(carId: carId, cars: cars, lastUpdated: lastUpdated));
 
     final result = await _repository.confirmReturnedCar(carId);
     if (isClosed) return;
@@ -99,7 +92,8 @@ class StorageMainCubit extends Cubit<StorageState> {
     final before = state;
     if (before is ConfirmLoading) return;
 
-    final bool showBlockingLoading = trigger == _FetchTrigger.initial ||
+    final bool showBlockingLoading =
+        trigger == _FetchTrigger.initial ||
         (trigger == _FetchTrigger.manual && before is! StorageSuccess);
 
     if (showBlockingLoading) {
@@ -116,7 +110,8 @@ class StorageMainCubit extends Cubit<StorageState> {
           if (trigger == _FetchTrigger.periodic && before is StorageSuccess) {
             return;
           }
-          if (trigger == _FetchTrigger.afterConfirm && before is ConfirmSuccess) {
+          if (trigger == _FetchTrigger.afterConfirm &&
+              before is ConfirmSuccess) {
             emit(
               StorageSuccess(
                 cars: before.cars,
