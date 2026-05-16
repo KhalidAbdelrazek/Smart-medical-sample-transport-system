@@ -28,20 +28,20 @@ class StatsErrorWidget extends StatelessWidget {
     final icon = isTokenExpired
         ? Icons.lock_clock_rounded
         : isNetwork
-            ? Icons.wifi_off_rounded
-            : Icons.error_outline_rounded;
+        ? Icons.wifi_off_rounded
+        : Icons.error_outline_rounded;
 
     final iconColor = isTokenExpired
         ? AppColors.warning
         : isNetwork
-            ? AppColors.info
-            : AppColors.error;
+        ? AppColors.info
+        : AppColors.error;
 
     final title = isTokenExpired
         ? 'Session Expired'
         : isNetwork
-            ? 'No Connection'
-            : 'Something went wrong';
+        ? 'No Connection'
+        : 'Something went wrong';
 
     return Center(
       child: Padding(
