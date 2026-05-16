@@ -47,13 +47,13 @@ class RestrictionsCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
           color: isExpanded
-              ? effectiveColor.withOpacity(0.30)
-              : cs.outlineVariant.withOpacity(0.45),
+              ? effectiveColor.withValues(alpha: 0.30)
+              : cs.outlineVariant.withValues(alpha: 0.45),
           width: 1.2,
         ),
         boxShadow: [
           BoxShadow(
-            color: cs.shadow.withOpacity(0.06),
+            color: cs.shadow.withValues(alpha: 0.06),
             blurRadius: 14,
             offset: const Offset(0, 4),
           ),
@@ -69,15 +69,14 @@ class RestrictionsCard extends StatelessWidget {
               child: InkWell(
                 onTap: showExpand ? onExpandToggle : null,
                 child: Padding(
-                  padding:
-                      EdgeInsets.symmetric(horizontal: 18.w, vertical: 16.h),
+                  padding: EdgeInsets.symmetric(
+                    horizontal: 18.w,
+                    vertical: 16.h,
+                  ),
                   child: Row(
                     children: [
                       // Icon badge
-                      _IconBadge(
-                        icon: _iconFor(title),
-                        color: effectiveColor,
-                      ),
+                      _IconBadge(icon: _iconFor(title), color: effectiveColor),
                       SizedBox(width: 14.w),
 
                       // Title + subtitle
@@ -99,7 +98,7 @@ class RestrictionsCard extends StatelessWidget {
                               subtitle,
                               style: TextStyle(
                                 fontSize: 12.sp,
-                                color: cs.onSurface.withOpacity(0.5),
+                                color: cs.onSurface.withValues(alpha: 0.5),
                                 fontWeight: FontWeight.w400,
                               ),
                             ),
@@ -140,7 +139,7 @@ class RestrictionsCard extends StatelessWidget {
                             size: 22.sp,
                             color: isExpanded
                                 ? effectiveColor
-                                : cs.onSurface.withOpacity(0.38),
+                                : cs.onSurface.withValues(alpha: 0.38),
                           ),
                         ),
                       ],
@@ -162,7 +161,7 @@ class RestrictionsCard extends StatelessWidget {
                           Divider(
                             height: 1,
                             thickness: 1,
-                            color: cs.outlineVariant.withOpacity(0.45),
+                            color: cs.outlineVariant.withValues(alpha: 0.45),
                           ),
                           expandedContent,
                         ],
@@ -200,7 +199,7 @@ class _IconBadge extends StatelessWidget {
       width: 40.w,
       height: 40.w,
       decoration: BoxDecoration(
-        color: color.withOpacity(0.12),
+        color: color.withValues(alpha: 0.12),
         borderRadius: BorderRadius.circular(10),
       ),
       alignment: Alignment.center,
