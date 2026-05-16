@@ -20,10 +20,11 @@ class ProfileCubit extends Cubit<ProfileState> {
     result.fold(
       (failure) {
         final errorMsg = failure.errorMessage;
-        final bool isTokenExpired = errorMsg.toLowerCase().contains('session expired') || 
+        final bool isTokenExpired =
+            errorMsg.toLowerCase().contains('session expired') ||
             errorMsg.toLowerCase().contains('token_not_valid') ||
             errorMsg.toLowerCase().contains('motherfucker');
-            
+
         emit(ProfileError(errorMsg, isTokenExpired: isTokenExpired));
       },
       (profile) {
