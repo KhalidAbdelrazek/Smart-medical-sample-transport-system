@@ -31,9 +31,10 @@ class _ShimmerBoxState extends State<_ShimmerBox>
       vsync: this,
       duration: const Duration(milliseconds: 1100),
     )..repeat(reverse: true);
-    _anim = Tween<double>(begin: 0.0, end: 1.0).animate(
-      CurvedAnimation(parent: _ctrl, curve: Curves.easeInOut),
-    );
+    _anim = Tween<double>(
+      begin: 0.0,
+      end: 1.0,
+    ).animate(CurvedAnimation(parent: _ctrl, curve: Curves.easeInOut));
   }
 
   @override
@@ -46,8 +47,9 @@ class _ShimmerBoxState extends State<_ShimmerBox>
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final base = isDark ? const Color(0xFF2B3A46) : const Color(0xFFE2E8F0);
-    final highlight =
-        isDark ? const Color(0xFF374151) : const Color(0xFFF1F5F9);
+    final highlight = isDark
+        ? const Color(0xFF374151)
+        : const Color(0xFFF1F5F9);
 
     return AnimatedBuilder(
       animation: _anim,
@@ -56,8 +58,7 @@ class _ShimmerBoxState extends State<_ShimmerBox>
         height: widget.height,
         decoration: BoxDecoration(
           color: Color.lerp(base, highlight, _anim.value),
-          borderRadius:
-              widget.borderRadius ?? BorderRadius.circular(12.r),
+          borderRadius: widget.borderRadius ?? BorderRadius.circular(12.r),
         ),
       ),
     );
@@ -85,11 +86,17 @@ class StatsCardSkeleton extends StatelessWidget {
         children: [
           Row(
             children: [
-              _ShimmerBox(width: 44.w, height: 44.w,
-                  borderRadius: BorderRadius.circular(12.r)),
+              _ShimmerBox(
+                width: 44.w,
+                height: 44.w,
+                borderRadius: BorderRadius.circular(12.r),
+              ),
               const Spacer(),
-              _ShimmerBox(width: 50.w, height: 20.h,
-                  borderRadius: BorderRadius.circular(8.r)),
+              _ShimmerBox(
+                width: 50.w,
+                height: 20.h,
+                borderRadius: BorderRadius.circular(8.r),
+              ),
             ],
           ),
           SizedBox(height: 12.h),
@@ -110,17 +117,29 @@ class FilterSkeleton extends StatelessWidget {
   Widget build(BuildContext context) {
     return Row(
       children: [
-        _ShimmerBox(width: 62.w, height: 34.h,
-            borderRadius: BorderRadius.circular(24.r)),
+        _ShimmerBox(
+          width: 62.w,
+          height: 34.h,
+          borderRadius: BorderRadius.circular(24.r),
+        ),
         SizedBox(width: 8.w),
-        _ShimmerBox(width: 72.w, height: 34.h,
-            borderRadius: BorderRadius.circular(24.r)),
+        _ShimmerBox(
+          width: 72.w,
+          height: 34.h,
+          borderRadius: BorderRadius.circular(24.r),
+        ),
         SizedBox(width: 8.w),
-        _ShimmerBox(width: 56.w, height: 34.h,
-            borderRadius: BorderRadius.circular(24.r)),
+        _ShimmerBox(
+          width: 56.w,
+          height: 34.h,
+          borderRadius: BorderRadius.circular(24.r),
+        ),
         SizedBox(width: 8.w),
-        _ShimmerBox(width: 84.w, height: 34.h,
-            borderRadius: BorderRadius.circular(24.r)),
+        _ShimmerBox(
+          width: 84.w,
+          height: 34.h,
+          borderRadius: BorderRadius.circular(24.r),
+        ),
       ],
     );
   }
@@ -147,8 +166,11 @@ class DonutChartSkeleton extends StatelessWidget {
             children: [
               _ShimmerBox(width: 140.w, height: 18.h),
               const Spacer(),
-              _ShimmerBox(width: 70.w, height: 22.h,
-                  borderRadius: BorderRadius.circular(8.r)),
+              _ShimmerBox(
+                width: 70.w,
+                height: 22.h,
+                borderRadius: BorderRadius.circular(8.r),
+              ),
             ],
           ),
           SizedBox(height: 20.h),
@@ -190,8 +212,11 @@ class LegendSkeleton extends StatelessWidget {
   Widget build(BuildContext context) {
     return Row(
       children: [
-        _ShimmerBox(width: 4.w, height: 32.h,
-            borderRadius: BorderRadius.circular(4.r)),
+        _ShimmerBox(
+          width: 4.w,
+          height: 32.h,
+          borderRadius: BorderRadius.circular(4.r),
+        ),
         SizedBox(width: 10.w),
         Expanded(
           child: Column(
@@ -203,8 +228,11 @@ class LegendSkeleton extends StatelessWidget {
             ],
           ),
         ),
-        _ShimmerBox(width: 44.w, height: 22.h,
-            borderRadius: BorderRadius.circular(12.r)),
+        _ShimmerBox(
+          width: 44.w,
+          height: 22.h,
+          borderRadius: BorderRadius.circular(12.r),
+        ),
       ],
     );
   }
