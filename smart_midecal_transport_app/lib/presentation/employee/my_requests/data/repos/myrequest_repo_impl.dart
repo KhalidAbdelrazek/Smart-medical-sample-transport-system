@@ -1,5 +1,3 @@
-
-
 import 'package:either_dart/either.dart';
 import 'package:injectable/injectable.dart';
 import 'package:smart_midecal_transport_app/core/error/failures.dart';
@@ -9,11 +7,9 @@ import 'package:smart_midecal_transport_app/presentation/employee/my_requests/do
 
 @Injectable(as: MyRequestsRepository)
 class MyRequestsRepositoryImpl implements MyRequestsRepository {
-  final  MyRequestsDataSource myRequestsDataSource;
-  
-  MyRequestsRepositoryImpl({required this.myRequestsDataSource});
+  final MyRequestsDataSource myRequestsDataSource;
 
-  
+  MyRequestsRepositoryImpl({required this.myRequestsDataSource});
 
   // ── My Requests ───────────────────────────────────────────────────────────
 
