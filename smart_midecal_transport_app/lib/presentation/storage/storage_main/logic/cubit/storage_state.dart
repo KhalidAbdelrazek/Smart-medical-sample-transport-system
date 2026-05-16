@@ -10,10 +10,7 @@ class StorageInitial extends StorageState {}
 class StorageLoading extends StorageState {}
 
 class StorageSuccess extends StorageState {
-  StorageSuccess({
-    required this.cars,
-    required this.lastUpdated,
-  });
+  StorageSuccess({required this.cars, required this.lastUpdated});
 
   final List<StorageCar> cars;
   final DateTime lastUpdated;
@@ -40,11 +37,7 @@ class ConfirmLoading extends StorageState {
 
 /// Confirm succeeded — listener can show feedback before list refresh completes.
 class ConfirmSuccess extends StorageState {
-  ConfirmSuccess({
-    required this.cars,
-    required this.lastUpdated,
-    this.message,
-  });
+  ConfirmSuccess({required this.cars, required this.lastUpdated, this.message});
 
   final List<StorageCar> cars;
   final DateTime lastUpdated;
