@@ -23,14 +23,22 @@ _StatusConfig _statusConfig(String? status) {
       return _StatusConfig(
         color: AppColors.warning,
         icon: Icons.hourglass_empty_rounded,
-        label: status ?? 'Unknown',
+        label: status == 'REQUESTED'
+            ? 'status.requested'.tr()
+            : status == 'PENDING'
+            ? 'status.pending'.tr()
+            : status ?? 'Unknown',
       );
     case 'LOADED':
     case 'LOADED_FOR_RETURN':
       return _StatusConfig(
         color: AppColors.primaryLight,
         icon: Icons.inventory_2_rounded,
-        label: status ?? 'Unknown',
+        label: status == 'LOADED'
+            ? 'status.loaded'.tr()
+            : status == 'LOADED_FOR_RETURN'
+            ? 'status.loaded_for_return'.tr()
+            : status ?? 'Unknown',
       );
     case 'APPROVED':
     case 'OUT_FOR_DELIVERY':
@@ -38,14 +46,24 @@ _StatusConfig _statusConfig(String? status) {
       return _StatusConfig(
         color: AppColors.success,
         icon: Icons.check_circle_rounded,
-        label: status ?? 'Unknown',
+        label: status == 'OUT_FOR_DELIVERY'
+            ? 'status.out_for_delivery'.tr()
+            : status == 'IN_TRANSIT'
+            ? 'status.in_transit'.tr()
+            : status == 'APPROVED'
+            ? 'status.approved'.tr()
+            : status ?? 'Unknown',
       );
     case 'REJECTED':
     case 'CANCELLED':
       return _StatusConfig(
         color: AppColors.error,
         icon: Icons.cancel_rounded,
-        label: status ?? 'Unknown',
+        label: status == 'REJECTED'
+            ? 'status.rejected'.tr()
+            : status == 'CANCELLED'
+            ? 'status.cancelled'.tr()
+            : status ?? 'Unknown',
       );
     default:
       return _StatusConfig(
