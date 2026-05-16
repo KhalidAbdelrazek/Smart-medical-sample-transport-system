@@ -43,7 +43,10 @@ class NotificationListItem extends Equatable {
     return r;
   }
 
-  NotificationListItem mergedWith(NotificationArrivalsEntity e, DateTime preservedFirstSeen) {
+  NotificationListItem mergedWith(
+    NotificationArrivalsEntity e,
+    DateTime preservedFirstSeen,
+  ) {
     return NotificationListItem(
       requestId: requestId,
       titleTrKey: titleTrKey,
@@ -58,11 +61,11 @@ class NotificationListItem extends Equatable {
 
   @override
   List<Object?> get props => [
-        requestId,
-        titleTrKey,
-        description,
-        roomLabel,
-        status,
-        firstSeenAt,
-      ];
+    requestId,
+    titleTrKey,
+    description,
+    roomLabel,
+    status,
+    firstSeenAt,
+  ];
 }
