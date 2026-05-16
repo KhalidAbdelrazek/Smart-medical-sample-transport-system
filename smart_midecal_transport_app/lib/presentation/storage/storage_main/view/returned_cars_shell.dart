@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:smart_midecal_transport_app/core/api%20manager/api_manager.dart';
 import 'package:smart_midecal_transport_app/core/di/di.dart';
@@ -16,9 +16,7 @@ class ReturnedCarsShell extends StatelessWidget {
     return BlocProvider(
       create: (_) => StorageMainCubit(
         NotificationRepositoryImpl(
-          notificationDs: NotificationDsImpl(
-            apiManager: getIt<ApiManager>(),
-          ),
+          notificationDs: NotificationDsImpl(apiManager: getIt<ApiManager>()),
         ),
       )..startPolling(),
       child: const StorageMainScreen(),
