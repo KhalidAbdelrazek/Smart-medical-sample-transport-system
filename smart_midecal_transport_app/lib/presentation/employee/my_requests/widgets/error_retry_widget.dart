@@ -57,10 +57,7 @@ class ErrorRetryWidget extends StatelessWidget {
               label: Text('my_requests.retry'.tr()),
               style: FilledButton.styleFrom(
                 backgroundColor: AppColors.primaryLight,
-                padding: EdgeInsets.symmetric(
-                  horizontal: 24.w,
-                  vertical: 13.h,
-                ),
+                padding: EdgeInsets.symmetric(horizontal: 24.w, vertical: 13.h),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(12.r),
                 ),
