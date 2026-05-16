@@ -1,4 +1,9 @@
 {
+  "status": {
+    "in_storage": "في المخزن",
+    "requested": "تم الطلب",
+    "out_for_delivery": "تم التوصيل"
+  },
   "main_character": {
     "robot_name": "ميدبوت (MedBot)"
   },
