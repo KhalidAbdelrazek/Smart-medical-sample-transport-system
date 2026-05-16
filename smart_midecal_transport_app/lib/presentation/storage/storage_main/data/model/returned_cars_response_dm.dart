@@ -18,8 +18,7 @@
 // }
 import 'package:smart_midecal_transport_app/presentation/storage/storage_main/domain/entity/returned_cars_response_entity.dart';
 
-class ReturnedCarsResponseDm extends ReturnedCarsResponseEntity{
-
+class ReturnedCarsResponseDm extends ReturnedCarsResponseEntity {
   ReturnedCarsResponseDm({
     super.success,
     super.message,
@@ -32,25 +31,38 @@ class ReturnedCarsResponseDm extends ReturnedCarsResponseEntity{
     return ReturnedCarsResponseDm(
       success: json['success'],
       message: json['message'],
-      data: json['data'] != null ? ReturnedCarsDataDm.fromJson(json['data']) : null,
+      data: json['data'] != null
+          ? ReturnedCarsDataDm.fromJson(json['data'])
+          : null,
       errors: json['errors'],
     );
   }
 }
 
-class ReturnedCarsDataDm extends ReturnedCarsDataEntity{
+class ReturnedCarsDataDm extends ReturnedCarsDataEntity {
   ReturnedCarsDataDm({super.returnedCars});
   factory ReturnedCarsDataDm.fromJson(Map<String, dynamic>? json) {
     if (json == null) return ReturnedCarsDataDm();
     return ReturnedCarsDataDm(
-      returnedCars: json['returned_cars'] != null ? (json['returned_cars'] as List).map((e) => ReturnedCarDm.fromJson(e)).toList() : null,
+      returnedCars: json['returned_cars'] != null
+          ? (json['returned_cars'] as List)
+                .map((e) => ReturnedCarDm.fromJson(e))
+                .toList()
+          : null,
     );
   }
 }
 
-class ReturnedCarDm extends ReturnedCarEntity{
-
-  ReturnedCarDm({super.id, super.carNumber, super.status, super.arrivedAtStorage, super.capacity, super.createdAt, super.carId});
+class ReturnedCarDm extends ReturnedCarEntity {
+  ReturnedCarDm({
+    super.id,
+    super.carNumber,
+    super.status,
+    super.arrivedAtStorage,
+    super.capacity,
+    super.createdAt,
+    super.carId,
+  });
   factory ReturnedCarDm.fromJson(Map<String, dynamic>? json) {
     if (json == null) return ReturnedCarDm();
     return ReturnedCarDm(

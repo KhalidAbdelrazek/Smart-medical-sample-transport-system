@@ -44,5 +44,13 @@ class ReturnedCarEntity {
   final int? capacity;
   final String? createdAt;
   final int? carId;
-  ReturnedCarEntity({this.id, this.carNumber, this.status, this.arrivedAtStorage, this.capacity, this.createdAt, this.carId});
+  ReturnedCarEntity({
+    this.id,
+    this.carNumber,
+    this.status,
+    this.arrivedAtStorage,
+    this.capacity,
+    this.createdAt,
+    this.carId,
+  });
 }
