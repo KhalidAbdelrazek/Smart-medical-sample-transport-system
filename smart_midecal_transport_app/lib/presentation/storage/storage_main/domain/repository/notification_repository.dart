@@ -5,5 +5,7 @@ import 'package:smart_midecal_transport_app/presentation/storage/storage_main/do
 
 abstract class NotificationRepository {
   Future<Either<Failures, ReturnedCarsResponseEntity>> getReturnedCars();
-  Future<Either<Failures, ConfirmCarReturnEntity>> confirmReturnedCar(int carId);
+  Future<Either<Failures, ConfirmCarReturnEntity>> confirmReturnedCar(
+    int carId,
+  );
 }
