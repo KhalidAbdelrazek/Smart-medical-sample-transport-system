@@ -92,7 +92,7 @@
     "total_actions": "Total Actions",
     "cars_dispatched": "Cars Dispatched",
     "sample_added_to_car": "Sample Added to Car",
-    "sample_removed_from_car": "Sample Removed from Car",
+    "sample_removed_from_car": "Sample Removed from Car successfully",
     "transport_request_update": "Transport Request Update",
     "other": "Other",
     "action_breakdown": "Action Breakdown",
@@ -208,6 +208,8 @@
     "retry": "Retry"
   },
   "requests": {
+    "adding": "Adding...",
+    "removing": "Removing...",
     "dispatch_car": "Dispatch Car",
     "transport_requests": "Transport Request",
     "return_approval": "Return Approval",

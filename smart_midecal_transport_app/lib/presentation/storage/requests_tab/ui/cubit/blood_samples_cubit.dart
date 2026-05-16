@@ -53,7 +53,7 @@ class BloodSamplesCubit extends Cubit<BloodSamplesState> {
       (response) {
         // Re-fetch to get the updated status from the server
         _refreshAfterAction(
-          response.message ?? 'Sample added to car successfully',
+          response.message ?? 'employee.sample_added_to_car'.tr(),
         );
       },
     );
@@ -102,8 +102,8 @@ class BloodSamplesCubit extends Cubit<BloodSamplesState> {
           requests: List.unmodifiable(_requests),
         ),
       ),
-      (_) {
-        _refreshAfterAction('Sample removed from car successfully');
+      (response) {
+        _refreshAfterAction('employee.sample_removed_from_car'.tr());
       },
     );
   }
