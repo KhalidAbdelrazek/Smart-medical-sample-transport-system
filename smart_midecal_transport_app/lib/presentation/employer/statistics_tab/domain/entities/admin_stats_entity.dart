@@ -20,10 +20,16 @@ class DoctorStatsEntity {
   final int? totalRequests;
   final int? successful;
   final int? failed;
-  final int? cancelled;  
+  final int? cancelled;
   final int? pending;
 
-  DoctorStatsEntity({this.totalRequests, this.successful, this.failed, this.cancelled, this.pending});
+  DoctorStatsEntity({
+    this.totalRequests,
+    this.successful,
+    this.failed,
+    this.cancelled,
+    this.pending,
+  });
 }
 
 class StorageStatsEntity {
@@ -34,7 +40,12 @@ class StorageStatsEntity {
   final int? transportRequestUpdate;
   final int? other;
 
-  StorageStatsEntity({this.totalActions, this.carDispatch, this.sampleAddedToCar, this.sampleRemovedFromCar, this.transportRequestUpdate, this.other});
+  StorageStatsEntity({
+    this.totalActions,
+    this.carDispatch,
+    this.sampleAddedToCar,
+    this.sampleRemovedFromCar,
+    this.transportRequestUpdate,
+    this.other,
+  });
 }
-
-

@@ -15,10 +15,10 @@ class AdminStatsModel extends AdminStatsEntity {
   }
 
   Map<String, dynamic> toJson() => {
-        'success': success,
-        'message': message,
-        'errors': errors,
-      };
+    'success': success,
+    'message': message,
+    'errors': errors,
+  };
 }
 
 class DataStatsModel extends DataStatsEntity {
@@ -58,12 +58,12 @@ class DoctorStatsModel extends DoctorStatsEntity {
   }
 
   Map<String, dynamic> toJson() => {
-        'total_requests': totalRequests,
-        'successful': successful,
-        'failed': failed,
-        'cancelled': cancelled,
-        'pending': pending,
-      };
+    'total_requests': totalRequests,
+    'successful': successful,
+    'failed': failed,
+    'cancelled': cancelled,
+    'pending': pending,
+  };
 }
 
 class StorageStatsModel extends StorageStatsEntity {
@@ -89,11 +89,11 @@ class StorageStatsModel extends StorageStatsEntity {
   }
 
   Map<String, dynamic> toJson() => {
-        'total_actions': totalActions,
-        'car_dispatch': carDispatch,
-        'sample_added': sampleAddedToCar,
-        'sample_removed': sampleRemovedFromCar,
-        'transport_updates': transportRequestUpdate,
-        'other': other,
-      };
+    'total_actions': totalActions,
+    'car_dispatch': carDispatch,
+    'sample_added': sampleAddedToCar,
+    'sample_removed': sampleRemovedFromCar,
+    'transport_updates': transportRequestUpdate,
+    'other': other,
+  };
 }
