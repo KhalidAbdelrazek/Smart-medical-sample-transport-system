@@ -15,13 +15,13 @@ class NotificationState extends Equatable {
   });
 
   factory NotificationState.initial() => const NotificationState(
-        isInitialLoading: true,
-        items: [],
-        actionInFlightIds: {},
-        enteringIds: {},
-        returnableSamples: [],
-        returnOffer: false,
-      );
+    isInitialLoading: true,
+    items: [],
+    actionInFlightIds: {},
+    enteringIds: {},
+    returnableSamples: [],
+    returnOffer: false,
+  );
 
   final bool isInitialLoading;
   final List<NotificationListItem> items;
@@ -53,33 +53,33 @@ class NotificationState extends Equatable {
   }
 
   NotificationState withMessagesCleared() => NotificationState(
-        isInitialLoading: isInitialLoading,
-        items: items,
-        actionInFlightIds: actionInFlightIds,
-        enteringIds: enteringIds,
-        returnableSamples: returnableSamples,
-        returnOffer: returnOffer,
-      );
+    isInitialLoading: isInitialLoading,
+    items: items,
+    actionInFlightIds: actionInFlightIds,
+    enteringIds: enteringIds,
+    returnableSamples: returnableSamples,
+    returnOffer: returnOffer,
+  );
 
   NotificationState withSuccess(String message) => NotificationState(
-        isInitialLoading: isInitialLoading,
-        items: items,
-        actionInFlightIds: actionInFlightIds,
-        enteringIds: enteringIds,
-        returnableSamples: returnableSamples,
-        returnOffer: returnOffer,
-        lastSuccessMessage: message,
-      );
+    isInitialLoading: isInitialLoading,
+    items: items,
+    actionInFlightIds: actionInFlightIds,
+    enteringIds: enteringIds,
+    returnableSamples: returnableSamples,
+    returnOffer: returnOffer,
+    lastSuccessMessage: message,
+  );
 
   NotificationState withError(String message) => NotificationState(
-        isInitialLoading: isInitialLoading,
-        items: items,
-        actionInFlightIds: actionInFlightIds,
-        enteringIds: enteringIds,
-        returnableSamples: returnableSamples,
-        returnOffer: returnOffer,
-        lastErrorMessage: message,
-      );
+    isInitialLoading: isInitialLoading,
+    items: items,
+    actionInFlightIds: actionInFlightIds,
+    enteringIds: enteringIds,
+    returnableSamples: returnableSamples,
+    returnOffer: returnOffer,
+    lastErrorMessage: message,
+  );
 
   /// Snapshot for poll merge: ignore transient snackbar fields.
   String get dataSignature {
@@ -112,13 +112,13 @@ class NotificationState extends Equatable {
 
   @override
   List<Object?> get props => [
-        isInitialLoading,
-        items,
-        actionInFlightIds,
-        enteringIds,
-        returnableSamples,
-        returnOffer,
-        lastSuccessMessage,
-        lastErrorMessage,
-      ];
+    isInitialLoading,
+    items,
+    actionInFlightIds,
+    enteringIds,
+    returnableSamples,
+    returnOffer,
+    lastSuccessMessage,
+    lastErrorMessage,
+  ];
 }
