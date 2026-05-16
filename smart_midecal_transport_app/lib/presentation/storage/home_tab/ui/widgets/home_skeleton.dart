@@ -30,9 +30,10 @@ class _ShimmerBoxState extends State<_ShimmerBox>
       vsync: this,
       duration: const Duration(milliseconds: 1100),
     )..repeat(reverse: true);
-    _anim = Tween<double>(begin: 0.0, end: 1.0).animate(
-      CurvedAnimation(parent: _ctrl, curve: Curves.easeInOut),
-    );
+    _anim = Tween<double>(
+      begin: 0.0,
+      end: 1.0,
+    ).animate(CurvedAnimation(parent: _ctrl, curve: Curves.easeInOut));
   }
 
   @override
@@ -45,8 +46,9 @@ class _ShimmerBoxState extends State<_ShimmerBox>
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final base = isDark ? const Color(0xFF2B3A46) : const Color(0xFFE2E8F0);
-    final highlight =
-        isDark ? const Color(0xFF374151) : const Color(0xFFF1F5F9);
+    final highlight = isDark
+        ? const Color(0xFF374151)
+        : const Color(0xFFF1F5F9);
 
     return AnimatedBuilder(
       animation: _anim,
