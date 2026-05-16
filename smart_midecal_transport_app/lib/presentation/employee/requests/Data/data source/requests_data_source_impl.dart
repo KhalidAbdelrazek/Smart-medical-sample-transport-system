@@ -24,8 +24,8 @@ class RequestsDataSourceImpl implements RequestsDataSource {
   Future<Either<Failures, GetSamplesResponseDm>> getSampleById(
     String id,
   ) async {
-    final List<ConnectivityResult> connectivityResult =
-        await Connectivity().checkConnectivity();
+    final List<ConnectivityResult> connectivityResult = await Connectivity()
+        .checkConnectivity();
     try {
       String? token = SharedPrefService.instance.getAccessToken();
       if (!connectivityResult.contains(ConnectivityResult.none)) {
@@ -39,8 +39,9 @@ class RequestsDataSourceImpl implements RequestsDataSource {
             validateStatus: (status) => true,
           ),
         );
-        GetSamplesResponseDm samplesResponseDm =
-            GetSamplesResponseDm.fromJson(response.data);
+        GetSamplesResponseDm samplesResponseDm = GetSamplesResponseDm.fromJson(
+          response.data,
+        );
         if (response.statusCode! >= 200 && response.statusCode! < 300) {
           return Right(samplesResponseDm);
         }
@@ -63,8 +64,8 @@ class RequestsDataSourceImpl implements RequestsDataSource {
     List<String> sampleCodes,
     String roomNumber,
   ) async {
-    final List<ConnectivityResult> connectivityResult =
-        await Connectivity().checkConnectivity();
+    final List<ConnectivityResult> connectivityResult = await Connectivity()
+        .checkConnectivity();
 
     if (connectivityResult.contains(ConnectivityResult.none)) {
       return Left(NetworkError(errorMessage: 'extra.no_internet_lower'.tr()));
@@ -75,10 +76,7 @@ class RequestsDataSourceImpl implements RequestsDataSource {
 
       final response = await apiManager.postData(
         path: ApiEndPoints.requestBulkSample,
-        data: {
-          "sample_codes": sampleCodes,
-          "room_number": roomNumber,
-        },
+        data: {"sample_codes": sampleCodes, "room_number": roomNumber},
         options: Options(
           headers: {
             "Content-Type": "application/json",
@@ -87,7 +85,6 @@ class RequestsDataSourceImpl implements RequestsDataSource {
           validateStatus: (status) => true,
         ),
       );
-      print(response.data);
 
       // ── Case A: Token expired / invalid (401) ─────────────────────────────
       if (response.statusCode == 401) {
@@ -102,8 +99,9 @@ class RequestsDataSourceImpl implements RequestsDataSource {
       }
 
       // ── Parse standard response body ──────────────────────────────────────
-      final BulkRequestResponseDm bulkResponse =
-          BulkRequestResponseDm.fromJson(response.data as Map<String, dynamic>);
+      final BulkRequestResponseDm bulkResponse = BulkRequestResponseDm.fromJson(
+        response.data as Map<String, dynamic>,
+      );
 
       if (bulkResponse.isTokenExpired) {
         return Left(TokenExpiredFailure());
@@ -123,7 +121,8 @@ class RequestsDataSourceImpl implements RequestsDataSource {
 
   // ── My Requests → GET /api/transport/my-requests/ ────────────────────────
   @override
-  Future<Either<Failures, List<TransportRequestEntity>>> fetchMyRequests() async {
+  Future<Either<Failures, List<TransportRequestEntity>>>
+  fetchMyRequests() async {
     final connectivity = await Connectivity().checkConnectivity();
     if (connectivity.contains(ConnectivityResult.none)) {
       return Left(NetworkError(errorMessage: 'extra.no_internet_lower'.tr()));
@@ -148,7 +147,8 @@ class RequestsDataSourceImpl implements RequestsDataSource {
       final body = response.data as Map<String, dynamic>?;
 
       if (response.statusCode! >= 200 && response.statusCode! < 300) {
-        final dataList = (body?['data'] as List<dynamic>?)
+        final dataList =
+            (body?['data'] as List<dynamic>?)
                 ?.map(
                   (e) => TransportRequestModel.fromJson(
                     e as Map<String, dynamic>?,
@@ -160,7 +160,9 @@ class RequestsDataSourceImpl implements RequestsDataSource {
       }
 
       return Left(
-        ServerError(errorMessage: body?['message']?.toString() ?? 'Server Error'),
+        ServerError(
+          errorMessage: body?['message']?.toString() ?? 'Server Error',
+        ),
       );
     } catch (e) {
       return Left(ServerError(errorMessage: e.toString()));
@@ -200,7 +202,8 @@ class RequestsDataSourceImpl implements RequestsDataSource {
       // 404 – request not found / 403 – permission denied
       return Left(
         ServerError(
-          errorMessage: body?['message']?.toString() ??
+          errorMessage:
+              body?['message']?.toString() ??
               body?['detail']?.toString() ??
               'Could not cancel request',
         ),
