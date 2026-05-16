@@ -1,4 +1,3 @@
-
 import 'package:smart_midecal_transport_app/presentation/employee/my_requests/domain/entities/tranport_req_entities.dart';
 
 /// States for the My Requests feature (doctor's own transport requests).
@@ -23,10 +22,7 @@ class MyRequestsCancelling extends MyRequestsState {
   final String cancellingId;
   final List<TransportMyRequestEntity> requests;
 
-  MyRequestsCancelling({
-    required this.cancellingId,
-    required this.requests,
-  });
+  MyRequestsCancelling({required this.cancellingId, required this.requests});
 }
 
 /// Cancel succeeded — carries the old list so the UI can stay visible
