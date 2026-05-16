@@ -29,9 +29,6 @@
 //   "errors": null
 // }
 
-
-
-
 class NotificationResponseEntity {
   final bool? success;
   final String? message;
@@ -45,7 +42,6 @@ class NotificationResponseEntity {
     this.errors,
   });
 }
-
 
 class NotificationDataEntity {
   final List<NotificationArrivalsEntity>? arrivals;
@@ -82,9 +78,5 @@ class ReturnableSamplesEntity {
   final String? sampleCode;
   final String? patientName;
 
-  ReturnableSamplesEntity({
-    this.sampleId,
-    this.sampleCode,
-    this.patientName,
-  });
+  ReturnableSamplesEntity({this.sampleId, this.sampleCode, this.patientName});
 }
