@@ -41,7 +41,9 @@ class RestrictionsDataSourceImpl implements RestrictionsDataSource {
       final message = data['message'] as String?;
       return Left(ServerError(errorMessage: message ?? 'Server error'));
     }
-    return Left(ServerError(errorMessage: 'extra.unexpected_server_error'.tr()));
+    return Left(
+      ServerError(errorMessage: 'extra.unexpected_server_error'.tr()),
+    );
   }
 
   // ─── GET restrictions/status/ ────────────────────────────────────────────
