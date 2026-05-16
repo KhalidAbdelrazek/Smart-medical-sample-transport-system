@@ -291,7 +291,8 @@ class _DashboardHeader extends StatelessWidget {
                 color: Colors.white,
               ),
               SizedBox(width: 5.w),
-              Text('extra.doctor'.tr(),
+              Text(
+                'extra.doctor'.tr(),
                 style: TextStyle(
                   color: Colors.white,
                   fontSize: 11.sp,
