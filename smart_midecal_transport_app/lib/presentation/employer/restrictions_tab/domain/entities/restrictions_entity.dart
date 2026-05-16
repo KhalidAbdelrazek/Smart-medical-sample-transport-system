@@ -53,19 +53,13 @@ extension RestrictionTypeX on RestrictionType {
 //     "errors": null
 // }
 
-
 class RestrictionsEntity {
   final bool? success;
   final String? message;
   final DoctorsOrStorageRestrictionsEntity? data;
   final String? errors;
 
-  RestrictionsEntity({
-    this.success,
-    this.message,
-    this.data,
-    this.errors,
-  });
+  RestrictionsEntity({this.success, this.message, this.data, this.errors});
 }
 
 class DoctorsOrStorageRestrictionsEntity {
@@ -86,15 +80,16 @@ class StorageSamplesEntity {
 
   StorageSamplesEntity({this.id, this.name, this.isRestricted});
 }
-class DoctorsSamplesEntity{
+
+class DoctorsSamplesEntity {
   final String? id;
   final String? name;
   final bool? isRestricted;
 
   DoctorsSamplesEntity({this.id, this.name, this.isRestricted});
-} 
+}
 
-class TransportCarEntity{
+class TransportCarEntity {
   final String? mode;
   final bool? isRestricted;
   TransportCarEntity({this.mode, this.isRestricted});
