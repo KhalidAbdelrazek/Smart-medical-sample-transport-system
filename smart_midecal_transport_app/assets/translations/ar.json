@@ -11,7 +11,9 @@
     "returned": "تم الإرجاع",
     "please_select_at_least_one_patient_sample": "يرجى اختيار عينة مريض واحدة على الأقل",
     "please_select_room": "يرجى اختيار غرفة",
-    "could_not_cancel_request": "تعذر إلغاء الطلب"
+    "could_not_cancel_request": "تعذر إلغاء الطلب",
+    "car_did_not_dispatched": "تعذر إقلاع السيارة",
+    "car_dispatched_successfully" : "تم إقلاع السيارة بنجاح"
   },
   "main_character": {
     "robot_name": "ميدبوت (MedBot)"
