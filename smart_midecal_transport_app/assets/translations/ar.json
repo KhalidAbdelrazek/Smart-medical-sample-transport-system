@@ -10,7 +10,8 @@
     "loaded": "تم التحميل",
     "returned": "تم الإرجاع",
     "please_select_at_least_one_patient_sample": "يرجى اختيار عينة مريض واحدة على الأقل",
-    "please_select_room": "يرجى اختيار غرفة"
+    "please_select_room": "يرجى اختيار غرفة",
+    "could_not_cancel_request": "تعذر إلغاء الطلب"
   },
   "main_character": {
     "robot_name": "ميدبوت (MedBot)"
