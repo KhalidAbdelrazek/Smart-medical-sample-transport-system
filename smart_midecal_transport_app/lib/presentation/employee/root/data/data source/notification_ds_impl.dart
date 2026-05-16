@@ -128,7 +128,6 @@ class NotificationDsImpl implements NotificationDataSource {
         .checkConnectivity();
 
     try {
-      print("Confirm Handoff with samples : $sampleCodes");
       String? token = SharedPrefService.instance.getAccessToken();
       if (!connectivityResult.contains(ConnectivityResult.none)) {
         var response = await apiManager.postData(
