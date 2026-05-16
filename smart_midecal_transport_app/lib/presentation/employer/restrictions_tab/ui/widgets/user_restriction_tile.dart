@@ -30,7 +30,7 @@ class UserRestrictionTile extends StatelessWidget {
               width: 32.w,
               height: 32.w,
               decoration: BoxDecoration(
-                color: cs.primary.withOpacity(0.1),
+                color: cs.primary.withValues(alpha: 0.1),
                 shape: BoxShape.circle,
               ),
               child: Center(
