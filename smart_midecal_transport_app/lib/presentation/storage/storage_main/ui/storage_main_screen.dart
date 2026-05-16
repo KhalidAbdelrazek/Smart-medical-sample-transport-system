@@ -6,8 +6,6 @@ import 'package:smart_midecal_transport_app/presentation/storage/profile_tab/ui/
 import 'package:smart_midecal_transport_app/presentation/storage/requests_tab/ui/requests_tab_page.dart';
 import 'package:smart_midecal_transport_app/presentation/storage/storage_main/view/returned_cars_bottom_sheet.dart';
 
-
-
 /// Main screen with bottom navigation for storage employee
 /// - Home & Profile tabs: Cached (data persists)
 /// - Requests tab: Recreated each time (cubit disposed to save memory)
@@ -24,16 +22,6 @@ class _StorageMainScreenState extends State<StorageMainScreen>
 
   /// Key to force rebuild of Requests tab each time
   int _requestsTabKey = 0;
-
-  @override
-  void initState() {
-    super.initState();
-  }
-
-  @override
-  void dispose() {
-    super.dispose();
-  }
 
   @override
   Widget build(BuildContext context) {
