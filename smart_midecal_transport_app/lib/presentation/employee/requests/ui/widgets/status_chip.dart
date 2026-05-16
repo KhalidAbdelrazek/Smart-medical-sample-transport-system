@@ -19,9 +19,9 @@ class StatusChip extends StatelessWidget {
       _ => Colors.grey,
     };
     // translate statused
-    String translatedStatus = status.toLowerCase() == "in_storage" ? "in_storage".tr() : 
-    status.toLowerCase() == "requested" ? "requested".tr() : 
-    status.toLowerCase() == "out_for_delivery" ? "out_for_delivery".tr() : "";
+    String translatedStatus = status.toLowerCase() == "in_storage" ? "status.in_storage".tr() : 
+    status.toLowerCase() == "requested" ? "status.requested".tr() : 
+    status.toLowerCase() == "out_for_delivery" ? "status.out_for_delivery".tr() : "";
 
     return Container(
       padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 3.h),
