@@ -42,9 +42,7 @@ class DonutChartSection extends StatelessWidget {
         color: theme.cardColor,
         borderRadius: BorderRadius.circular(20.r),
         border: Border.all(
-          color: isDark
-              ? const Color(0xFF374151)
-              : const Color(0xFFE2E8F0),
+          color: isDark ? const Color(0xFF374151) : const Color(0xFFE2E8F0),
           width: 1,
         ),
         boxShadow: [
@@ -104,12 +102,14 @@ class DonutChartSection extends StatelessWidget {
                         data: segments
                             .asMap()
                             .entries
-                            .map((e) => DonutSectionModel(
-                                  label: e.value.label,
-                                  color: _chartPalette[
-                                      e.key % _chartPalette.length],
-                                  value: e.value.value.toDouble(),
-                                ))
+                            .map(
+                              (e) => DonutSectionModel(
+                                label: e.value.label,
+                                color:
+                                    _chartPalette[e.key % _chartPalette.length],
+                                value: e.value.value.toDouble(),
+                              ),
+                            )
                             .toList(),
                         size: 130.w,
                         strokeWidth: 22,
