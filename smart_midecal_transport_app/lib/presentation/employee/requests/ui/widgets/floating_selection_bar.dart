@@ -1,4 +1,4 @@
-﻿import 'package:easy_localization/easy_localization.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:smart_midecal_transport_app/core/theme/color.dart';
@@ -68,9 +68,7 @@ class FloatingSelectionBar extends StatelessWidget {
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     Text(
-                      '${selectedCodes.length} ${selectedCodes.length == 1
-                              ? 'status.sample_selected'.tr()
-                              : 'status.samples_selected'.tr()}',
+                      '${selectedCodes.length} ${selectedCodes.length == 1 ? 'status.sample_selected'.tr() : 'status.samples_selected'.tr()}',
                       style: TextStyle(
                         color: Colors.white,
                         fontWeight: FontWeight.bold,
