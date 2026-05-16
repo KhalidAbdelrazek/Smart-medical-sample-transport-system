@@ -13,7 +13,7 @@ class BloodSampleCubit extends Cubit<BloodSampleState> {
   final RequestsRepository requestsRepository;
 
   BloodSampleCubit({required this.requestsRepository})
-      : super(BloodSampleInitial());
+    : super(BloodSampleInitial());
 
   // ── Controllers & transient state ─────────────────────────────
   final TextEditingController searchController = TextEditingController();
@@ -96,7 +96,11 @@ class BloodSampleCubit extends Cubit<BloodSampleState> {
   /// Validates that at least one sample is selected and a room is chosen.
   Future<void> submitRequest() async {
     if (selectedSampleCodes.isEmpty) {
-      emit(BloodSampleError('status.please_select_at_least_one_patient_sample'.tr()));
+      emit(
+        BloodSampleError(
+          'status.please_select_at_least_one_patient_sample'.tr(),
+        ),
+      );
       _emitLoaded();
       return;
     }
