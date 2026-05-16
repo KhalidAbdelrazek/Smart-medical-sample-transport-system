@@ -2,7 +2,8 @@
   "status": {
     "in_storage": "In Storage",
     "requested": "Requested",
-    "out_for_delivery": "Out for Delivery"
+    "out_for_delivery": "Out for Delivery",
+    "with_doctor": "With Doctor"
   },
   "main_character": {
     "robot_name": "MedBot"
