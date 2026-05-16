@@ -14,7 +14,7 @@
 
 import 'package:smart_midecal_transport_app/presentation/storage/storage_main/domain/entity/confirm_car_return_entity.dart';
 
-class ConfirmCarReturnDm extends ConfirmCarReturnEntity{
+class ConfirmCarReturnDm extends ConfirmCarReturnEntity {
   ConfirmCarReturnDm({super.success, super.message, super.data, super.errors});
 
   factory ConfirmCarReturnDm.fromJson(Map<String, dynamic> json) {
@@ -26,7 +26,8 @@ class ConfirmCarReturnDm extends ConfirmCarReturnEntity{
     );
   }
 }
-class DataDm extends DataEntity{
+
+class DataDm extends DataEntity {
   DataDm({super.car, super.finalizedReturnCount});
 
   factory DataDm.fromJson(Map<String, dynamic> json) {
@@ -36,7 +37,8 @@ class DataDm extends DataEntity{
     );
   }
 }
-class CarDm extends CarEntity{
+
+class CarDm extends CarEntity {
   CarDm({super.id, super.carNumber, super.status});
 
   factory CarDm.fromJson(Map<String, dynamic> json) {
