@@ -1,4 +1,4 @@
-﻿import 'package:easy_localization/easy_localization.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -55,7 +55,6 @@ class _EmployeeRequestsView extends StatelessWidget {
             ),
           );
         }
-
         // â”€â”€ Bulk result bottom sheet â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
         else if (state is BloodSampleBulkResult) {
           showModalBottomSheet(
@@ -69,7 +68,6 @@ class _EmployeeRequestsView extends StatelessWidget {
             ),
           );
         }
-
         // â”€â”€ Token expired â†’ logout â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
         else if (state is BloodSampleTokenExpired) {
           ScaffoldMessenger.of(context).showSnackBar(
@@ -83,10 +81,9 @@ class _EmployeeRequestsView extends StatelessWidget {
             ),
           );
           // Pop back to the login screen
-          Navigator.of(context).pushNamedAndRemoveUntil(
-            '/login',
-            (route) => false,
-          );
+          Navigator.of(
+            context,
+          ).pushNamedAndRemoveUntil('/login', (route) => false);
         }
       },
       builder: (context, state) {
@@ -126,22 +123,19 @@ class _EmployeeRequestsView extends StatelessWidget {
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              SearchSection(
-                                cubit: cubit,
-                                state: state,
-                              ),
+                              SearchSection(cubit: cubit, state: state),
                               SizedBox(height: 24.h),
                               // â”€â”€ Room selector (visible when >=1 sample selected) â”€â”€
                               AnimatedSwitcher(
                                 duration: const Duration(milliseconds: 280),
                                 transitionBuilder: (child, animation) =>
                                     FadeTransition(
-                                  opacity: animation,
-                                  child: SizeTransition(
-                                    sizeFactor: animation,
-                                    child: child,
-                                  ),
-                                ),
+                                      opacity: animation,
+                                      child: SizeTransition(
+                                        sizeFactor: animation,
+                                        child: child,
+                                      ),
+                                    ),
                                 child: selectedCodes.isNotEmpty
                                     ? RoomSelectorCard(
                                         key: const ValueKey('room'),
@@ -194,13 +188,15 @@ class _EmployeeRequestsView extends StatelessWidget {
               color: theme.disabledColor.withValues(alpha: 0.4),
             ),
             SizedBox(height: 16.h),
-            Text('extra.no_samples_selected'.tr(),
+            Text(
+              'extra.no_samples_selected'.tr(),
               style: theme.textTheme.titleMedium?.copyWith(
                 color: theme.disabledColor,
               ),
             ),
             SizedBox(height: 8.h),
-            Text('extra.search_patient'.tr(),
+            Text(
+              'extra.search_patient'.tr(),
               textAlign: TextAlign.center,
               style: theme.textTheme.bodyMedium?.copyWith(
                 color: AppColors.labelColor,
@@ -212,4 +208,3 @@ class _EmployeeRequestsView extends StatelessWidget {
     );
   }
 }
-
