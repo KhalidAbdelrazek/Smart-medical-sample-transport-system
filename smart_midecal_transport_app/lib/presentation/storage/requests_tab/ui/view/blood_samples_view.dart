@@ -69,13 +69,18 @@ class BloodSamplesView extends StatelessWidget {
 
   Widget _buildContent(BuildContext context, BloodSamplesState state) {
     // ── Loading ─────────────────────────────────────────────────────────────
+    // Inside your _buildContent method, wrap temporary/skeletal states like this:
+
     if (state is BloodSamplesLoading || state is BloodSamplesInitial) {
-      return IgnorePointer(
+      return ExcludeSemantics(
+        // <--- Hide loading artifacts from the accessibility tree
         key: const ValueKey('loading'),
-        child: ListView.builder(
-          padding: EdgeInsets.all(16.w),
-          itemCount: 4,
-          itemBuilder: (_, __) => const LoadingSkeletonCard(),
+        child: IgnorePointer(
+          child: ListView.builder(
+            padding: EdgeInsets.all(16.w),
+            itemCount: 4,
+            itemBuilder: (_, __) => const LoadingSkeletonCard(),
+          ),
         ),
       );
     }
