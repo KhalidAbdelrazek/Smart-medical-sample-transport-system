@@ -3,7 +3,8 @@
     "in_storage": "In Storage",
     "requested": "Requested",
     "out_for_delivery": "Out for Delivery",
-    "with_doctor": "With Doctor"
+    "with_doctor": "With Doctor",
+    "dispatched": "Dispatched"
   },
   "main_character": {
     "robot_name": "MedBot"

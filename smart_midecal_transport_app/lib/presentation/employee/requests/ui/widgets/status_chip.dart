@@ -16,6 +16,7 @@ class StatusChip extends StatelessWidget {
       'IN_STORAGE' => AppColors.info,
       'REQUESTED' => AppColors.warning,
       'OUT_FOR_DELIVERY' => AppColors.success,
+      'DISPATCHED' => AppColors.success,
       'WITH_DOCTOR' => AppColors.error,
       _ => Colors.grey,
     };
@@ -26,6 +27,8 @@ class StatusChip extends StatelessWidget {
         ? "status.requested".tr()
         : status.toLowerCase() == "out_for_delivery"
         ? "status.out_for_delivery".tr()
+        : status.toLowerCase() == "dispatched"
+        ? "status.dispatched".tr()
         : status.toLowerCase() == "with_doctor"
         ? "status.with_doctor".tr()
         : "";
