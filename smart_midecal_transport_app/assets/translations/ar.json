@@ -4,7 +4,9 @@
     "requested": "تم الطلب",
     "out_for_delivery": "تم التوصيل",
     "dispatched": "تم الإرسال",
-    "with_doctor": "مع الطبيب"
+    "with_doctor": "مع الطبيب",
+    "sample_selected": "عينة تم اختيارها",
+    "samples_selected": "عينات تم اختيارها"
   },
   "main_character": {
     "robot_name": "ميدبوت (MedBot)"
