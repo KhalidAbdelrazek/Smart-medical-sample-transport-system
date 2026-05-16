@@ -55,8 +55,7 @@ class _PulseBarState extends State<_PulseBar>
           height: widget.height,
           decoration: BoxDecoration(
             color: base,
-            borderRadius:
-                widget.borderRadius ?? BorderRadius.circular(12.r),
+            borderRadius: widget.borderRadius ?? BorderRadius.circular(12.r),
           ),
         );
       },
