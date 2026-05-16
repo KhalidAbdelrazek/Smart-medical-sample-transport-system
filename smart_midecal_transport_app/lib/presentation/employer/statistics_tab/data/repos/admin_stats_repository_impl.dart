@@ -12,7 +12,9 @@ class AdminStatsRepositoryImpl implements AdminStatsRepository {
   AdminStatsRepositoryImpl(this.remote);
 
   @override
-  Future<Either<Failures, AdminStatsEntity>> getStatistics({required String selectedPeriod}) {
+  Future<Either<Failures, AdminStatsEntity>> getStatistics({
+    required String selectedPeriod,
+  }) {
     return remote.getStatistics(selectedPeriod: selectedPeriod);
   }
 }
