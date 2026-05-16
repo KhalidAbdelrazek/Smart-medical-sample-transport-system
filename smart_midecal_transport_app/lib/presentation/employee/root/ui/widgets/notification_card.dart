@@ -35,8 +35,8 @@ class _NotificationCardState extends State<NotificationCard>
       _controller.forward().whenComplete(() {
         if (mounted) {
           context.read<NotificationCubit>().acknowledgeEntryAnimation(
-                widget.item.requestId,
-              );
+            widget.item.requestId,
+          );
         }
       });
     } else {
@@ -56,8 +56,9 @@ class _NotificationCardState extends State<NotificationCard>
       return 'employee.notifications_just_now'.tr();
     }
     if (diff.inMinutes < 60) {
-      return 'employee.notifications_minutes_ago'
-          .tr(args: ['${diff.inMinutes}']);
+      return 'employee.notifications_minutes_ago'.tr(
+        args: ['${diff.inMinutes}'],
+      );
     }
     if (diff.inHours < 24) {
       return 'employee.notifications_hours_ago'.tr(args: ['${diff.inHours}']);
@@ -72,14 +73,12 @@ class _NotificationCardState extends State<NotificationCard>
     final item = widget.item;
 
     return FadeTransition(
-      opacity:
-          CurvedAnimation(parent: _controller, curve: Curves.easeOutCubic),
+      opacity: CurvedAnimation(parent: _controller, curve: Curves.easeOutCubic),
       child: SlideTransition(
-        position: Tween<Offset>(
-          begin: const Offset(0, 0.06),
-          end: Offset.zero,
-        ).animate(
-            CurvedAnimation(parent: _controller, curve: Curves.easeOutCubic)),
+        position: Tween<Offset>(begin: const Offset(0, 0.06), end: Offset.zero)
+            .animate(
+              CurvedAnimation(parent: _controller, curve: Curves.easeOutCubic),
+            ),
         child: Material(
           color: scheme.surfaceContainerHighest,
           elevation: 0,
@@ -89,7 +88,8 @@ class _NotificationCardState extends State<NotificationCard>
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(16.r),
               border: Border.all(
-                  color: scheme.outlineVariant.withValues(alpha: 0.35)),
+                color: scheme.outlineVariant.withValues(alpha: 0.35),
+              ),
               boxShadow: [
                 BoxShadow(
                   color: scheme.shadow.withValues(alpha: 0.06),
@@ -193,8 +193,8 @@ class _NotificationCardState extends State<NotificationCard>
                           Expanded(
                             child: OutlinedButton(
                               onPressed: () => context
-                              .read<NotificationCubit>()
-                               .onRejectTapped(context, item.requestId),
+                                  .read<NotificationCubit>()
+                                  .onRejectTapped(context, item.requestId),
                               child: Row(
                                 mainAxisAlignment: MainAxisAlignment.center,
                                 mainAxisSize: MainAxisSize.min,
