@@ -25,10 +25,8 @@ class EmploeeStatisticsRemoteDataSourceImpl
       String? token = SharedPrefService.instance.getAccessToken();
       if (!connectivityResult.contains(ConnectivityResult.none)) {
         var response = await apiManager.getData(
-         path: ApiEndPoints.statisticsDashboard,
-          queryParameters: {
-            "period": "month",
-          },
+          path: ApiEndPoints.statisticsDashboard,
+          queryParameters: {"period": "month"},
           options: Options(
             headers: {
               "Content-Type": "application/json",
@@ -38,18 +36,16 @@ class EmploeeStatisticsRemoteDataSourceImpl
           ),
         );
 
-        EmploeeStatisticsModel model =
-            EmploeeStatisticsModel.fromJson(response.data);
+        EmploeeStatisticsModel model = EmploeeStatisticsModel.fromJson(
+          response.data,
+        );
 
-        if (response.statusCode! >= 200 &&
-            response.statusCode! < 300) {
+        if (response.statusCode! >= 200 && response.statusCode! < 300) {
           return Right(model);
         }
 
         return Left(
-          ServerError(
-            errorMessage: response.data["message"] ?? "Server Error",
-          ),
+          ServerError(errorMessage: response.data["message"] ?? "Server Error"),
         );
       } else {
         return Left(NetworkError(errorMessage: 'errors.network_error'.tr()));
