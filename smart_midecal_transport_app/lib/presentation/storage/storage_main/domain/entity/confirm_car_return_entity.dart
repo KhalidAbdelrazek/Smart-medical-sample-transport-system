@@ -12,8 +12,7 @@
 //   "errors": null
 // }
 
-
-class ConfirmCarReturnEntity{
+class ConfirmCarReturnEntity {
   final bool? success;
   final String? message;
   final DataEntity? data;
@@ -21,12 +20,14 @@ class ConfirmCarReturnEntity{
 
   ConfirmCarReturnEntity({this.success, this.message, this.data, this.errors});
 }
+
 class DataEntity {
   final CarEntity? car;
   final int? finalizedReturnCount;
 
   DataEntity({this.car, this.finalizedReturnCount});
 }
+
 class CarEntity {
   final int? id;
   final String? carNumber;
