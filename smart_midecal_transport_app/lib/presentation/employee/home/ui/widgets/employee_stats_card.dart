@@ -53,8 +53,7 @@ class EmployeeStatsCard extends StatelessWidget {
               const Spacer(),
               if (subtitle != null)
                 Container(
-                  padding:
-                      EdgeInsets.symmetric(horizontal: 8.w, vertical: 4.h),
+                  padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 4.h),
                   decoration: BoxDecoration(
                     color: color.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(8.r),
