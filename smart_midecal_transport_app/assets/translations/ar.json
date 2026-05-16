@@ -8,6 +8,7 @@
     "sample_selected": "عينة تم اختيارها",
     "samples_selected": "عينات تمت اختيارها",
     "loaded": "تم التحميل",
+    "pending": "قيد الانتظار",
     "returned": "تم الإرجاع",
     "please_select_at_least_one_patient_sample": "يرجى اختيار عينة مريض واحدة على الأقل",
     "please_select_room": "يرجى اختيار غرفة",

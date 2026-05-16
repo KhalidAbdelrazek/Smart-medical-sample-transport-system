@@ -8,6 +8,7 @@
     "sample_selected": "Sample Selected",
     "samples_selected": "Samples Selected",
     "loaded": "Loaded",
+    "pending": "Pending",
     "returned": "Returned",
     "please_select_at_least_one_patient_sample": "Please select at least one patient sample",
     "please_select_room": "Please select a room",
