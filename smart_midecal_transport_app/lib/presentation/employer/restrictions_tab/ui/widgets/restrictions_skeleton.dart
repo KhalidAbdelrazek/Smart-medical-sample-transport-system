@@ -41,7 +41,7 @@ class RestrictionsSkeleton extends StatelessWidget {
         color: cs.surface,
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
-          color: cs.outlineVariant.withOpacity(0.45),
+          color: cs.outlineVariant.withValues(alpha: 0.45),
           width: 1.2,
         ),
       ),
@@ -74,11 +74,15 @@ class RestrictionsSkeleton extends StatelessWidget {
     );
   }
 
-  Widget _shimmerBox(double width, double height, ColorScheme cs,
-      {double radius = 4}) {
+  Widget _shimmerBox(
+    double width,
+    double height,
+    ColorScheme cs, {
+    double radius = 4,
+  }) {
     return Shimmer.fromColors(
-      baseColor: cs.outlineVariant.withOpacity(0.4),
-      highlightColor: cs.outlineVariant.withOpacity(0.1),
+      baseColor: cs.outlineVariant.withValues(alpha: 0.4),
+      highlightColor: cs.outlineVariant.withValues(alpha: 0.1),
       child: Container(
         width: width,
         height: height,
