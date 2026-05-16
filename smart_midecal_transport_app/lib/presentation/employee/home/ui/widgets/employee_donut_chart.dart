@@ -30,10 +30,8 @@ class _EmployeeDonutChartState extends State<EmployeeDonutChart> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
 
-    final total = widget.pending +
-        widget.cancelled +
-        widget.failed +
-        widget.success;
+    final total =
+        widget.pending + widget.cancelled + widget.failed + widget.success;
 
     /// ✅ Handle ZERO DATA
     if (total == 0) {
@@ -42,7 +40,8 @@ class _EmployeeDonutChartState extends State<EmployeeDonutChart> {
         padding: EdgeInsets.all(16.w),
         decoration: _decoration(theme),
         child: Center(
-          child: Text('employee.no_data'.tr(),
+          child: Text(
+            'employee.no_data'.tr(),
             style: theme.textTheme.bodyMedium,
           ),
         ),
@@ -56,7 +55,8 @@ class _EmployeeDonutChartState extends State<EmployeeDonutChart> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('employee.requests_distribution'.tr(),
+          Text(
+            'employee.requests_distribution'.tr(),
             style: theme.textTheme.titleMedium?.copyWith(
               fontWeight: FontWeight.w600,
             ),
@@ -167,10 +167,7 @@ class _EmployeeDonutChartState extends State<EmployeeDonutChart> {
           Container(
             width: 10.w,
             height: 10.w,
-            decoration: BoxDecoration(
-              color: color,
-              shape: BoxShape.circle,
-            ),
+            decoration: BoxDecoration(color: color, shape: BoxShape.circle),
           ),
           SizedBox(width: 6.w),
           Text(
