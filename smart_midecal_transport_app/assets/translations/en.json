@@ -222,6 +222,7 @@
     "transport_car": "Transport Car",
     "loaded": "loaded",
     "dispatch": "Dispatch",
+    "dispatching": "Dispatching",
     "pending_requests": "Pending Requests",
     "added_to_car": "Added to Car",
     "in_car": "In Car",

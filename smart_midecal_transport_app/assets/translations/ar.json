@@ -13,7 +13,7 @@
     "please_select_room": "يرجى اختيار غرفة",
     "could_not_cancel_request": "تعذر إلغاء الطلب",
     "car_did_not_dispatched": "تعذر إقلاع السيارة",
-    "car_dispatched_successfully" : "تم إقلاع السيارة بنجاح"
+    "car_dispatched_successfully": "تم إقلاع السيارة بنجاح"
   },
   "main_character": {
     "robot_name": "ميدبوت (MedBot)"
@@ -222,6 +222,7 @@
     "samples_qty": "العينات",
     "source": "المصدر",
     "lab": "المختبر",
+    "dispatching": "جاري الإقلاع",
     "operation_room": "غرفة العمليات",
     "patient_id": "معرف المريض",
     "no_pending": "لا توجد طلبات معلقة",
