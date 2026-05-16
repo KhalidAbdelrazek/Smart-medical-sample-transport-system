@@ -14,37 +14,33 @@ class RestrictionsRepositoryImpl implements RestrictionsRepository {
   @override
   Future<Either<Failures, RestrictionsEntity>> getRestrictionsStatus({
     required String type,
-  }) =>
-      remote.getRestrictionsStatus(type: type);
+  }) => remote.getRestrictionsStatus(type: type);
 
   @override
   Future<Either<Failures, bool>> restrictDoctorSamples({
     required RestrictionType type,
     List<String> userIds = const [],
     String reason = '',
-  }) =>
-      remote.restrictDoctorSamples(
-        type: type,
-        userIds: userIds,
-        reason: reason,
-      );
+  }) => remote.restrictDoctorSamples(
+    type: type,
+    userIds: userIds,
+    reason: reason,
+  );
 
   @override
   Future<Either<Failures, bool>> restrictStorageSamples({
     required RestrictionType type,
     List<String> userIds = const [],
     String reason = '',
-  }) =>
-      remote.restrictStorageSamples(
-        type: type,
-        userIds: userIds,
-        reason: reason,
-      );
+  }) => remote.restrictStorageSamples(
+    type: type,
+    userIds: userIds,
+    reason: reason,
+  );
 
   @override
   Future<Either<Failures, bool>> restrictTransportCar({
     required bool status,
     String reason = '',
-  }) =>
-      remote.restrictTransportCar(status: status, reason: reason);
+  }) => remote.restrictTransportCar(status: status, reason: reason);
 }
