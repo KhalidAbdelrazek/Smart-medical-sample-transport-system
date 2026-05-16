@@ -1,4 +1,4 @@
-﻿import 'package:easy_localization/easy_localization.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:smart_midecal_transport_app/core/theme/color.dart';
@@ -50,7 +50,8 @@ class BulkResultsBottomSheet extends StatelessWidget {
               ),
 
               // Title
-              Text('extra.request_summary'.tr(),
+              Text(
+                'extra.request_summary'.tr(),
                 style: theme.textTheme.titleLarge?.copyWith(
                   fontWeight: FontWeight.bold,
                 ),
@@ -83,7 +84,8 @@ class BulkResultsBottomSheet extends StatelessWidget {
               // Failures list
               if (hasFailures) ...[
                 SizedBox(height: 24.h),
-                Text('extra.failed_samples'.tr(),
+                Text(
+                  'extra.failed_samples'.tr(),
                   style: theme.textTheme.titleSmall?.copyWith(
                     fontWeight: FontWeight.bold,
                     color: AppColors.error,
@@ -163,7 +165,8 @@ class BulkResultsBottomSheet extends StatelessWidget {
                       borderRadius: BorderRadius.circular(16.r),
                     ),
                   ),
-                  child: Text('extra.done'.tr(),
+                  child: Text(
+                    'extra.done'.tr(),
                     style: TextStyle(
                       fontSize: 15.sp,
                       fontWeight: FontWeight.bold,
@@ -229,4 +232,3 @@ class _StatCard extends StatelessWidget {
     );
   }
 }
-
