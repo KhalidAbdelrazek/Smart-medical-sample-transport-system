@@ -4,7 +4,9 @@
     "requested": "Requested",
     "out_for_delivery": "Out for Delivery",
     "with_doctor": "With Doctor",
-    "dispatched": "Dispatched"
+    "dispatched": "Dispatched",
+    "sample_selected": "Sample Selected",
+    "samples_selected": "Samples Selected"
   },
   "main_character": {
     "robot_name": "MedBot"
