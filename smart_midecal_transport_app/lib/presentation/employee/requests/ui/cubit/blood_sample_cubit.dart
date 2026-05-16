@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:injectable/injectable.dart';
@@ -95,13 +96,13 @@ class BloodSampleCubit extends Cubit<BloodSampleState> {
   /// Validates that at least one sample is selected and a room is chosen.
   Future<void> submitRequest() async {
     if (selectedSampleCodes.isEmpty) {
-      emit(BloodSampleError('Please select at least one patient sample'));
+      emit(BloodSampleError('status.please_select_at_least_one_patient_sample'.tr()));
       _emitLoaded();
       return;
     }
 
     if (selectedRoom == null) {
-      emit(BloodSampleError('Please select a room'));
+      emit(BloodSampleError('status.please_select_room'.tr()));
       _emitLoaded();
       return;
     }

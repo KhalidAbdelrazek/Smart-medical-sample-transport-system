@@ -78,7 +78,14 @@ class TransportRequestCard extends StatelessWidget {
                           ),
                         ),
                         SizedBox(width: 8.w),
-                        _StatusBadge(status: status, color: statusColor),
+                        _StatusBadge(
+                          status: (status == "LOADED"
+                              ? "status.loaded".tr()
+                              : status == "RETURNED"
+                              ? "status.returned".tr()
+                              : status),
+                          color: statusColor,
+                        ),
                       ],
                     ),
 
@@ -87,8 +94,11 @@ class TransportRequestCard extends StatelessWidget {
                     // Row 2 – Patient name
                     Row(
                       children: [
-                        Icon(Icons.person_outline_rounded,
-                            size: 14.sp, color: AppColors.labelColor),
+                        Icon(
+                          Icons.person_outline_rounded,
+                          size: 14.sp,
+                          color: AppColors.labelColor,
+                        ),
                         SizedBox(width: 4.w),
                         Flexible(
                           child: Text(
@@ -133,7 +143,9 @@ class TransportRequestCard extends StatelessWidget {
                           height: 34.h,
                           child: isCancelling
                               ? Padding(
-                                  padding: EdgeInsets.symmetric(horizontal: 4.w),
+                                  padding: EdgeInsets.symmetric(
+                                    horizontal: 4.w,
+                                  ),
                                   child: SizedBox(
                                     width: 22.w,
                                     height: 22.w,
@@ -145,7 +157,10 @@ class TransportRequestCard extends StatelessWidget {
                                 )
                               : OutlinedButton.icon(
                                   onPressed: onCancel,
-                                  icon: Icon(Icons.cancel_outlined, size: 15.sp),
+                                  icon: Icon(
+                                    Icons.cancel_outlined,
+                                    size: 15.sp,
+                                  ),
                                   label: Text(
                                     'my_requests.cancel'.tr(),
                                     style: TextStyle(fontSize: 12.sp),
@@ -153,12 +168,14 @@ class TransportRequestCard extends StatelessWidget {
                                   style: OutlinedButton.styleFrom(
                                     foregroundColor: AppColors.error,
                                     side: const BorderSide(
-                                        color: AppColors.error, width: 1),
+                                      color: AppColors.error,
+                                      width: 1,
+                                    ),
                                     padding: EdgeInsets.symmetric(
-                                        horizontal: 12.w),
+                                      horizontal: 12.w,
+                                    ),
                                     shape: RoundedRectangleBorder(
-                                      borderRadius:
-                                          BorderRadius.circular(8.r),
+                                      borderRadius: BorderRadius.circular(8.r),
                                     ),
                                   ),
                                 ),
@@ -265,14 +282,18 @@ class _BloodTypeBadge extends StatelessWidget {
         color: AppColors.error.withValues(alpha: 0.10),
         borderRadius: BorderRadius.circular(8.r),
         border: Border.all(
-            color: AppColors.error.withValues(alpha: 0.25), width: 1),
+          color: AppColors.error.withValues(alpha: 0.25),
+          width: 1,
+        ),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(Icons.water_drop_rounded,
-              size: 11.sp,
-              color: AppColors.error.withValues(alpha: 0.8)),
+          Icon(
+            Icons.water_drop_rounded,
+            size: 11.sp,
+            color: AppColors.error.withValues(alpha: 0.8),
+          ),
           SizedBox(width: 3.w),
           Text(
             bloodType,
@@ -303,10 +324,7 @@ class _InfoChip extends StatelessWidget {
         SizedBox(width: 3.w),
         Text(
           label,
-          style: TextStyle(
-            fontSize: 11.sp,
-            color: AppColors.labelColor,
-          ),
+          style: TextStyle(fontSize: 11.sp, color: AppColors.labelColor),
         ),
       ],
     );
