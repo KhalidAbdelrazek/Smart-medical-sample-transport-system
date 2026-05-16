@@ -53,7 +53,7 @@ class BloodSamplesCubit extends Cubit<BloodSamplesState> {
       (response) {
         // Re-fetch to get the updated status from the server
         _refreshAfterAction(
-          response.message ?? 'employee.sample_added_to_car'.tr(),
+          'employee.sample_added_to_car'.tr(),
         );
       },
     );
