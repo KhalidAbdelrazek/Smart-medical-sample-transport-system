@@ -117,11 +117,7 @@ class _DashboardContent extends StatelessWidget {
       padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 20.h),
       children: [
         // ── Header ───────────────────────────────────────────────────────
-        _DashboardHeader(
-          period: state.period,
-          isDark: isDark,
-          theme: theme,
-        ),
+        _DashboardHeader(period: state.period, isDark: isDark, theme: theme),
         SizedBox(height: 20.h),
 
         // ── Filter Bar ───────────────────────────────────────────────────
@@ -309,7 +305,8 @@ class _DashboardHeader extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text('extra.analytics_dashboard'.tr(),
+              Text(
+                'extra.analytics_dashboard'.tr(),
                 style: theme.textTheme.headlineSmall?.copyWith(
                   fontWeight: FontWeight.w800,
                   fontSize: 20.sp,
@@ -319,9 +316,7 @@ class _DashboardHeader extends StatelessWidget {
                 SizedBox(height: 4.h),
                 Text(
                   period,
-                  style: theme.textTheme.bodySmall?.copyWith(
-                    fontSize: 12.sp,
-                  ),
+                  style: theme.textTheme.bodySmall?.copyWith(fontSize: 12.sp),
                 ),
               ],
             ],
@@ -333,10 +328,7 @@ class _DashboardHeader extends StatelessWidget {
           padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 6.h),
           decoration: BoxDecoration(
             gradient: LinearGradient(
-              colors: [
-                AppColors.primaryLight,
-                AppColors.secondary,
-              ],
+              colors: [AppColors.primaryLight, AppColors.secondary],
             ),
             borderRadius: BorderRadius.circular(12.r),
             boxShadow: [
@@ -350,10 +342,14 @@ class _DashboardHeader extends StatelessWidget {
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Icon(Icons.admin_panel_settings_rounded,
-                  size: 14.sp, color: Colors.white),
+              Icon(
+                Icons.admin_panel_settings_rounded,
+                size: 14.sp,
+                color: Colors.white,
+              ),
               SizedBox(width: 5.w),
-              Text('extra.admin'.tr(),
+              Text(
+                'extra.admin'.tr(),
                 style: TextStyle(
                   color: Colors.white,
                   fontSize: 11.sp,
