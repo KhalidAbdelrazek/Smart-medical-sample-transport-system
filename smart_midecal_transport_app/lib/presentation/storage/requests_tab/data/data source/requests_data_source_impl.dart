@@ -35,7 +35,7 @@ class RequestsDataSourceImpl implements RequestsDataSource {
             validateStatus: (status) => true,
           ),
         );
-        print(response.data.toString());
+
         GetRequestsResponseDm samplesResponseDm =
             GetRequestsResponseDm.fromJson(response.data);
         if (response.statusCode! >= 200 && response.statusCode! < 300) {
@@ -77,7 +77,7 @@ class RequestsDataSourceImpl implements RequestsDataSource {
         AddToCarResponseDm addToCarResponseDm = AddToCarResponseDm.fromJson(
           response.data,
         );
-        print(response.data.toString());
+
         if (response.statusCode! >= 200 && response.statusCode! < 300) {
           return Right(addToCarResponseDm);
         }
