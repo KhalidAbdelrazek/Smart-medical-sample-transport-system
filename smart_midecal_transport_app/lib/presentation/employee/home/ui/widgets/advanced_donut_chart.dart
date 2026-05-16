@@ -37,7 +37,9 @@ class _AdvancedDonutChartState extends State<AdvancedDonutChart> {
             child: CustomPaint(
               size: const Size(250, 250),
               painter: _DonutPainter(
-                data: widget.data.map((key, value) => MapEntry(key, value.toDouble())),
+                data: widget.data.map(
+                  (key, value) => MapEntry(key, value.toDouble()),
+                ),
                 selectedIndex: selectedIndex,
               ),
             ),
@@ -52,7 +54,10 @@ class _AdvancedDonutChartState extends State<AdvancedDonutChart> {
               Text(
                 selectedIndex == null
                     ? total.toInt().toString()
-                    : widget.data.values.elementAt(selectedIndex!).toInt().toString(),
+                    : widget.data.values
+                          .elementAt(selectedIndex!)
+                          .toInt()
+                          .toString(),
                 style: const TextStyle(fontWeight: FontWeight.bold),
               ),
             ],
@@ -62,7 +67,6 @@ class _AdvancedDonutChartState extends State<AdvancedDonutChart> {
     );
   }
 }
-
 
 class _DonutPainter extends CustomPainter {
   final Map<String, double> data;
@@ -82,12 +86,7 @@ class _DonutPainter extends CustomPainter {
 
     double startAngle = -pi / 2;
 
-    final colors = [
-      Colors.green,
-      Colors.orange,
-      Colors.blue,
-      Colors.red,
-    ];
+    final colors = [Colors.green, Colors.orange, Colors.blue, Colors.red];
 
     int i = 0;
 
