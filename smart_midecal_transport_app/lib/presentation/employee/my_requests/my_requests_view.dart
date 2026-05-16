@@ -116,12 +116,11 @@ class MyRequestsView extends StatelessWidget {
       itemBuilder: (_, i) {
         final req = requests[i];
         final isCancelling = cancellingId == req.requestId;
-        final isPending =
-            (req.requestStatus ?? '').toUpperCase() == 'PENDING';
+        final isPending = (req.requestStatus ?? '').toUpperCase() == 'PENDING';
 
         return TransportRequestCard(
           key: ValueKey(req.requestId),
-          request: req ,
+          request: req,
           isCancelling: isCancelling,
           onCancel: isPending && !isCancelling
               ? () => _showCancelDialog(context, cubit, req.requestId!)
@@ -195,9 +194,6 @@ class MyRequestsView extends StatelessWidget {
       'my_requests.session_expired'.tr(),
       AppColors.warning,
     );
-    Navigator.of(context).pushNamedAndRemoveUntil(
-      '/login',
-      (route) => false,
-    );
+    Navigator.of(context).pushNamedAndRemoveUntil('/login', (route) => false);
   }
 }
