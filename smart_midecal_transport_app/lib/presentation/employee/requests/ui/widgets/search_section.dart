@@ -1,4 +1,4 @@
-﻿import 'package:easy_localization/easy_localization.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:smart_midecal_transport_app/presentation/employee/requests/ui/cubit/blood_sample_cubit.dart';
@@ -9,11 +9,7 @@ class SearchSection extends StatelessWidget {
   final BloodSampleCubit cubit;
   final BloodSampleState state;
 
-  const SearchSection({
-    super.key,
-    required this.cubit,
-    required this.state,
-  });
+  const SearchSection({super.key, required this.cubit, required this.state});
 
   @override
   Widget build(BuildContext context) {
@@ -22,7 +18,8 @@ class SearchSection extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text('extra.find_patient_sample'.tr(),
+        Text(
+          'extra.find_patient_sample'.tr(),
           style: theme.textTheme.bodyLarge?.copyWith(
             fontWeight: FontWeight.w600,
           ),
@@ -45,14 +42,14 @@ class SearchSection extends StatelessWidget {
                     ),
                   )
                 : (cubit.searchController.text.isNotEmpty
-                    ? IconButton(
-                        icon: const Icon(Icons.clear),
-                        onPressed: () {
-                          cubit.searchSamples('');
-                          cubit.searchController.clear();
-                        },
-                      )
-                    : null),
+                      ? IconButton(
+                          icon: const Icon(Icons.clear),
+                          onPressed: () {
+                            cubit.searchSamples('');
+                            cubit.searchController.clear();
+                          },
+                        )
+                      : null),
             filled: true,
             fillColor: theme.cardColor,
             border: OutlineInputBorder(
@@ -81,4 +78,3 @@ class SearchSection extends StatelessWidget {
     );
   }
 }
-
