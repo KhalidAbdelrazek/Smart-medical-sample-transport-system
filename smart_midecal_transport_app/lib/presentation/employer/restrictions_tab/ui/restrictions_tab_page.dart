@@ -1,5 +1,5 @@
 import 'package:easy_localization/easy_localization.dart';
-import 'package:flutter/cupertino.dart';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -145,7 +145,7 @@ class _LoadedBody extends StatelessWidget {
                       height: 1,
                       indent: 62.w,
                       endIndent: 18.w,
-                      color: cs.outlineVariant.withOpacity(0.4),
+                      color: cs.outlineVariant.withValues(alpha: 0.4),
                     ),
                 ],
               );
@@ -182,7 +182,7 @@ class _LoadedBody extends StatelessWidget {
                       height: 1,
                       indent: 62.w,
                       endIndent: 18.w,
-                      color: cs.outlineVariant.withOpacity(0.4),
+                      color: cs.outlineVariant.withValues(alpha: 0.4),
                     ),
                 ],
               );
@@ -221,7 +221,8 @@ class _PageHeader extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text('extra.system_control'.tr(),
+        Text(
+          'extra.system_control'.tr(),
           style: TextStyle(
             fontSize: 26.sp,
             fontWeight: FontWeight.w800,
@@ -230,11 +231,12 @@ class _PageHeader extends StatelessWidget {
           ),
         ),
         SizedBox(height: 6.h),
-        Text('extra.manage_restrictions'.tr(),
+        Text(
+          'extra.manage_restrictions'.tr(),
           style: TextStyle(
             fontSize: 14.sp,
             height: 1.4,
-            color: cs.onSurface.withOpacity(0.6),
+            color: cs.onSurface.withValues(alpha: 0.6),
             fontWeight: FontWeight.w400,
           ),
         ),
