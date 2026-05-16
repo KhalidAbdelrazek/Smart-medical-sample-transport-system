@@ -93,19 +93,10 @@ class _DashboardContent extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
 
     return ListView(
       padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 20.h),
       children: [
-        // // ── Header (Matching Admin/Doctor Style) ───────────────────────
-        // _DashboardHeader(
-        //   employeeName: state.employeeName,
-        //   shift: state.currentShift,
-        //   theme: theme,
-        // ),
-        // SizedBox(height: 24.h),
-
         // ── Activity Cards Section ─────────────────────────────────────
         _SectionLabel(
           icon: Icons.bar_chart_rounded,
@@ -217,84 +208,6 @@ class _DashboardContent extends StatelessWidget {
           ],
         ),
         SizedBox(height: 32.h),
-      ],
-    );
-  }
-}
-
-// ─── Header ───────────────────────────────────────────────────────────────
-
-class _DashboardHeader extends StatelessWidget {
-  final String employeeName;
-  final String shift;
-  final ThemeData theme;
-
-  const _DashboardHeader({
-    required this.employeeName,
-    required this.shift,
-    required this.theme,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                'Welcome, $employeeName',
-                style: theme.textTheme.headlineSmall?.copyWith(
-                  fontWeight: FontWeight.w800,
-                  fontSize: 18.sp,
-                ),
-              ),
-              SizedBox(height: 4.h),
-              Text(
-                shift,
-                style: theme.textTheme.bodySmall?.copyWith(
-                  color: AppColors.labelColor,
-                  fontSize: 12.sp,
-                ),
-              ),
-            ],
-          ),
-        ),
-        SizedBox(width: 12.w),
-        // Role badge for Storage Employee
-        Container(
-          padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 6.h),
-          decoration: BoxDecoration(
-            gradient: const LinearGradient(
-              colors: [Color(0xFF10B981), Color(0xFF059669)],
-            ),
-            borderRadius: BorderRadius.circular(12.r),
-            boxShadow: [
-              BoxShadow(
-                color: const Color(0xFF10B981).withValues(alpha: 0.3),
-                blurRadius: 8,
-                offset: const Offset(0, 3),
-              ),
-            ],
-          ),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(Icons.warehouse_rounded, size: 14.sp, color: Colors.white),
-              SizedBox(width: 5.w),
-              Text('extra.storage'.tr(),
-                style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 11.sp,
-                  fontWeight: FontWeight.w700,
-                  letterSpacing: 0.8,
-                ),
-              ),
-            ],
-          ),
-        ),
       ],
     );
   }
