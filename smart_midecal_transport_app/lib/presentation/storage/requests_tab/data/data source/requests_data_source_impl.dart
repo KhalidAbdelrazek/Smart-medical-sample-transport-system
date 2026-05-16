@@ -118,7 +118,7 @@ class RequestsDataSourceImpl implements RequestsDataSource {
           return Right(dispatchCarResponseDm);
         }
         return Left(
-          ServerError(errorMessage: dispatchCarResponseDm.errors.toString()),
+          ServerError(errorMessage: "status.car_did_not_dispatched".tr()),
         );
       } else {
         return Left(NetworkError(errorMessage: 'errors.network_error'.tr()));

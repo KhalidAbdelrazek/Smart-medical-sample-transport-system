@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:injectable/injectable.dart';
 import 'package:smart_midecal_transport_app/presentation/storage/requests_tab/domain/models/get_requests_response_entity.dart';
@@ -76,7 +77,9 @@ class BloodSamplesCubit extends Cubit<BloodSamplesState> {
         ),
       ),
       (response) {
-        _refreshAfterAction(response.message ?? 'Car dispatched successfully');
+        _refreshAfterAction(
+          response.message ?? 'status.car_dispatched_successfully'.tr(),
+        );
       },
     );
   }
