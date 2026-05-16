@@ -96,7 +96,7 @@ class MyRequestsDataSourceImpl implements MyRequestsDataSource {
         ServerError(
           errorMessage: body?['message']?.toString() ??
               body?['detail']?.toString() ??
-              'Could not cancel request',
+              'status.could_not_cancel_request'.tr(),
         ),
       );
     } catch (e) {

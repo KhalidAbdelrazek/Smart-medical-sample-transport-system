@@ -10,7 +10,8 @@
     "loaded": "Loaded",
     "returned": "Returned",
     "please_select_at_least_one_patient_sample": "Please select at least one patient sample",
-    "please_select_room": "Please select a room"
+    "please_select_room": "Please select a room",
+    "could_not_cancel_request": "Could not cancel request"
   },
   "main_character": {
     "robot_name": "MedBot"
