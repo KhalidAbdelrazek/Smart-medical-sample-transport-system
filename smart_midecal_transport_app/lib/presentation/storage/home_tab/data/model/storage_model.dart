@@ -1,4 +1,3 @@
-
 import 'package:smart_midecal_transport_app/presentation/storage/home_tab/domain/entities/static_storage_entity.dart';
 
 class StorageStatisticsModel extends StorageStatisticsEntity {
