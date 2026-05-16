@@ -155,8 +155,8 @@ class _EmployeeLoginScreenState extends State<EmployeeLoginScreen>
                       Text(
                         "sign_in.subtitle".tr(),
                         style: theme.textTheme.bodyMedium?.copyWith(
-                          color: theme.textTheme.bodyMedium?.color?.withOpacity(
-                            0.7,
+                          color: theme.textTheme.bodyMedium?.color?.withValues(
+                            alpha: 0.7,
                           ),
                         ),
                         textAlign: TextAlign.center,
@@ -174,7 +174,7 @@ class _EmployeeLoginScreenState extends State<EmployeeLoginScreen>
                           borderRadius: BorderRadius.circular(24.r),
                           boxShadow: [
                             BoxShadow(
-                              color: theme.shadowColor.withOpacity(0.08),
+                              color: theme.shadowColor.withValues(alpha: 0.08),
                               blurRadius: 24,
                               offset: const Offset(0, 8),
                             ),
