@@ -109,15 +109,15 @@ class _FilterChipState extends State<_FilterChip>
             color: widget.isSelected
                 ? widget.primary
                 : widget.isDark
-                    ? AppColors.cardDarkColor
-                    : AppColors.cardLightColor,
+                ? AppColors.cardDarkColor
+                : AppColors.cardLightColor,
             borderRadius: BorderRadius.circular(24.r),
             border: Border.all(
               color: widget.isSelected
                   ? widget.primary
                   : widget.isDark
-                      ? AppColors.cardDarkStrokeColor
-                      : AppColors.cardLightStrokeColor,
+                  ? AppColors.cardDarkStrokeColor
+                  : AppColors.cardLightStrokeColor,
               width: 1.5,
             ),
             boxShadow: widget.isSelected
@@ -134,13 +134,12 @@ class _FilterChipState extends State<_FilterChip>
             widget.label,
             style: TextStyle(
               fontSize: 13.sp,
-              fontWeight:
-                  widget.isSelected ? FontWeight.w600 : FontWeight.w500,
+              fontWeight: widget.isSelected ? FontWeight.w600 : FontWeight.w500,
               color: widget.isSelected
                   ? Colors.white
                   : widget.isDark
-                      ? AppColors.textDarkColor
-                      : AppColors.labelColor,
+                  ? AppColors.textDarkColor
+                  : AppColors.labelColor,
             ),
           ),
         ),
