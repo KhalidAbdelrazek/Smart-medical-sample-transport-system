@@ -79,7 +79,11 @@ class SettingsSection extends StatelessWidget {
               icon: Icons.logout_rounded,
               iconColor: AppColors.error,
               label: 'profile.logout'.tr(),
-              trailing: Icon(Icons.arrow_forward_ios_rounded, size: 16.sp, color: AppColors.labelColor),
+              trailing: Icon(
+                Icons.arrow_forward_ios_rounded,
+                size: 16.sp,
+                color: AppColors.labelColor,
+              ),
             ),
           ),
         ],
