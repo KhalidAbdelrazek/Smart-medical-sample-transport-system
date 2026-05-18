@@ -6,6 +6,16 @@
  *
  * Fix: 's' is sent ONCE from main.c only, after motors settle.
  *      Decide_Movement() no longer sends 's' – it just stops.
+ *
+ * Commands 1 / 2 / 3:
+ *   '1' – move backward, stop at the 1st black line  (skip 0)
+ *   '2' – move backward, stop at the 2nd black line  (skip 1)
+ *   '3' – move backward, stop at the 3rd black line  (skip 2)
+ *
+ *   Each black line is crossed by calling Push_Backward() for a short
+ *   burst (~120 ms) so the car clears the ~2 cm stripe, then resumes
+ *   Back_Decide_Movement() until the next line (or the target line).
+ *   Sends "s\r\n" once motors have stopped at the target line.
  */
 
 #include <xc.h>
@@ -39,6 +49,7 @@ int main(void)
 
     // -------- Status LED --------
     LED_Init('C', 0);
+    LED_Init('C', 7);
     LED_On('C', 0);
     _delay_ms(1000);
     LED_Off('C', 0);
@@ -52,19 +63,16 @@ int main(void)
     // -------- Main Loop --------
     while (1)
     {
-       
-	    Commands = UART_Receive_data();
+        Commands = UART_Receive_data();
 
         // ── FORWARD ──────────────────────────────────────────
         if (Commands == 'F')
         {
             UART_Send_string("OK:F\r\n");
 
-            // Small push to clear the previous intersection before line-following
             Push_Forward();
             _delay_ms(50);
 
-            // Line-follow until BOTH IR sensors read BLACK (intersection)
             while (1)
             {
                 char Left_IR  = Button_Read('D', 5);
@@ -72,16 +80,12 @@ int main(void)
 
                 if (Left_IR == 1 && Right_IR == 1)
                 {
-                    // Intersection detected – stop motors
                     Stop();
-                    _delay_ms(50);          // let motors fully settle before sending
-
-                    // Send stop signal to RPi ONCE
+                    _delay_ms(50);
                     UART_Send_string("s\r\n");
-
-                    break;                  // exit line-follow loop, wait for next command
+                    break;
                 }
-			    Decide_Movement();
+                Decide_Movement();
             }
         }
 
@@ -105,7 +109,7 @@ int main(void)
                     UART_Send_string("s\r\n");
                     break;
                 }
-			    Back_Decide_Movement();
+                Back_Decide_Movement();
             }
         }
 
@@ -120,12 +124,10 @@ int main(void)
                 {
                     UART_Send_string("OK:F\r\n");
 
-                    // Blind push forward for 500 ms, ignoring IR
                     Push_Forward();
                     _delay_ms(150);
-                    // Stop();
 
-                    while(1)
+                    while (1)
                     {
                         char Left_IR  = Button_Read('D', 5);
                         char Right_IR = Button_Read('D', 6);
@@ -145,12 +147,10 @@ int main(void)
                 {
                     UART_Send_string("OK:B\r\n");
 
-                    // Blind push backward for 500 ms, ignoring IR
                     Push_Backward();
                     _delay_ms(150);
-                    // Stop();
 
-                    while(1)
+                    while (1)
                     {
                         char Left_IR  = Button_Read('D', 5);
                         char Right_IR = Button_Read('D', 6);
@@ -181,15 +181,13 @@ int main(void)
                 {
                     UART_Send_string("OK:F\r\n");
 
-                    // Blind push forward for 500 ms, ignoring IR
                     Push_Forward();
                     _delay_ms(150);
-                    // Stop();
 
-                    while(1)
+                    while (1)
                     {
                         int counter = 1;
-                        if (counter == 1){
+                        if (counter == 1) {
                             Push_Forward();
                             counter = 0;
                         }
@@ -211,12 +209,10 @@ int main(void)
                 {
                     UART_Send_string("OK:B\r\n");
 
-                    // Blind push backward for 500 ms, ignoring IR
                     Push_Backward();
                     _delay_ms(150);
-                    // Stop();
 
-                    while(1)
+                    while (1)
                     {
                         char Left_IR  = Button_Read('D', 5);
                         char Right_IR = Button_Read('D', 6);
@@ -248,39 +244,85 @@ int main(void)
         {
             continue;
         }
-        else if(Commands == '3')
+
+        // ── SKIP-LINE BACKWARD COMMANDS (1 / 2 / 3) ─────────
+        //
+        //  linesToSkip = command digit - 1
+        //  The car moves backward using Back_Decide_Movement().
+        //  Every time BOTH IR sensors detect BLACK (intersection):
+        //    • If lines_skipped < linesToSkip  →  push through the line
+        //      (Push_Backward for ~120 ms to clear the ~2 cm stripe)
+        //      then wait until the sensors leave the black line,
+        //      then increment lines_skipped and keep going.
+        //    • If lines_skipped == linesToSkip  →  this is the target line,
+        //      stop and send "s\r\n".
+        //
+        else if (Commands == '1' || Commands == '2' || Commands == '3')
         {
-            int counter = 3;
-            while(1)
+            // Number of lines to SKIP before stopping
+            int linesToSkip = (Commands - '0') - 1;  // '1'->0, '2'->1, '3'->2
+            int lines_skipped = 0;
+
+            // Debug acknowledgement
+            if      (Commands == '1') UART_Send_string("OK:1\r\n");
+            else if (Commands == '2') UART_Send_string("OK:2\r\n");
+            else                      UART_Send_string("OK:3\r\n");
+
+            // Small initial push to get off any current intersection
+            Push_Backward();
+            _delay_ms(80);
+
+            while (1)
             {
                 char Left_IR  = Button_Read('D', 5);
                 char Right_IR = Button_Read('D', 6);
 
                 if (Left_IR == 1 && Right_IR == 1)
                 {
-                    while(1){
-                        char Left_IR  = Button_Read('D', 5);
-                        char Right_IR = Button_Read('D', 6);
-                        
-                        if (Left_IR != 1 || Right_IR != 1)
-                        {
-                            Back_Decide_Movement();
-                            break;
-                        }
-                        if(counter == 1)
-                        {
-                            Stop();
-                            _delay_ms(50);
-                            UART_Send_string("s\r\n");
-                            break;
-                        }
+                    // ── Black line detected ───────────────────
+                    if (lines_skipped < linesToSkip)
+                    {
+                        // Push through this line (~120 ms clears 2 cm stripe)
                         Push_Backward();
+                        _delay_ms(120);
+
+                        // Wait until both sensors leave the black line
+                        while (1)
+                        {
+                            char L = Button_Read('D', 5);
+                            char R = Button_Read('D', 6);
+                            if (L != 1 || R != 1) break;   // off the line
+                            Push_Backward();                // keep pushing
+                            _delay_ms(10);
+                        }
+
+                        lines_skipped++;
+                        // Continue backward line-following
                     }
-                    counter--;
+                    else
+                    {
+                        // ── Target line reached – stop ────────
+                        Stop();
+                        _delay_ms(50);
+                        UART_Send_string("s\r\n");
+                        break;
+                    }
                 }
-                Back_Decide_Movement();
+                else
+                {
+                    // Normal backward line-following
+                    Back_Decide_Movement();
+                }
             }
         }
-	   
+
+        // ── LED TEST ─────────────────────────────────────────
+        else if (Commands == 'X')
+        {
+            UART_Send_string("OK:K\r\n");
+            LED_On('C', 7);
+            _delay_ms(2000);
+            LED_Off('C', 7);
+        }
     }
 }
