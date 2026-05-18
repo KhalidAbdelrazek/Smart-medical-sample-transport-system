@@ -547,6 +547,10 @@ def main():
                                 mqtt_controller.publish_arrival(room, request_ids)
                                 print_mqtt_event("pub", f"transport/arrivals/{CAR_ID}", arrival_payload)
 
+                                # Send X for Turning Buzzer on ATmega
+                                car.buzzer()
+                                
+
                                 # Ensure car is stopped while waiting
                                 print_uart_send("S\n")
                                 car.stop()

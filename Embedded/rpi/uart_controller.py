@@ -236,3 +236,8 @@ class UARTCarController:
         if self.ser and self.ser.is_open:
             self.ser.reset_input_buffer()
             logging.info("[UART] Input buffer flushed.")
+
+    def buzzer(self) -> bool:
+        """Buzzer() on ATmega (turn buzzer ON)."""
+        logging.info("[UART TX] 'X' → ATmega Buzzer()")
+        return self.send_with_ack("X\n", "OK:X")
