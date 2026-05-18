@@ -5,7 +5,7 @@
  * Author : NADER
  *
  * Fix: 's' is sent ONCE from main.c only, after motors settle.
- *      Decide_Movement() no longer sends 's' � it just stops.
+ *      Decide_Movement() no longer sends 's' – it just stops.
  */
 
 #include <xc.h>
@@ -52,9 +52,10 @@ int main(void)
     // -------- Main Loop --------
     while (1)
     {
-        Commands = UART_Receive_data();
+       
+	    Commands = UART_Receive_data();
 
-        // ?? FORWARD ??????????????????????????????????????????
+        // ── FORWARD ──────────────────────────────────────────
         if (Commands == 'F')
         {
             UART_Send_string("OK:F\r\n");
@@ -71,7 +72,7 @@ int main(void)
 
                 if (Left_IR == 1 && Right_IR == 1)
                 {
-                    // Intersection detected � stop motors
+                    // Intersection detected – stop motors
                     Stop();
                     _delay_ms(50);          // let motors fully settle before sending
 
@@ -80,11 +81,11 @@ int main(void)
 
                     break;                  // exit line-follow loop, wait for next command
                 }
-			Decide_Movement();
+			    Decide_Movement();
             }
         }
 
-        // ?? BACKWARD ?????????????????????????????????????????
+        // ── BACKWARD ─────────────────────────────────────────
         else if (Commands == 'B')
         {
             UART_Send_string("OK:B\r\n");
@@ -104,23 +105,28 @@ int main(void)
                     UART_Send_string("s\r\n");
                     break;
                 }
-			Back_Decide_Movement();
+			    Back_Decide_Movement();
             }
         }
 
-        // ?? POSITIVE ROTATE ??????????????????????????????????
+        // ── POSITIVE ROTATE ──────────────────────────────────
         else if (Commands == 'P')
         {
             UART_Send_string("OK:P\r\n");
             while (1)
-			{
-				
-				Commands = UART_Receive_data();
-	             if (Commands == 'F')
-	             {
-					 UART_Send_string("OK:F\r\n");
-		             while(1)
-					 {
+            {
+                Commands = UART_Receive_data();
+                if (Commands == 'F')
+                {
+                    UART_Send_string("OK:F\r\n");
+
+                    // Blind push forward for 500 ms, ignoring IR
+                    Push_Forward();
+                    _delay_ms(150);
+                    // Stop();
+
+                    while(1)
+                    {
                         char Left_IR  = Button_Read('D', 5);
                         char Right_IR = Button_Read('D', 6);
 
@@ -132,46 +138,61 @@ int main(void)
                             break;
                         }
                         Decide_Movement();
-                     }
-					 break;
-	             } 
-				 else if (Commands == 'B') 
-				 {
-					 UART_Send_string("OK:B\r\n");
-                        while(1)
-						{
-                            char Left_IR  = Button_Read('D', 5);
-                            char Right_IR = Button_Read('D', 6);
+                    }
+                    break;
+                }
+                else if (Commands == 'B')
+                {
+                    UART_Send_string("OK:B\r\n");
 
-                            if (Left_IR == 1 && Right_IR == 1)
-                            {
-                                Stop();
-                                _delay_ms(50);
-                                UART_Send_string("s\r\n");
-                                break;
-                             }
-                                Back_Decide_Movement();
+                    // Blind push backward for 500 ms, ignoring IR
+                    Push_Backward();
+                    _delay_ms(150);
+                    // Stop();
+
+                    while(1)
+                    {
+                        char Left_IR  = Button_Read('D', 5);
+                        char Right_IR = Button_Read('D', 6);
+
+                        if (Left_IR == 1 && Right_IR == 1)
+                        {
+                            Stop();
+                            _delay_ms(50);
+                            UART_Send_string("s\r\n");
+                            break;
                         }
-						break;
-	             }
+                        Back_Decide_Movement();
+                    }
+                    break;
+                }
                 Move_Right();
-			}
-            
+            }
         }
 
-        // ?? NEGATIVE ROTATE ??????????????????????????????????
+        // ── NEGATIVE ROTATE ──────────────────────────────────
         else if (Commands == 'N')
         {
             UART_Send_string("OK:N\r\n");
-             while (1)
-             {
-	            
-	             Commands = UART_Receive_data();
-	             if (Commands == 'F')
-	             {
-					 UART_Send_string("OK:F\r\n");
-		             while(1)
-					 {
+            while (1)
+            {
+                Commands = UART_Receive_data();
+                if (Commands == 'F')
+                {
+                    UART_Send_string("OK:F\r\n");
+
+                    // Blind push forward for 500 ms, ignoring IR
+                    Push_Forward();
+                    _delay_ms(150);
+                    // Stop();
+
+                    while(1)
+                    {
+                        int counter = 1;
+                        if (counter == 1){
+                            Push_Forward();
+                            counter = 0;
+                        }
                         char Left_IR  = Button_Read('D', 5);
                         char Right_IR = Button_Read('D', 6);
 
@@ -183,44 +204,83 @@ int main(void)
                             break;
                         }
                         Decide_Movement();
-                     }
-					 break;
-	             } 
-				 else if (Commands == 'B') 
-				 {
-					 UART_Send_string("OK:B\r\n");
-                        while(1)
-						{
-                            char Left_IR  = Button_Read('D', 5);
-                            char Right_IR = Button_Read('D', 6);
+                    }
+                    break;
+                }
+                else if (Commands == 'B')
+                {
+                    UART_Send_string("OK:B\r\n");
 
-                            if (Left_IR == 1 && Right_IR == 1)
-                            {
-                                Stop();
-                                _delay_ms(50);
-                                UART_Send_string("s\r\n");
-                                break;
-                             }
-                                Back_Decide_Movement();
+                    // Blind push backward for 500 ms, ignoring IR
+                    Push_Backward();
+                    _delay_ms(150);
+                    // Stop();
+
+                    while(1)
+                    {
+                        char Left_IR  = Button_Read('D', 5);
+                        char Right_IR = Button_Read('D', 6);
+
+                        if (Left_IR == 1 && Right_IR == 1)
+                        {
+                            Stop();
+                            _delay_ms(50);
+                            UART_Send_string("s\r\n");
+                            break;
                         }
-						break;
-	             }
-                 Move_Left();
-             }
-            
+                        Back_Decide_Movement();
+                    }
+                    break;
+                }
+                Move_Left();
+            }
         }
 
-        // ?? STOP ?????????????????????????????????????????????
+        // ── STOP ─────────────────────────────────────────────
         else if (Commands == 'S')
         {
             UART_Send_string("OK:S\r\n");
             Stop();
         }
 
-        // ?? IGNORE newline / carriage-return ?????????????????
+        // ── IGNORE newline / carriage-return ─────────────────
         else if (Commands == '\n' || Commands == '\r')
         {
             continue;
         }
+        else if(Commands == '3')
+        {
+            int counter = 3;
+            while(1)
+            {
+                char Left_IR  = Button_Read('D', 5);
+                char Right_IR = Button_Read('D', 6);
+
+                if (Left_IR == 1 && Right_IR == 1)
+                {
+                    while(1){
+                        char Left_IR  = Button_Read('D', 5);
+                        char Right_IR = Button_Read('D', 6);
+                        
+                        if (Left_IR != 1 || Right_IR != 1)
+                        {
+                            Back_Decide_Movement();
+                            break;
+                        }
+                        if(counter == 1)
+                        {
+                            Stop();
+                            _delay_ms(50);
+                            UART_Send_string("s\r\n");
+                            break;
+                        }
+                        Push_Backward();
+                    }
+                    counter--;
+                }
+                Back_Decide_Movement();
+            }
+        }
+	   
     }
 }
