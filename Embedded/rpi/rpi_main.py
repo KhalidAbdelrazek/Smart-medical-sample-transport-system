@@ -1,4 +1,4 @@
-# version 1.9 18/5/2026
+# version 1.10 18/5/2026 9:21 PM
 #
 # Changes from 1.8:
 #   • RETURN_TO_STORAGE no longer sends 'B'.
@@ -624,27 +624,28 @@ def main():
                                             print_state("RETURN_TO_STORAGE", "Proceed=STORAGE received — moving backward to storage.")
                                             shared_state.update(current_state="RETURN_TO_STORAGE")
 
-                                            # Choose skip command from current room index:
-                                            #   room index 0 → '1' (stop at 1st line, no skipping)
-                                            #   room index 1 → '2' (skip 1, stop at 2nd line)
-                                            #   room index 2 → '3' (skip 2, stop at 3rd line)
-                                            # skip_count = min(i + 1, 3)
-                                            skip_count = min(int(room), 3)
-                                            print_uart_send(f"{skip_count}\n")
-                                            car.skip_lines_backward(skip_count)
-                                            logging.info(
-                                                f"[ROBOT] Moving BACKWARD toward STORAGE — "
-                                                f"skip command '{skip_count}' sent (room index {i})..."
-                                            )
-                                            print(
-                                                f"  ⏩ [MOVEMENT] Backward skip-{skip_count} command sent to ATmega "
-                                                f"— waiting for STORAGE intersection signal..."
-                                            )
+                                            if int(room) == 1:
+                                                # Already at storage intersection after post-rotation backward move
+                                                print_uart_send("S\n")
+                                                car.stop()
+                                                logging.info("[ROBOT] Room 1 — already at STORAGE after backward move, stopping.")
+                                            else:
+                                                skip_count = min(int(room) - 1, 3)
+                                                print_uart_send(f"{skip_count}\n")
+                                                car.skip_lines_backward(skip_count)
+                                                logging.info(
+                                                    f"[ROBOT] Moving BACKWARD toward STORAGE — "
+                                                    f"skip command '{skip_count}' sent (room {room})..."
+                                                )
+                                                print(
+                                                    f"  ⏩ [MOVEMENT] Backward skip-{skip_count} command sent to ATmega "
+                                                    f"— waiting for STORAGE intersection signal..."
+                                                )
+                                                wait_for_atmega_stop(car)
+                                                print_uart_send("S\n")
+                                                car.stop()
 
-                                            wait_for_atmega_stop(car)
-
-                                            print_uart_send("S\n")
-                                            car.stop()
+                                            # ... rest of STORAGE arrival (publish MQTT, set flags) unchanged
 
                                             print_state("ARRIVED", "Arrived at STORAGE. Publishing STORAGE arrival.")
                                             shared_state.update(current_state="ARRIVED")
