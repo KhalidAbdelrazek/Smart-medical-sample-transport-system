@@ -1,4 +1,4 @@
-# version 1.7 15/5/2026 5:46 PM
+# version 1.8 15/5/2026 9:17 PM
 
 import logging
 import time
@@ -648,7 +648,7 @@ def main():
                                                 current_room=next_room
                                             )
                                             proceed_received = True
-                                            wait_for_atmega_stop(car)
+                                            # wait_for_atmega_stop(car)
 
                                         else:
                                             logging.warning(f"[ROBOT] Ignored control msg (unexpected room '{cmd_room}'): {ctrl_msg}")
