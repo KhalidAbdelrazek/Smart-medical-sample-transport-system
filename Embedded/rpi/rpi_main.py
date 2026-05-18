@@ -1,4 +1,11 @@
-# version 1.8 15/5/2026 9:17 PM
+# version 1.9 18/5/2026
+#
+# Changes from 1.8:
+#   • RETURN_TO_STORAGE no longer sends 'B'.
+#     Instead it sends '1', '2', or '3' based on the current room index (i)
+#     so the ATmega knows how many intersections to cross before stopping.
+#   • print_uart_send() updated with labels for '1', '2', '3'.
+#   • uart_controller.skip_lines_backward(count) is the new call.
 
 import logging
 import time
@@ -242,8 +249,8 @@ def imu_thread_func(stop_event: threading.Event):
 
             now = time.time()
             if now - imu_thread_func._last_yaw_print >= 0.1:
-                print(f"  🧭 [IMU] Current Yaw = {yaw:.2f}°")
-                logging.info(f"[IMU] Current Yaw = {yaw:.2f}°")
+                # print(f"  🧭 [IMU] Current Yaw = {yaw:.2f}°")
+                # logging.info(f"[IMU] Current Yaw = {yaw:.2f}°")
                 imu_thread_func._last_yaw_print = now
 
             time.sleep(0.02)   # 50 Hz  # 50 Hz
@@ -338,11 +345,14 @@ def print_state(state: str, extra: str = ""):
 
 def print_uart_send(cmd: str):
     label_map = {
-        "F\n": "Push_Forward()   → ATmega cmd: 'F'",
-        "B\n": "Push_Backward()  → ATmega cmd: 'B'",
-        "P\n": "Pve_Rotate()     → ATmega cmd: 'P'",
-        "N\n": "Nve_Rotate()     → ATmega cmd: 'N'",
-        "S\n": "Stop_Car()       → ATmega cmd: 'S'",
+        "F\n": "Push_Forward()         → ATmega cmd: 'F'",
+        "B\n": "Push_Backward()        → ATmega cmd: 'B'",
+        "P\n": "Pve_Rotate()           → ATmega cmd: 'P'",
+        "N\n": "Nve_Rotate()           → ATmega cmd: 'N'",
+        "S\n": "Stop_Car()             → ATmega cmd: 'S'",
+        "1\n": "skip_lines_backward(1) → ATmega cmd: '1'  (stop at 1st line, skip 0)",
+        "2\n": "skip_lines_backward(2) → ATmega cmd: '2'  (skip 1, stop at 2nd line)",
+        "3\n": "skip_lines_backward(3) → ATmega cmd: '3'  (skip 2, stop at 3rd line)",
     }
     label = label_map.get(cmd, f"RAW CMD: {repr(cmd)}")
     print(f"  ➤  [UART TX] {label}")
@@ -614,11 +624,22 @@ def main():
                                             print_state("RETURN_TO_STORAGE", "Proceed=STORAGE received — moving backward to storage.")
                                             shared_state.update(current_state="RETURN_TO_STORAGE")
 
-                                            car.flush_input()
-                                            print_uart_send("B\n")
-                                            car.backward()
-                                            logging.info("[ROBOT] Moving BACKWARD toward STORAGE via ATmega Push_Backward()...")
-                                            print(f"  ⏩ [MOVEMENT] Backward command sent to ATmega — waiting for STORAGE intersection signal...")
+                                            # Choose skip command from current room index:
+                                            #   room index 0 → '1' (stop at 1st line, no skipping)
+                                            #   room index 1 → '2' (skip 1, stop at 2nd line)
+                                            #   room index 2 → '3' (skip 2, stop at 3rd line)
+                                            # skip_count = min(i + 1, 3)
+                                            skip_count = min(int(room), 3)
+                                            print_uart_send(f"{skip_count}\n")
+                                            car.skip_lines_backward(skip_count)
+                                            logging.info(
+                                                f"[ROBOT] Moving BACKWARD toward STORAGE — "
+                                                f"skip command '{skip_count}' sent (room index {i})..."
+                                            )
+                                            print(
+                                                f"  ⏩ [MOVEMENT] Backward skip-{skip_count} command sent to ATmega "
+                                                f"— waiting for STORAGE intersection signal..."
+                                            )
 
                                             wait_for_atmega_stop(car)
 

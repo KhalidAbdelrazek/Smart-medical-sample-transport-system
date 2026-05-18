@@ -29,6 +29,9 @@ class UARTCarController:
         'P'  →  Pve_Rotate()
         'N'  →  Nve_Rotate()
         'S'  →  Stop_Car()
+        '1'  →  skip_lines_backward(1) — stop at 1st line  (skip 0)
+        '2'  →  skip_lines_backward(2) — stop at 2nd line  (skip 1)
+        '3'  →  skip_lines_backward(3) — stop at 3rd line  (skip 2)
 
     Signals received from ATmega:
         's'  →  Both IR sensors BLACK — intersection detected, car has stopped.
@@ -114,6 +117,7 @@ class UARTCarController:
         except Exception as e:
             logging.error(f"[{get_timestamp()}] UART read error: {e}")
             return "ERROR"
+
     # ── Resilient wrappers ────────────────────────────────────
 
     def send_command_and_reconnect_if_failed(self, cmd: str) -> bool:
@@ -156,7 +160,22 @@ class UARTCarController:
     def stop(self) -> bool:
         """Stop_Car() on ATmega."""
         logging.info("[UART TX] 'S' → ATmega Stop_Car()")
-        return self.send_with_ack("S\n","OK:S")
+        return self.send_with_ack("S\n", "OK:S")
+
+    def skip_lines_backward(self, count: int) -> bool:
+        """
+        Send '1', '2', or '3' to ATmega to move backward and stop after
+        crossing (count - 1) black lines, stopping at the count-th line.
+          count=1 → '1' → stop at 1st line  (skip 0)
+          count=2 → '2' → stop at 2nd line  (skip 1)
+          count=3 → '3' → stop at 3rd line  (skip 2)
+        """
+        count        = max(1, min(count, 3))    # clamp to valid range 1–3
+        cmd          = str(count)               # '1', '2', or '3'
+        expected_ack = f"OK:{cmd}"              # 'OK:1', 'OK:2', or 'OK:3'
+
+        logging.info(f"[UART TX] '{cmd}' → ATmega skip_lines_backward({count})")
+        return self.send_with_ack(f"{cmd}\n", expected_ack)
 
     # Aliases kept for backward compatibility
     def left(self)  -> bool: return self.send_with_ack("L\n","OK:L")
