@@ -7,7 +7,7 @@
  */ 
 
 #include "Timers.h"
-char Left_wheels = 75;
+char Left_wheels = 55;
 char Right_wheels = 150;
 int Move_Up(void)
 {

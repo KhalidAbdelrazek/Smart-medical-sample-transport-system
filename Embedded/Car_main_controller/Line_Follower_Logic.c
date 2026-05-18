@@ -16,10 +16,10 @@ int Decide_Movement()
 {
 	char Left_IR;
 	char Right_IR;
-	Button_Init('D', 5);
-	Button_Init('D', 6);
-	Left_IR  = Button_Read('D', 5);
-	Right_IR = Button_Read('D', 6);
+	Button_Init('D', 3);
+	Button_Init('D', 4);
+	Left_IR  = Button_Read('D', 3);
+	Right_IR = Button_Read('D', 4);
 
 	if (Left_IR == 1 && Right_IR == 0)
 	{
@@ -46,30 +46,30 @@ int Back_Decide_Movement()
 {
 	char Left_IR;
 	char Right_IR;
-	Button_Init('D', 5);
-	Button_Init('D', 6);
-	Left_IR  = Button_Read('D', 5);
-	Right_IR = Button_Read('D', 6);
+	Button_Init('D', 3);
+	Button_Init('D', 4);
+	Left_IR  = Button_Read('D', 3);
+	Right_IR = Button_Read('D', 4);
 
-	if (Left_IR == 0 && Right_IR == 1)
+	// Conditions are SAME as forward, but movements are mirrored
+	if (Left_IR == 1 && Right_IR == 0)       // line is on the left
 	{
-		Move_Left();
+		Move_Right()   ;                       // steer left while reversing
 	}
-	else if (Left_IR == 1 && Right_IR == 0)
+	else if (Left_IR == 0 && Right_IR == 1)  // line is on the right
 	{
-		Move_Right();
+		Move_Left();                        // steer right while reversing
 	}
-	else if (Left_IR == 1 && Right_IR == 1)
+	else if (Left_IR == 1 && Right_IR == 1)  // intersection
 	{
 		Stop();
-		// ? DO NOT send 's' here — let main.c handle it ONCE
 	}
-	else if (Left_IR == 0 && Right_IR == 0)
+	else if (Left_IR == 0 && Right_IR == 0)  // on track
 	{
-		Move_Down();
+		Move_Down();                          // keep reversing
 	}
-	
-	return (Left_IR == 1 && Right_IR == 1) ? 1 : 0; // return 1 if intersection
+
+	return (Left_IR == 1 && Right_IR == 1) ? 1 : 0;
 }
 
 int Push_Forward(void)
@@ -84,7 +84,7 @@ int Push_Forward(void)
 int Push_Backward(void)
 {
 	Move_Down();
-	_delay_ms(250);
+	_delay_ms(500);
 	Stop();
 	//_delay_ms(250);
 }

@@ -44,8 +44,8 @@ int main(void)
     }
 
     // -------- IR Sensor Pins Init (Port D, pins 5 & 6) --------
-    Button_Init('D', 5);
-    Button_Init('D', 6);
+    Button_Init('D', 3);
+    Button_Init('D', 4);
 
     // -------- Status LED --------
     LED_Init('C', 0);
@@ -63,7 +63,9 @@ int main(void)
     // -------- Main Loop --------
     while (1)
     {
-        Commands = UART_Receive_data();
+        
+		
+		Commands = UART_Receive_data();
 
         // ── FORWARD ──────────────────────────────────────────
         if (Commands == 'F')
@@ -75,8 +77,8 @@ int main(void)
 
             while (1)
             {
-                char Left_IR  = Button_Read('D', 5);
-                char Right_IR = Button_Read('D', 6);
+                char Left_IR  = Button_Read('D', 3);
+                char Right_IR = Button_Read('D', 4);
 
                 if (Left_IR == 1 && Right_IR == 1)
                 {
@@ -99,8 +101,8 @@ int main(void)
 
             while (1)
             {
-                char Left_IR  = Button_Read('D', 5);
-                char Right_IR = Button_Read('D', 6);
+                char Left_IR  = Button_Read('D', 3);
+                char Right_IR = Button_Read('D', 4);
 
                 if (Left_IR == 1 && Right_IR == 1)
                 {
@@ -129,8 +131,8 @@ int main(void)
 
                     while (1)
                     {
-                        char Left_IR  = Button_Read('D', 5);
-                        char Right_IR = Button_Read('D', 6);
+                        char Left_IR  = Button_Read('D', 3);
+                        char Right_IR = Button_Read('D', 4);
 
                         if (Left_IR == 1 && Right_IR == 1)
                         {
@@ -152,8 +154,8 @@ int main(void)
 
                     while (1)
                     {
-                        char Left_IR  = Button_Read('D', 5);
-                        char Right_IR = Button_Read('D', 6);
+                        char Left_IR  = Button_Read('D', 3);
+                        char Right_IR = Button_Read('D', 4);
 
                         if (Left_IR == 1 && Right_IR == 1)
                         {
@@ -164,6 +166,13 @@ int main(void)
                         }
                         Back_Decide_Movement();
                     }
+                    break;
+                }
+                else if (Commands == 'S')
+                {
+                    Stop();
+                    _delay_ms(50);
+                    UART_Send_string("OK:S\r\n");
                     break;
                 }
                 Move_Right();
@@ -182,17 +191,17 @@ int main(void)
                     UART_Send_string("OK:F\r\n");
 
                     Push_Forward();
-                    _delay_ms(150);
+                    _delay_ms(50);
+                    int counter = 1;
 
                     while (1)
                     {
-                        int counter = 1;
                         if (counter == 1) {
                             Push_Forward();
                             counter = 0;
                         }
-                        char Left_IR  = Button_Read('D', 5);
-                        char Right_IR = Button_Read('D', 6);
+                        char Left_IR  = Button_Read('D', 3);
+                        char Right_IR = Button_Read('D', 4);
 
                         if (Left_IR == 1 && Right_IR == 1)
                         {
@@ -210,12 +219,12 @@ int main(void)
                     UART_Send_string("OK:B\r\n");
 
                     Push_Backward();
-                    _delay_ms(150);
+                    _delay_ms(50);
 
                     while (1)
                     {
-                        char Left_IR  = Button_Read('D', 5);
-                        char Right_IR = Button_Read('D', 6);
+                        char Left_IR  = Button_Read('D', 3);
+                        char Right_IR = Button_Read('D', 4);
 
                         if (Left_IR == 1 && Right_IR == 1)
                         {
@@ -226,6 +235,13 @@ int main(void)
                         }
                         Back_Decide_Movement();
                     }
+                    break;
+                }
+                else if (Commands == 'S')
+                {
+                    Stop();
+                    _delay_ms(50);
+                    UART_Send_string("OK:S\r\n");
                     break;
                 }
                 Move_Left();
@@ -259,8 +275,21 @@ int main(void)
         //
         else if (Commands == '1' || Commands == '2' || Commands == '3')
         {
+			int linesToSkip = 0;
+			if (Commands == '1')
+			{
+				linesToSkip = 0;
+			}
+			else if (Commands == '2')
+			{
+				linesToSkip = 1;
+			}
+			else if (Commands == '3')
+			{
+				linesToSkip = 2;
+			}
             // Number of lines to SKIP before stopping
-            int linesToSkip = (Commands - '0') - 1;  // '1'->0, '2'->1, '3'->2
+            // int linesToSkip = (Commands - '0') - 1;  // '1'->0, '2'->1, '3'->2
             int lines_skipped = 0;
 
             // Debug acknowledgement
@@ -274,8 +303,8 @@ int main(void)
 
             while (1)
             {
-                char Left_IR  = Button_Read('D', 5);
-                char Right_IR = Button_Read('D', 6);
+                char Left_IR  = Button_Read('D', 3);
+                char Right_IR = Button_Read('D', 4);
 
                 if (Left_IR == 1 && Right_IR == 1)
                 {
@@ -289,8 +318,8 @@ int main(void)
                         // Wait until both sensors leave the black line
                         while (1)
                         {
-                            char L = Button_Read('D', 5);
-                            char R = Button_Read('D', 6);
+                            char L = Button_Read('D', 3);
+                            char R = Button_Read('D', 4);
                             if (L != 1 || R != 1) break;   // off the line
                             Push_Backward();                // keep pushing
                             _delay_ms(10);
@@ -324,5 +353,7 @@ int main(void)
             _delay_ms(2000);
             LED_Off('C', 7);
         }
+		
+		
     }
 }
