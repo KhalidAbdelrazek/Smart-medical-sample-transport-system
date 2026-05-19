@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:dio/dio.dart';
 import 'package:either_dart/either.dart';
@@ -39,11 +40,11 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
         }
         return Left(
           ServerError(
-            errorMessage: loginEmployeeResponseDm.message ?? "Server Error",
+            errorMessage: loginEmployeeResponseDm.errors ?? "Server Error",
           ),
         );
       } else {
-        return Left(NetworkError(errorMessage: "Network Error"));
+        return Left(NetworkError(errorMessage: 'errors.network_error'.tr()));
       }
     } catch (e) {
       return Left(ServerError(errorMessage: e.toString()));
@@ -77,7 +78,7 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
           ),
         );
       } else {
-        return Left(NetworkError(errorMessage: "Network Error"));
+        return Left(NetworkError(errorMessage: 'errors.network_error'.tr()));
       }
     } catch (e) {
       return Left(ServerError(errorMessage: e.toString()));

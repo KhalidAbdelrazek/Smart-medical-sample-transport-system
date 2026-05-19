@@ -5,8 +5,16 @@ from rest_framework.views import APIView
 from common.utils.response import unified_response
 from .models import User
 
-from .serializers import LoginSerializer, AdminLoginSerializer, ProfileSerializer
-from .services import authenticate_staff, authenticate_admin
+from .serializers import (
+    LoginSerializer, 
+    AdminLoginSerializer, 
+    ProfileSerializer,
+    AdminUsersListFilterSerializer,
+    AdminUsersListResponseSerializer,
+    UserListSerializer,
+)
+from .services import authenticate_staff, authenticate_admin, get_admin_users_list
+from accounts.permissions import IsAdminRole
 
 
 class LoginView(APIView):
@@ -34,6 +42,10 @@ class LoginView(APIView):
         examples=[
             OpenApiExample('Doctor Login', value={
                 'email': 'doctor1@bioroute.com',
+                'password': 'AaAa112233_',
+            }, request_only=True),
+            OpenApiExample('Storage Employee Login', value={
+                'email': 'storage1@bioroute.com',
                 'password': 'AaAa112233_',
             }, request_only=True),
         ],
@@ -124,4 +136,62 @@ class ProfileView(APIView):
             message="Profile fetched successfully",
             data=serializer.data,
             status=status.HTTP_200_OK
+        )
+
+
+class AdminUsersListView(APIView):
+    """
+    GET /api/admin/users/
+    
+    Admin-only endpoint to list all users with pagination and search.
+    Supports filtering by role and searching by name/email.
+    """
+    permission_classes = [IsAuthenticated, IsAdminRole]
+
+    @extend_schema(
+        tags=['Admin Users'],
+        summary='Get list of all users (admin only)',
+        description='Returns paginated list of users. Supports filtering by role and searching by name/email (case-insensitive).',
+        parameters=[AdminUsersListFilterSerializer],
+        responses=AdminUsersListResponseSerializer,
+    )
+    def get(self, request):
+        """
+        Handle GET request for user list.
+        
+        Query Parameters:
+            - role: Filter by role (DOCTOR, STORAGE_EMPLOYEE, ADMIN)
+            - search: Search by name or email (case-insensitive)
+            - page: Page number (default: 1)
+            - page_size: Items per page (default: 20, max: 100)
+        """
+        # Parse and validate filter parameters
+        filter_serializer = AdminUsersListFilterSerializer(data=request.query_params)
+        filter_serializer.is_valid(raise_exception=True)
+        params = filter_serializer.validated_data
+
+        # Extract filters
+        role = params.get('role')
+        search = params.get('search')
+        page = params.get('page', 1)
+        page_size = params.get('page_size', 20)
+
+        # Get users list
+        data = get_admin_users_list(
+            role=role,
+            search=search,
+            page=page,
+            page_size=page_size,
+        )
+
+        # Serialize users
+        data['users'] = UserListSerializer(data['users'], many=True).data
+
+        # Serialize response
+        serializer = AdminUsersListResponseSerializer(data)
+
+        return unified_response(
+            success=True,
+            message='Users retrieved successfully',
+            data=serializer.data,
         )

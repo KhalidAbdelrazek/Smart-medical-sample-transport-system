@@ -20,6 +20,6 @@ class AdminLoginLoading extends AdminLoginState {}
 class AdminLoginSuccess extends AdminLoginState {}
 
 class AdminLoginError extends AdminLoginState {
-  final String message;
-  AdminLoginError(this.message);
+  final String? message;
+  AdminLoginError({this.message});
 }

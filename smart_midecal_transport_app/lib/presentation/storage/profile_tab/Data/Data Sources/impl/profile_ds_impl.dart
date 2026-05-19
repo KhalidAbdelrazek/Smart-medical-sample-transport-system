@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:dio/dio.dart';
 import 'package:either_dart/either.dart';
@@ -32,16 +33,13 @@ class ProfileDataSourceImpl implements ProfileDataSource {
             validateStatus: (status) => true,
           ),
         );
-        print("response.data: ${response.data}");
 
         // Map the entire response (success, message, data, errors)
         GetProfileDm getProfileDm = GetProfileDm.fromJson(response.data);
 
         // 1. Check for specific Token Expiration / Invalid Token
         if (getProfileDm.errors?.code == "token_not_valid") {
-          return Left(
-            ServerError(errorMessage: "Session expired. Please login again."),
-          );
+          return Left(ServerError(errorMessage: 'extra.session_expired'.tr()));
         }
 
         // 2. Check for General Success (2xx status codes)
@@ -52,11 +50,9 @@ class ProfileDataSourceImpl implements ProfileDataSource {
         }
 
         // 3. Handle other Server Errors
-        return Left(
-          ServerError(errorMessage: getProfileDm.message ?? "Server Error"),
-        );
+        return Left(ServerError(errorMessage: getProfileDm.message));
       } else {
-        return Left(NetworkError(errorMessage: "No Internet Connection"));
+        return Left(NetworkError(errorMessage: 'extra.no_internet_lower'.tr()));
       }
     } catch (e) {
       return Left(

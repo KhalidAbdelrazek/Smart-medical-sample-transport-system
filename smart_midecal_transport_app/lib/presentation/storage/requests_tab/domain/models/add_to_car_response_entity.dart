@@ -4,12 +4,7 @@ class AddToCarResponseEntity {
   final TransportRequestEntity? data;
   final dynamic errors;
 
-  AddToCarResponseEntity({
-    this.success,
-    this.message,
-    this.data,
-    this.errors,
-  });
+  AddToCarResponseEntity({this.success, this.message, this.data, this.errors});
 }
 
 class TransportRequestEntity {
@@ -62,10 +57,5 @@ class CarEntity {
   final String? status;
   final String? createdAt;
 
-  CarEntity({
-    this.id,
-    this.carNumber,
-    this.status,
-    this.createdAt,
-  });
+  CarEntity({this.id, this.carNumber, this.status, this.createdAt});
 }

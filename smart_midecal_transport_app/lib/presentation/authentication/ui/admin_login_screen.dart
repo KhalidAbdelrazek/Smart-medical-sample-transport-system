@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -71,10 +72,22 @@ class _AdminLoginScreenState extends State<AdminLoginScreen>
           } else if (state is AdminLoginSuccess) {
             DialogUtils.hideLoading(context);
             // Navigate to Admin Dashboard (sharing root for now or separate)
-            Navigator.pushReplacementNamed(context, RouteNames.root);
+            Navigator.pushReplacementNamed(
+              context,
+              RouteNames.employerMainScreen,
+            );
           } else if (state is AdminLoginError) {
             DialogUtils.hideLoading(context);
-            DialogUtils.showMessage(context: context, message: state.message);
+            DialogUtils.showMessage(
+              context: context,
+              title: "sign_in.login_failed".tr(),
+              message: state.message == 'Invalid email or password.'
+                  ? "errors.invalid_credential".tr()
+                  : state.message == 'Network error'
+                  ? "errors.network_error".tr()
+                  : "errors.unknown_error".tr(),
+              posActionName: "sign_in.ok".tr(),
+            );
           }
         },
         child: Scaffold(
@@ -121,7 +134,7 @@ class _AdminLoginScreenState extends State<AdminLoginScreen>
                       ),
                       SizedBox(height: 24.h),
                       Text(
-                        "Admin Portal",
+                        "sign_in.admin_portal".tr(),
                         style: theme.textTheme.displayMedium?.copyWith(
                           fontSize: 26.sp,
                           color: theme.primaryColor,
@@ -130,10 +143,10 @@ class _AdminLoginScreenState extends State<AdminLoginScreen>
                       ),
                       SizedBox(height: 8.h),
                       Text(
-                        "Sign in to manage the system",
+                        "sign_in.admin_portal_description".tr(),
                         style: theme.textTheme.bodyMedium?.copyWith(
-                          color: theme.textTheme.bodyMedium?.color?.withOpacity(
-                            0.7,
+                          color: theme.textTheme.bodyMedium?.color?.withValues(
+                            alpha: 0.7,
                           ),
                         ),
                         textAlign: TextAlign.center,
@@ -151,7 +164,7 @@ class _AdminLoginScreenState extends State<AdminLoginScreen>
                           borderRadius: BorderRadius.circular(24.r),
                           boxShadow: [
                             BoxShadow(
-                              color: theme.shadowColor.withOpacity(0.08),
+                              color: theme.shadowColor.withValues(alpha: 0.08),
                               blurRadius: 24,
                               offset: const Offset(0, 8),
                             ),
@@ -170,7 +183,12 @@ class _AdminLoginScreenState extends State<AdminLoginScreen>
                           context,
                           RouteNames.register,
                         ),
-                        child: const Text("Switch to Employee Login"),
+                        child: Text(
+                          "sign_in.switch_to_employee_login".tr(),
+                          style: theme.textTheme.bodyMedium?.copyWith(
+                            color: theme.primaryColor,
+                          ),
+                        ),
                       ),
                     ],
                   ),

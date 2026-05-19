@@ -5,9 +5,7 @@ import 'package:smart_midecal_transport_app/presentation/employee/requests/Data/
 import 'package:smart_midecal_transport_app/presentation/employee/requests/domain/entities/transport_request_entity.dart';
 
 abstract class RequestsDataSource {
-  Future<Either<Failures, GetSamplesResponseDm>> getSampleById(
-    String id,
-  );
+  Future<Either<Failures, GetSamplesResponseDm>> getSampleById(String id);
   Future<Either<Failures, BulkRequestResponseDm>> requestBulkSamples(
     List<String> sampleCodes,
     String roomNumber,

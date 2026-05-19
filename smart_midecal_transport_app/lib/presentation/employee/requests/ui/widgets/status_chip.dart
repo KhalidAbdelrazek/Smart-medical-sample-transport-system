@@ -1,11 +1,12 @@
-﻿import 'package:flutter/material.dart';
+﻿import 'package:easy_localization/easy_localization.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:smart_midecal_transport_app/core/theme/color.dart';
 
 /// Small UI chip component to indicate 'REQUESTED', 'IN_STORAGE', etc.
 class StatusChip extends StatelessWidget {
   final String status;
-  
+
   const StatusChip({super.key, required this.status});
 
   @override
@@ -15,8 +16,22 @@ class StatusChip extends StatelessWidget {
       'IN_STORAGE' => AppColors.info,
       'REQUESTED' => AppColors.warning,
       'OUT_FOR_DELIVERY' => AppColors.success,
+      'DISPATCHED' => AppColors.success,
+      'WITH_DOCTOR' => AppColors.error,
       _ => Colors.grey,
     };
+    // translate statused
+    String translatedStatus = status.toLowerCase() == "in_storage"
+        ? "status.in_storage".tr()
+        : status.toLowerCase() == "requested"
+        ? "status.requested".tr()
+        : status.toLowerCase() == "out_for_delivery"
+        ? "status.out_for_delivery".tr()
+        : status.toLowerCase() == "dispatched"
+        ? "status.dispatched".tr()
+        : status.toLowerCase() == "with_doctor"
+        ? "status.with_doctor".tr()
+        : "";
 
     return Container(
       padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 3.h),
@@ -25,7 +40,7 @@ class StatusChip extends StatelessWidget {
         borderRadius: BorderRadius.circular(20.r),
       ),
       child: Text(
-        status.replaceAll('_', ' '),
+        translatedStatus,
         style: TextStyle(
           fontSize: 10.sp,
           color: color,
@@ -35,4 +50,3 @@ class StatusChip extends StatelessWidget {
     );
   }
 }
-

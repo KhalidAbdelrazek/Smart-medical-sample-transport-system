@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:smart_midecal_transport_app/core/theme/color.dart';
-import 'package:smart_midecal_transport_app/presentation/employee/requests/domain/entities/transport_request_entity.dart';
+import 'package:smart_midecal_transport_app/presentation/employee/my_requests/domain/entities/tranport_req_entities.dart';
 
 import 'cubit/my_requests_cubit.dart';
 import 'cubit/my_requests_state.dart';
@@ -90,7 +90,7 @@ class MyRequestsView extends StatelessWidget {
     }
 
     // Extract list + cancelling ID from the relevant states
-    List<TransportRequestEntity> requests = [];
+    List<TransportMyRequestEntity> requests = [];
     String? cancellingId;
 
     if (state is MyRequestsLoaded) {
@@ -116,8 +116,7 @@ class MyRequestsView extends StatelessWidget {
       itemBuilder: (_, i) {
         final req = requests[i];
         final isCancelling = cancellingId == req.requestId;
-        final isPending =
-            (req.requestStatus ?? '').toUpperCase() == 'PENDING';
+        final isPending = (req.requestStatus ?? '').toUpperCase() == 'PENDING';
 
         return TransportRequestCard(
           key: ValueKey(req.requestId),
@@ -195,9 +194,6 @@ class MyRequestsView extends StatelessWidget {
       'my_requests.session_expired'.tr(),
       AppColors.warning,
     );
-    Navigator.of(context).pushNamedAndRemoveUntil(
-      '/login',
-      (route) => false,
-    );
+    Navigator.of(context).pushNamedAndRemoveUntil('/login', (route) => false);
   }
 }
