@@ -181,26 +181,26 @@ class _DashboardContent extends StatelessWidget {
           segments: [
             if (state.cardispatch > 0)
               ChartSegment(
-                label: 'employee.dispatch'.tr(),
+                labelKey: 'employee.dispatch'.tr(),
                 value: state.cardispatch,
                 percentage: (state.cardispatch / state.totalactions * 100),
               ),
             if (state.sampleaddedtocar > 0)
               ChartSegment(
-                label: 'employee.added'.tr(),
+                labelKey: 'employee.added'.tr(),
                 value: state.sampleaddedtocar,
                 percentage: (state.sampleaddedtocar / state.totalactions * 100),
               ),
             if (state.sampleremovedfromcar > 0)
               ChartSegment(
-                label: 'employee.removed'.tr(),
+                labelKey: 'employee.removed'.tr(),
                 value: state.sampleremovedfromcar,
                 percentage:
                     (state.sampleremovedfromcar / state.totalactions * 100),
               ),
             if (state.transportrequestupdate > 0)
               ChartSegment(
-                label: 'employee.updates'.tr(),
+                labelKey: 'employee.updates'.tr(),
                 value: state.transportrequestupdate,
                 percentage:
                     (state.transportrequestupdate / state.totalactions * 100),

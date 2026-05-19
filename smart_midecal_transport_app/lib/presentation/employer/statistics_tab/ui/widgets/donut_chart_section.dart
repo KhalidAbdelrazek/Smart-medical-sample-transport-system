@@ -104,7 +104,7 @@ class DonutChartSection extends StatelessWidget {
                             .entries
                             .map(
                               (e) => DonutSectionModel(
-                                label: e.value.label,
+                                label: e.value.labelKey.tr(),
                                 color:
                                     _chartPalette[e.key % _chartPalette.length],
                                 value: e.value.value.toDouble(),
@@ -146,7 +146,7 @@ class DonutChartSection extends StatelessWidget {
                       final color = _chartPalette[e.key % _chartPalette.length];
                       return LegendItem(
                         color: color,
-                        label: e.value.label,
+                        label: e.value.labelKey.tr(),
                         percentage: e.value.percentage,
                         value: e.value.value,
                       );
