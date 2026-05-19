@@ -1,0 +1,618 @@
+import 'package:equatable/equatable.dart';
+import 'package:smart_midecal_transport_app/presentation/employee/root/domain/entity/notification_response_entity.dart';
+
+/// UI row for one pending delivery notification (merged from API + client `firstSeenAt`).
+class NotificationListItem extends Equatable {
+  const NotificationListItem({
+    required this.requestId,
+    required this.titleTrKey,
+    required this.description,
+    required this.roomLabel,
+    required this.status,
+    required this.firstSeenAt,
+  });
+
+  final String requestId;
+  final String titleTrKey;
+  final String description;
+  final String roomLabel;
+  final String? status;
+  final DateTime firstSeenAt;
+
+  static String descriptionFromEntity(NotificationDataEntity e) {
+    final parts = <String>[];
+    final name = e.sampleName?.trim();
+    if (name != null && name.isNotEmpty) {
+      parts.add(name);
+    }
+    final code = e.sampleCode?.trim();
+    if (code != null && code.isNotEmpty) {
+      parts.add(code);
+    }
+    if (parts.isEmpty) {
+      return '';
+    }
+    return parts.join(' · ');
+  }
+
+  static String roomFromEntity(NotificationDataEntity e) {
+    final r = e.room?.trim();
+    if (r == null || r.isEmpty) {
+      return '';
+    }
+    return r;
+  }
+
+  NotificationListItem mergedWith(NotificationDataEntity e, DateTime preservedFirstSeen) {
+    return NotificationListItem(
+      requestId: requestId,
+      titleTrKey: titleTrKey,
+      description: descriptionFromEntity(e).isEmpty
+          ? description
+          : descriptionFromEntity(e),
+      roomLabel: roomFromEntity(e).isEmpty ? roomLabel : roomFromEntity(e),
+      status: e.status ?? status,
+      firstSeenAt: preservedFirstSeen,
+    );
+  }
+
+  @override
+  List<Object?> get props => [
+        requestId,
+        titleTrKey,
+        description,
+        roomLabel,
+        status,
+        firstSeenAt,
+      ];
+}
+
+
+
+
+
+import 'package:easy_localization/easy_localization.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:smart_midecal_transport_app/presentation/employee/root/ui/cubit/notification_cubit.dart';
+import 'package:smart_midecal_transport_app/presentation/employee/root/ui/cubit/notification_state.dart';
+import 'package:smart_midecal_transport_app/presentation/employee/root/ui/widgets/notification_card.dart';
+
+class NotificationBottomSheet {
+  static Future<void> show(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    return showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      useSafeArea: true,
+      showDragHandle: true,
+      backgroundColor: Colors.transparent,
+      barrierColor: Colors.black.withValues(alpha: 0.45),
+      builder: (sheetContext) {
+        return DraggableScrollableSheet(
+          initialChildSize: 0.56,
+          minChildSize: 0.34,
+          maxChildSize: 0.88,
+          expand: false,
+          builder: (context, scrollController) {
+            return Material(
+              color: scheme.surface,
+              borderRadius: BorderRadius.vertical(top: Radius.circular(24.r)),
+              clipBehavior: Clip.antiAlias,
+              child: Column(
+                children: [
+                  Padding(
+                    padding: EdgeInsets.fromLTRB(20.w, 4.h, 16.w, 8.h),
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: Text(
+                            'employee.notifications_title'.tr(),
+                            style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                                  fontWeight: FontWeight.w600,
+                                ),
+                          ),
+                        ),
+                        IconButton(
+                          onPressed: () => Navigator.of(sheetContext).pop(),
+                          icon: const Icon(Icons.close_rounded),
+                          style: IconButton.styleFrom(
+                            foregroundColor: scheme.onSurfaceVariant,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  Divider(height: 1, color: scheme.outlineVariant.withValues(alpha: 0.4)),
+                  Expanded(
+                    child: BlocBuilder<NotificationCubit, NotificationState>(
+                      buildWhen: (prev, curr) =>
+                          prev.isInitialLoading != curr.isInitialLoading ||
+                          prev.items != curr.items ||
+                          prev.enteringIds != curr.enteringIds,
+                      builder: (context, state) {
+                        if (state.isInitialLoading && state.items.isEmpty) {
+                          return Center(
+                            child: CircularProgressIndicator(
+                              color: scheme.primary,
+                            ),
+                          );
+                        }
+                        if (state.items.isEmpty) {
+                          return _EmptyNotifications(colorScheme: scheme);
+                        }
+                        return ListView.separated(
+                          controller: scrollController,
+                          padding: EdgeInsets.fromLTRB(16.w, 12.h, 16.w, 24.h),
+                          itemCount: state.items.length,
+                          separatorBuilder: (_, __) => SizedBox(height: 10.h),
+                          itemBuilder: (context, index) {
+                            final item = state.items[index];
+                            final animate =
+                                state.enteringIds.contains(item.requestId);
+                            return NotificationCard(
+                              key: ValueKey(item.requestId),
+                              item: item,
+                              animateEntry: animate,
+                            );
+                          },
+                        );
+                      },
+                    ),
+                  ),
+                ],
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+}
+
+class _EmptyNotifications extends StatelessWidget {
+  const _EmptyNotifications({required this.colorScheme});
+
+  final ColorScheme colorScheme;
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: Padding(
+        padding: EdgeInsets.symmetric(horizontal: 32.w),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              Icons.notifications_none_rounded,
+              size: 72.sp,
+              color: colorScheme.onSurfaceVariant.withValues(alpha: 0.45),
+            ),
+            SizedBox(height: 16.h),
+            Text(
+              'employee.notifications_empty_title'.tr(),
+              textAlign: TextAlign.center,
+              style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.w600,
+                    color: colorScheme.onSurface,
+                  ),
+            ),
+            SizedBox(height: 8.h),
+            Text(
+              'employee.notifications_empty_subtitle'.tr(),
+              textAlign: TextAlign.center,
+              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                    color: colorScheme.onSurfaceVariant,
+                    height: 1.4,
+                  ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+
+
+import 'package:easy_localization/easy_localization.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:smart_midecal_transport_app/presentation/employee/root/ui/cubit/notification_cubit.dart';
+import 'package:smart_midecal_transport_app/presentation/employee/root/ui/cubit/notification_state.dart';
+import 'package:smart_midecal_transport_app/presentation/employee/root/ui/models/notification_list_item.dart';
+
+class NotificationCard extends StatefulWidget {
+  const NotificationCard({
+    super.key,
+    required this.item,
+    required this.animateEntry,
+  });
+
+  final NotificationListItem item;
+  final bool animateEntry;
+
+  @override
+  State<NotificationCard> createState() => _NotificationCardState();
+}
+
+class _NotificationCardState extends State<NotificationCard>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _controller;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 340),
+    );
+    if (widget.animateEntry) {
+      _controller.forward().whenComplete(() {
+        if (mounted) {
+          context.read<NotificationCubit>().acknowledgeEntryAnimation(
+                widget.item.requestId,
+              );
+        }
+      });
+    } else {
+      _controller.value = 1;
+    }
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  String _relativeTime(DateTime at) {
+    final diff = DateTime.now().difference(at);
+    if (diff.inSeconds < 60) {
+      return 'employee.notifications_just_now'.tr();
+    }
+    if (diff.inMinutes < 60) {
+      return 'employee.notifications_minutes_ago'.tr(args: ['${diff.inMinutes}']);
+    }
+    if (diff.inHours < 24) {
+      return 'employee.notifications_hours_ago'.tr(args: ['${diff.inHours}']);
+    }
+    return 'employee.notifications_days_ago'.tr(args: ['${diff.inDays}']);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final scheme = theme.colorScheme;
+    final item = widget.item;
+
+    return FadeTransition(
+      opacity: CurvedAnimation(parent: _controller, curve: Curves.easeOutCubic),
+      child: SlideTransition(
+        position: Tween<Offset>(
+          begin: const Offset(0, 0.06),
+          end: Offset.zero,
+        ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeOutCubic)),
+        child: Material(
+          color: scheme.surfaceContainerHighest,
+          elevation: 0,
+          shadowColor: scheme.shadow.withValues(alpha: 0.12),
+          borderRadius: BorderRadius.circular(16.r),
+          child: DecoratedBox(
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(16.r),
+              border: Border.all(color: scheme.outlineVariant.withValues(alpha: 0.35)),
+              boxShadow: [
+                BoxShadow(
+                  color: scheme.shadow.withValues(alpha: 0.06),
+                  blurRadius: 12,
+                  offset: const Offset(0, 4),
+                ),
+              ],
+            ),
+            child: Padding(
+              padding: EdgeInsets.fromLTRB(16.w, 14.h, 16.w, 14.h),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              item.titleTrKey.tr(),
+                              style: theme.textTheme.titleSmall?.copyWith(
+                                fontWeight: FontWeight.w600,
+                                color: scheme.onSurface,
+                              ),
+                            ),
+                            SizedBox(height: 4.h),
+                            if (item.description.isNotEmpty)
+                              Text(
+                                item.description,
+                                style: theme.textTheme.bodyMedium?.copyWith(
+                                  color: scheme.onSurfaceVariant,
+                                  height: 1.35,
+                                ),
+                              ),
+                            if (item.roomLabel.isNotEmpty) ...[
+                              SizedBox(height: 6.h),
+                              Text(
+                                'employee.notifications_room'.tr(
+                                  args: [item.roomLabel],
+                                ),
+                                style: theme.textTheme.bodySmall?.copyWith(
+                                  color: scheme.primary,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                            ],
+                          ],
+                        ),
+                      ),
+                      Text(
+                        _relativeTime(item.firstSeenAt),
+                        style: theme.textTheme.labelSmall?.copyWith(
+                          color: scheme.onSurfaceVariant,
+                        ),
+                      ),
+                    ],
+                  ),
+                  SizedBox(height: 14.h),
+                  BlocSelector<NotificationCubit, NotificationState, bool>(
+                    selector: (s) => s.actionInFlightIds.contains(item.requestId),
+                    builder: (context, loading) {
+                      if (loading) {
+                        return Padding(
+                          padding: EdgeInsets.symmetric(vertical: 8.h),
+                          child: Center(
+                            child: SizedBox(
+                              width: 24.w,
+                              height: 24.h,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2.5,
+                                color: scheme.primary,
+                              ),
+                            ),
+                          ),
+                        );
+                      }
+                      return Row(
+                        children: [
+                          Expanded(
+                            child: FilledButton.tonal(
+                              onPressed: () => context
+                                  .read<NotificationCubit>()
+                                  .confirmDelivery(item.requestId),
+                              child: Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Icon(Icons.check_rounded, size: 18.sp),
+                                  SizedBox(width: 6.w),
+                                  Text('employee.notifications_accept'.tr()),
+                                ],
+                              ),
+                            ),
+                          ),
+                          SizedBox(width: 10.w),
+                          Expanded(
+                            child: OutlinedButton(
+                              onPressed: () => context
+                                  .read<NotificationCubit>()
+                                  .rejectDelivery(item.requestId),
+                              child: Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Icon(Icons.close_rounded, size: 18.sp),
+                                  SizedBox(width: 6.w),
+                                  Text('employee.notifications_reject'.tr()),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ],
+                      );
+                    },
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+
+
+
+
+
+import 'package:easy_localization/easy_localization.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:smart_midecal_transport_app/core/di/di.dart';
+import 'package:smart_midecal_transport_app/core/theme/color.dart';
+import 'package:smart_midecal_transport_app/presentation/employee/home/ui/home_tab.dart';
+import 'package:smart_midecal_transport_app/presentation/employee/my_requests/my_requests_tab_page.dart';
+import 'package:smart_midecal_transport_app/presentation/employee/requests/ui/employee_requests_tab_page.dart';
+import 'package:smart_midecal_transport_app/presentation/employee/root/ui/cubit/notification_cubit.dart';
+import 'package:smart_midecal_transport_app/presentation/employee/root/ui/cubit/notification_state.dart';
+import 'package:smart_midecal_transport_app/presentation/employee/root/ui/widgets/notification_bottom_sheet.dart';
+import 'package:smart_midecal_transport_app/presentation/storage/profile_tab/ui/profile_tab_page.dart';
+
+/// Employee root screen with 4-tab navigation:
+/// Home | Request Samples | My Requests | Profile
+class RootScreen extends StatefulWidget {
+  const RootScreen({super.key});
+
+  @override
+  RootScreenState createState() => RootScreenState();
+}
+
+class RootScreenState extends State<RootScreen> {
+  int _currentIndex = 0;
+
+  late final NotificationCubit _notificationCubit =
+      getIt<NotificationCubit>();
+
+  final List<String> _appbarTitles = [
+    'appbar.employee_dashboard',
+    'appbar.blood_sample_bags',
+    'my_requests.title',
+    'appbar.settings',
+  ];
+
+  @override
+  void initState() {
+    super.initState();
+    _notificationCubit.startPolling();
+  }
+
+  @override
+  void dispose() {
+    _notificationCubit.close();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final scheme = theme.colorScheme;
+
+    return BlocProvider.value(
+      value: _notificationCubit,
+      child: BlocListener<NotificationCubit, NotificationState>(
+        listenWhen: (prev, curr) =>
+            (curr.lastSuccessMessage != null &&
+                curr.lastSuccessMessage != prev.lastSuccessMessage) ||
+            (curr.lastErrorMessage != null &&
+                curr.lastErrorMessage != prev.lastErrorMessage),
+        listener: (context, state) {
+          final messenger = ScaffoldMessenger.of(context);
+          if (state.lastSuccessMessage != null) {
+            messenger.showSnackBar(
+              SnackBar(
+                content: Text(state.lastSuccessMessage!),
+                behavior: SnackBarBehavior.floating,
+              ),
+            );
+          } else if (state.lastErrorMessage != null) {
+            messenger.showSnackBar(
+              SnackBar(
+                content: Text(state.lastErrorMessage!),
+                behavior: SnackBarBehavior.floating,
+                backgroundColor: scheme.error,
+              ),
+            );
+          }
+          context.read<NotificationCubit>().clearMessages();
+        },
+        child: Scaffold(
+          appBar: AppBar(
+            scrolledUnderElevation: 2,
+            title: Text(
+              _appbarTitles[_currentIndex].tr(),
+              style: theme.textTheme.headlineMedium,
+            ),
+            centerTitle: false,
+            actions: [
+              BlocSelector<NotificationCubit, NotificationState, int>(
+                selector: (s) => s.items.length,
+                builder: (context, count) {
+                  return IconButton(
+                    tooltip: 'employee.notifications_title'.tr(),
+                    onPressed: () => NotificationBottomSheet.show(context),
+                    icon: Badge(
+                      isLabelVisible: count > 0,
+                      label: Text(
+                        count > 99 ? '99+' : '$count',
+                        style: TextStyle(
+                          fontSize: 11.sp,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                      backgroundColor: scheme.error,
+                      textColor: scheme.onError,
+                      child: Icon(
+                        Icons.notifications_outlined,
+                        size: 26.sp,
+                      ),
+                    ),
+                  );
+                },
+              ),
+              SizedBox(width: 4.w),
+            ],
+          ),
+          backgroundColor: theme.scaffoldBackgroundColor,
+          body: IndexedStack(
+            index: _currentIndex,
+            children: const [
+              EmployeeHomeTabPage(),
+              EmployeeRequestsTabPage(),
+              MyRequestsTabPage(),
+              ProfileTabPage(),
+            ],
+          ),
+          bottomNavigationBar: NavigationBar(
+            selectedIndex: _currentIndex,
+            onDestinationSelected: (index) {
+              if (_currentIndex != index) {
+                setState(() => _currentIndex = index);
+              }
+            },
+            backgroundColor: theme.cardColor,
+            surfaceTintColor: Colors.transparent,
+            indicatorColor: AppColors.primaryLight.withValues(alpha: 0.15),
+            height: 70.h,
+            labelBehavior: NavigationDestinationLabelBehavior.alwaysShow,
+            destinations: [
+              NavigationDestination(
+                icon: const Icon(Icons.dashboard_outlined),
+                selectedIcon: Icon(
+                  Icons.dashboard_rounded,
+                  color: AppColors.primaryLight,
+                ),
+                label: 'employee.nav_home'.tr(),
+              ),
+              NavigationDestination(
+                icon: const Icon(Icons.science_outlined),
+                selectedIcon: Icon(
+                  Icons.science_rounded,
+                  color: AppColors.primaryLight,
+                ),
+                label: 'employee.nav_requests'.tr(),
+              ),
+              NavigationDestination(
+                icon: const Icon(Icons.receipt_long_outlined),
+                selectedIcon: Icon(
+                  Icons.receipt_long_rounded,
+                  color: AppColors.primaryLight,
+                ),
+                label: 'my_requests.nav_label'.tr(),
+              ),
+              NavigationDestination(
+                icon: const Icon(Icons.person_outline_rounded),
+                selectedIcon: Icon(
+                  Icons.person_rounded,
+                  color: AppColors.primaryLight,
+                ),
+                label: 'employee.nav_profile'.tr(),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
