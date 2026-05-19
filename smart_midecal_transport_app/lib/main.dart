@@ -79,8 +79,15 @@ class MyApp extends StatelessWidget {
 
           // App navigation
           routes: Routes.routes,
-          initialRoute: RouteNames.register,
-          // initialRoute: SharedPrefService.instance.onBoardingViewed() ?? false ? RouteNames.root : RouteNames.onBoarding,
+          // initialRoute: RouteNames.register,
+          initialRoute: SharedPrefService.instance.getAccessToken() != null
+              ? SharedPrefService.instance.getRole() == 'DOCTOR'
+                  ? RouteNames.root
+                  : SharedPrefService.instance.getRole() == 'ADMIN'
+                  ? RouteNames.register : RouteNames.storageScreen
+              : SharedPrefService.instance.onBoardingViewed() ?? false
+              ? RouteNames.register
+              : RouteNames.onBoarding,
         );
       },
     );

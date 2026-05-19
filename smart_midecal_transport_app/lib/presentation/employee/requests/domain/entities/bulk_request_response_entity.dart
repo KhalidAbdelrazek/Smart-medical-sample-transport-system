@@ -67,10 +67,7 @@ class BulkSampleFailedEntity {
   final String? sampleCode;
   final List<String> error;
 
-  const BulkSampleFailedEntity({
-    this.sampleCode,
-    this.error = const [],
-  });
+  const BulkSampleFailedEntity({this.sampleCode, this.error = const []});
 
   /// Convenience getter — joins error messages into one readable string.
   String get errorMessage => error.join(', ');

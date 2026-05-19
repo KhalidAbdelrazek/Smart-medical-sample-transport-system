@@ -23,12 +23,14 @@ class LoginEmployeeResponseEntity {
   String? refresh;
   String? access;
   UserEntity? user;
+  dynamic errors;
   LoginEmployeeResponseEntity({
     this.success,
     this.message,
     this.refresh,
     this.access,
     this.user,
+    this.errors,
   });
 
   // from json to object

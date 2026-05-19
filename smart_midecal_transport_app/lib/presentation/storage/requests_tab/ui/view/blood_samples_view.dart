@@ -69,13 +69,18 @@ class BloodSamplesView extends StatelessWidget {
 
   Widget _buildContent(BuildContext context, BloodSamplesState state) {
     // ── Loading ─────────────────────────────────────────────────────────────
+    // Inside your _buildContent method, wrap temporary/skeletal states like this:
+
     if (state is BloodSamplesLoading || state is BloodSamplesInitial) {
-      return IgnorePointer(
+      return ExcludeSemantics(
+        // <--- Hide loading artifacts from the accessibility tree
         key: const ValueKey('loading'),
-        child: ListView.builder(
-          padding: EdgeInsets.all(16.w),
-          itemCount: 4,
-          itemBuilder: (_, __) => const LoadingSkeletonCard(),
+        child: IgnorePointer(
+          child: ListView.builder(
+            padding: EdgeInsets.all(16.w),
+            itemCount: 4,
+            itemBuilder: (_, __) => const LoadingSkeletonCard(),
+          ),
         ),
       );
     }
@@ -107,6 +112,8 @@ class BloodSamplesView extends StatelessWidget {
     }
 
     final cubit = context.read<BloodSamplesCubit>();
+
+    // Partition requests into sections
     final pendingRequests = requests
         .where(
           (r) =>
@@ -114,18 +121,65 @@ class BloodSamplesView extends StatelessWidget {
               r.status?.toUpperCase() == 'REQUESTED',
         )
         .toList();
+
+    final loadedRequests = requests
+        .where(
+          (r) =>
+              r.status?.toUpperCase() == 'LOADED' ||
+              r.status?.toUpperCase() == 'LOADED_FOR_RETURN',
+        )
+        .toList();
+
     final otherRequests = requests
         .where(
           (r) =>
               r.status?.toUpperCase() != 'PENDING' &&
-              r.status?.toUpperCase() != 'REQUESTED',
+              r.status?.toUpperCase() != 'REQUESTED' &&
+              r.status?.toUpperCase() != 'LOADED' &&
+              r.status?.toUpperCase() != 'LOADED_FOR_RETURN',
         )
         .toList();
+
+    final isDispatchLoading = actionLoadingId == 'dispatch';
 
     return ListView(
       key: const ValueKey('loaded'),
       padding: EdgeInsets.fromLTRB(16.w, 8.h, 16.w, 24.h),
       children: [
+        // ── Dispatch Car Button (shown when ≥1 sample is loaded) ────────────
+        if (loadedRequests.isNotEmpty) ...[
+          _DispatchCarButton(
+            isLoading: isDispatchLoading,
+            loadedCount: loadedRequests.length,
+            onDispatch: isDispatchLoading ? null : () => cubit.dispatchCar(),
+          ),
+          SizedBox(height: 16.h),
+        ],
+
+        // ── Loaded Section ──────────────────────────────────────────────────
+        if (loadedRequests.isNotEmpty) ...[
+          SectionHeader(
+            title: 'requests.loaded_in_car'.tr(),
+            count: loadedRequests.length,
+            icon: Icons.inventory_2_rounded,
+            color: AppColors.primaryLight,
+          ),
+          ...loadedRequests.asMap().entries.map((entry) {
+            final req = entry.value;
+            final isLoading = actionLoadingId == req.id;
+            return BloodSampleCard(
+              request: req,
+              isActionLoading: isLoading,
+              index: entry.key,
+              onAddToCar: null,
+              onRemoveFromCar: isLoading
+                  ? null
+                  : () => cubit.removeFromCar(req.id ?? ''),
+            );
+          }),
+          SizedBox(height: 8.h),
+        ],
+
         // ── Pending Section ─────────────────────────────────────────────────
         if (pendingRequests.isNotEmpty) ...[
           SectionHeader(
@@ -140,13 +194,14 @@ class BloodSamplesView extends StatelessWidget {
             return BloodSampleCard(
               request: req,
               isActionLoading: isLoading,
-              index: entry.key,
+              index: loadedRequests.length + entry.key,
               onAddToCar: isLoading
                   ? null
                   : () => cubit.addToCar(
                       req.id ?? '',
                       req.sample?.sampleCode ?? '',
                     ),
+              onRemoveFromCar: null,
             );
           }),
           SizedBox(height: 8.h),
@@ -165,13 +220,129 @@ class BloodSamplesView extends StatelessWidget {
             return BloodSampleCard(
               request: req,
               isActionLoading: false,
-              index: pendingRequests.length + entry.key,
-              // No action button for non-pending requests
+              index: loadedRequests.length + pendingRequests.length + entry.key,
               onAddToCar: null,
+              onRemoveFromCar: null,
             );
           }),
         ],
       ],
+    );
+  }
+}
+
+// ── Dispatch Car Button ──────────────────────────────────────────────────────
+
+class _DispatchCarButton extends StatelessWidget {
+  final bool isLoading;
+  final int loadedCount;
+  final VoidCallback? onDispatch;
+
+  const _DispatchCarButton({
+    required this.isLoading,
+    required this.loadedCount,
+    this.onDispatch,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
+    return AnimatedContainer(
+      duration: const Duration(milliseconds: 250),
+      decoration: BoxDecoration(
+        gradient: isLoading
+            ? null
+            : LinearGradient(
+                colors: [
+                  AppColors.primaryLight,
+                  AppColors.primaryLight.withValues(alpha: 0.75),
+                ],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
+        color: isLoading ? AppColors.primaryLight.withValues(alpha: 0.5) : null,
+        borderRadius: BorderRadius.circular(16.r),
+        boxShadow: isLoading
+            ? []
+            : [
+                BoxShadow(
+                  color: AppColors.primaryLight.withValues(alpha: 0.35),
+                  blurRadius: 16,
+                  offset: const Offset(0, 6),
+                ),
+              ],
+      ),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: onDispatch,
+          borderRadius: BorderRadius.circular(16.r),
+          child: Padding(
+            padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 16.h),
+            child: Row(
+              children: [
+                // Icon or spinner
+                Container(
+                  width: 44.w,
+                  height: 44.h,
+                  decoration: BoxDecoration(
+                    color: Colors.white.withValues(alpha: 0.2),
+                    borderRadius: BorderRadius.circular(12.r),
+                  ),
+                  child: isLoading
+                      ? Padding(
+                          padding: EdgeInsets.all(10.w),
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2.5,
+                            color: Colors.white,
+                          ),
+                        )
+                      : Icon(
+                          Icons.local_shipping_rounded,
+                          color: Colors.white,
+                          size: 24.sp,
+                        ),
+                ),
+                SizedBox(width: 16.w),
+
+                // Labels
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        isLoading
+                            ? 'requests.dispatching'.tr()
+                            : 'requests.dispatch_car'.tr(),
+                        style: theme.textTheme.titleMedium?.copyWith(
+                          color: Colors.white,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                      SizedBox(height: 2.h),
+                      Text(
+                        '$loadedCount ${'requests.samples_ready'.tr()}',
+                        style: theme.textTheme.bodySmall?.copyWith(
+                          color: Colors.white.withValues(alpha: 0.85),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+
+                // Arrow
+                if (!isLoading)
+                  Icon(
+                    Icons.arrow_forward_ios_rounded,
+                    color: Colors.white.withValues(alpha: 0.8),
+                    size: 16.sp,
+                  ),
+              ],
+            ),
+          ),
+        ),
+      ),
     );
   }
 }

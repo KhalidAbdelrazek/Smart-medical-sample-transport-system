@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:injectable/injectable.dart';
 import 'package:smart_midecal_transport_app/presentation/storage/requests_tab/domain/models/get_requests_response_entity.dart';
@@ -52,7 +53,7 @@ class BloodSamplesCubit extends Cubit<BloodSamplesState> {
       (response) {
         // Re-fetch to get the updated status from the server
         _refreshAfterAction(
-          response.message ?? 'Sample added to car successfully',
+          'employee.sample_added_to_car'.tr(),
         );
       },
     );
@@ -76,7 +77,33 @@ class BloodSamplesCubit extends Cubit<BloodSamplesState> {
         ),
       ),
       (response) {
-        _refreshAfterAction(response.message ?? 'Car dispatched successfully');
+        _refreshAfterAction(
+          response.message ?? 'status.car_dispatched_successfully'.tr(),
+        );
+      },
+    );
+  }
+
+  /// Remove a loaded sample from the car via the API.
+  Future<void> removeFromCar(String requestId) async {
+    // Show per-card loading spinner
+    emit(
+      BloodSamplesLoaded(
+        requests: List.unmodifiable(_requests),
+        actionLoadingId: requestId,
+      ),
+    );
+
+    final result = await _repository.removeFromCar(requestId);
+    result.fold(
+      (failure) => emit(
+        BloodSamplesActionError(
+          message: failure.errorMessage,
+          requests: List.unmodifiable(_requests),
+        ),
+      ),
+      (response) {
+        _refreshAfterAction('employee.sample_removed_from_car'.tr());
       },
     );
   }
