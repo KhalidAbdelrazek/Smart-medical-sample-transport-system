@@ -1,4 +1,3 @@
-
 import 'package:smart_midecal_transport_app/presentation/employee/my_requests/domain/entities/tranport_req_entities.dart';
 
 /// Data model that extends [TransportMyRequestEntity] and handles JSON deserialization.

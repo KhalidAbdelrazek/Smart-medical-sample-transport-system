@@ -78,12 +78,26 @@ class _EmployeeLoginScreenState extends State<EmployeeLoginScreen>
             } else {
               DialogUtils.showMessage(
                 context: context,
-                message: "Something went wrong, Please try again later",
+                title: "sign_in.login_failed".tr(),
+                message: "sign_in.something_went_wrong".tr(),
+                posActionName: "sign_in.ok".tr(),
+                posAction: () {
+                  Navigator.pop(context);
+                },
               );
             }
           } else if (state is EmployeeLoginError) {
             DialogUtils.hideLoading(context);
-            DialogUtils.showMessage(context: context, message: state.message);
+            DialogUtils.showMessage(
+              context: context,
+              title: "sign_in.login_failed".tr(),
+              message: state.message == 'Invalid email or password.'
+                  ? "errors.invalid_credential".tr()
+                  : state.message == 'Network error'
+                  ? "errors.network_error".tr()
+                  : "errors.unknown_error".tr(),
+              posActionName: "sign_in.ok".tr(),
+            );
           }
         },
         child: Scaffold(
@@ -141,8 +155,8 @@ class _EmployeeLoginScreenState extends State<EmployeeLoginScreen>
                       Text(
                         "sign_in.subtitle".tr(),
                         style: theme.textTheme.bodyMedium?.copyWith(
-                          color: theme.textTheme.bodyMedium?.color?.withOpacity(
-                            0.7,
+                          color: theme.textTheme.bodyMedium?.color?.withValues(
+                            alpha: 0.7,
                           ),
                         ),
                         textAlign: TextAlign.center,
@@ -160,7 +174,7 @@ class _EmployeeLoginScreenState extends State<EmployeeLoginScreen>
                           borderRadius: BorderRadius.circular(24.r),
                           boxShadow: [
                             BoxShadow(
-                              color: theme.shadowColor.withOpacity(0.08),
+                              color: theme.shadowColor.withValues(alpha: 0.08),
                               blurRadius: 24,
                               offset: const Offset(0, 8),
                             ),
@@ -180,7 +194,7 @@ class _EmployeeLoginScreenState extends State<EmployeeLoginScreen>
                           context,
                           RouteNames.adminLogin,
                         ),
-                        child: const Text("Switch to Admin Login"),
+                        child: Text("sign_in.switch_to_admin_login".tr()),
                       ),
                     ],
                   ),

@@ -27,4 +27,9 @@ class RequestsRepositoryImpl implements RequestsRepository {
   Future<Either<Failures, DispatchCarResponseEntity>> dispatchCar() {
     return requestsDataSource.dispatchCar();
   }
+
+  @override
+  Future<Either<Failures, void>> removeFromCar(String requestId) {
+    return requestsDataSource.removeFromCar(requestId);
+  }
 }

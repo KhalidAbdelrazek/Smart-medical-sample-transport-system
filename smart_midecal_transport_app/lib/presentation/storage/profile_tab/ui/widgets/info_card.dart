@@ -48,7 +48,7 @@ class InfoCard extends StatelessWidget {
     final theme = Theme.of(context);
 
     return Padding(
-      padding: EdgeInsets.only(bottom: 10.h),
+      padding: EdgeInsetsDirectional.only(bottom: 10.h),
       child: Row(
         children: [
           Container(

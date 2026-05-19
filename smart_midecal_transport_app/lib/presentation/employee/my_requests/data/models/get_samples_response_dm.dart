@@ -1,4 +1,3 @@
-
 import 'package:smart_midecal_transport_app/presentation/employee/my_requests/domain/entities/samples_response_entity.dart';
 
 class GetSamplesMyResponseDm extends SamplesMyResponseEntity {

@@ -42,7 +42,7 @@ class _LoadingSkeletonCardState extends State<LoadingSkeletonCard>
       animation: _animation,
       builder: (context, child) {
         return Container(
-          margin: EdgeInsets.only(bottom: 12.h),
+          margin: EdgeInsetsDirectional.only(bottom: 12.h),
           padding: EdgeInsets.all(16.w),
           decoration: BoxDecoration(
             color: theme.cardColor,

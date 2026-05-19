@@ -1,4 +1,5 @@
-﻿import 'package:flutter/material.dart';
+import 'package:easy_localization/easy_localization.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:smart_midecal_transport_app/core/theme/color.dart';
 
@@ -67,7 +68,7 @@ class FloatingSelectionBar extends StatelessWidget {
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     Text(
-                      '${selectedCodes.length} sample${selectedCodes.length > 1 ? 's' : ''} selected',
+                      '${selectedCodes.length} ${selectedCodes.length == 1 ? 'status.sample_selected'.tr() : 'status.samples_selected'.tr()}',
                       style: TextStyle(
                         color: Colors.white,
                         fontWeight: FontWeight.bold,
@@ -75,7 +76,7 @@ class FloatingSelectionBar extends StatelessWidget {
                       ),
                     ),
                     Text(
-                      'Tap "Request" to submit',
+                      'extra.tap_request'.tr(),
                       style: TextStyle(
                         color: Colors.white.withValues(alpha: 0.7),
                         fontSize: 11.sp,
@@ -92,7 +93,9 @@ class FloatingSelectionBar extends StatelessWidget {
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.white,
                     foregroundColor: AppColors.buttonColor,
-                    disabledBackgroundColor: Colors.white.withValues(alpha: 0.5),
+                    disabledBackgroundColor: Colors.white.withValues(
+                      alpha: 0.5,
+                    ),
                     elevation: 0,
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(12.r),
@@ -109,7 +112,7 @@ class FloatingSelectionBar extends StatelessWidget {
                           ),
                         )
                       : Text(
-                          'Request',
+                          'extra.request'.tr(),
                           style: TextStyle(
                             fontWeight: FontWeight.bold,
                             fontSize: 14.sp,
@@ -124,4 +127,3 @@ class FloatingSelectionBar extends StatelessWidget {
     );
   }
 }
-
