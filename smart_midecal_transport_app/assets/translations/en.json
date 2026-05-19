@@ -400,5 +400,23 @@
     "try_again": "Try Again",
     "unexpected_server_error": "Unexpected server error",
     "session_expired_long": "Your session has expired. Please log in again to continue."
+  },
+  "statistics": {
+    "filter_week": "Week",
+    "filter_month": "Month",
+    "filter_year": "Year",
+    "filter_all_time": "All Time",
+    "error_session_expired": "Session Expired",
+    "error_no_connection": "No Connection",
+    "error_something_wrong": "Something went wrong",
+    "segment_successful": "Successful",
+    "segment_failed": "Failed",
+    "segment_cancelled": "Cancelled",
+    "segment_pending": "Pending",
+    "segment_car_dispatch": "Car Dispatch",
+    "segment_sample_added": "Sample Added",
+    "segment_sample_removed": "Sample Removed",
+    "segment_transport_updates": "Transport Updates",
+    "segment_other": "Other"
   }
 }

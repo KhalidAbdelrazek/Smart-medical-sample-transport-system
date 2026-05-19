@@ -400,5 +400,23 @@
     "try_again": "حاول مرة أخرى",
     "unexpected_server_error": "خطأ غير متوقع في الخادم",
     "session_expired_long": "انتهت صلاحية جلستك. يرجى تسجيل الدخول مرة أخرى للمتابعة."
+  },
+  "statistics": {
+    "filter_week": "أسبوع",
+    "filter_month": "شهر",
+    "filter_year": "سنة",
+    "filter_all_time": "كل الوقت",
+    "error_session_expired": "انتهت الجلسة",
+    "error_no_connection": "لا يوجد اتصال",
+    "error_something_wrong": "حدث خطأ ما",
+    "segment_successful": "ناجح",
+    "segment_failed": "فاشل",
+    "segment_cancelled": "ملغى",
+    "segment_pending": "قيد الانتظار",
+    "segment_car_dispatch": "إرسال السيارة",
+    "segment_sample_added": "تمت إضافة العينة",
+    "segment_sample_removed": "تمت إزالة العينة",
+    "segment_transport_updates": "تحديثات النقل",
+    "segment_other": "أخرى"
   }
 }

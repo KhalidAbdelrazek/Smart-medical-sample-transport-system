@@ -6,12 +6,13 @@ import 'package:smart_midecal_transport_app/presentation/employer/statistics_tab
 import 'package:smart_midecal_transport_app/presentation/employer/statistics_tab/domain/repos/admin_stats_repository.dart';
 import 'statistics_state.dart';
 
-/// Filter options mapping (key → display label)
-const Map<String, String> filterLabels = {
-  'week': 'Week',
-  'month': 'Month',
-  'year': 'Year',
-  'all_time': 'All Time',
+/// Filter options mapping (key → translation key)
+/// The values are translation keys resolved at build time via .tr()
+const Map<String, String> filterLabelKeys = {
+  'week': 'statistics.filter_week',
+  'month': 'statistics.filter_month',
+  'year': 'statistics.filter_year',
+  'all_time': 'statistics.filter_all_time',
 };
 
 /// StatisticsCubit — ViewModel for the Admin Statistics Dashboard
@@ -115,10 +116,10 @@ class StatisticsCubit extends Cubit<StatisticsState> {
     if (total == 0) return [];
 
     final items = [
-      ('Successful', d.successful ?? 0),
-      ('Failed', d.failed ?? 0),
-      ('Cancelled', d.cancelled ?? 0),
-      ('Pending', d.pending ?? 0),
+      ('statistics.segment_successful'.tr(), d.successful ?? 0),
+      ('statistics.segment_failed'.tr(), d.failed ?? 0),
+      ('statistics.segment_cancelled'.tr(), d.cancelled ?? 0),
+      ('statistics.segment_pending'.tr(), d.pending ?? 0),
     ];
 
     return items
@@ -138,11 +139,11 @@ class StatisticsCubit extends Cubit<StatisticsState> {
     if (total == 0) return [];
 
     final items = [
-      ('Car Dispatch', s.carDispatch ?? 0),
-      ('Sample Added', s.sampleAddedToCar ?? 0),
-      ('Sample Removed', s.sampleRemovedFromCar ?? 0),
-      ('Transport Updates', s.transportRequestUpdate ?? 0),
-      ('Other', s.other ?? 0),
+      ('statistics.segment_car_dispatch'.tr(), s.carDispatch ?? 0),
+      ('statistics.segment_sample_added'.tr(), s.sampleAddedToCar ?? 0),
+      ('statistics.segment_sample_removed'.tr(), s.sampleRemovedFromCar ?? 0),
+      ('statistics.segment_transport_updates'.tr(), s.transportRequestUpdate ?? 0),
+      ('statistics.segment_other'.tr(), s.other ?? 0),
     ];
 
     return items
