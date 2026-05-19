@@ -27,26 +27,20 @@ class BulkRequestResponseDm extends BulkRequestResponseEntity {
 // -------------------------------------------------------
 
 class BulkRequestDataDm extends BulkRequestDataEntity {
-  const BulkRequestDataDm({
-    super.successful,
-    super.failed,
-    super.summary,
-  });
+  const BulkRequestDataDm({super.successful, super.failed, super.summary});
 
   factory BulkRequestDataDm.fromJson(Map<String, dynamic> json) {
     List<BulkSampleSuccessEntity> successList = [];
     if (json['successful'] != null) {
       successList = (json['successful'] as List<dynamic>)
-          .map((e) =>
-              BulkSampleSuccessDm.fromJson(e as Map<String, dynamic>))
+          .map((e) => BulkSampleSuccessDm.fromJson(e as Map<String, dynamic>))
           .toList();
     }
 
     List<BulkSampleFailedEntity> failedList = [];
     if (json['failed'] != null) {
       failedList = (json['failed'] as List<dynamic>)
-          .map((e) =>
-              BulkSampleFailedDm.fromJson(e as Map<String, dynamic>))
+          .map((e) => BulkSampleFailedDm.fromJson(e as Map<String, dynamic>))
           .toList();
     }
 
@@ -95,11 +89,7 @@ class BulkSampleFailedDm extends BulkSampleFailedEntity {
 // -------------------------------------------------------
 
 class BulkSummaryDm extends BulkSummaryEntity {
-  const BulkSummaryDm({
-    super.total,
-    super.successful,
-    super.failed,
-  });
+  const BulkSummaryDm({super.total, super.successful, super.failed});
 
   factory BulkSummaryDm.fromJson(Map<String, dynamic> json) {
     return BulkSummaryDm(

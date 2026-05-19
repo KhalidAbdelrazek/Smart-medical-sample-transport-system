@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:provider/provider.dart';
@@ -80,7 +79,11 @@ class SettingsSection extends StatelessWidget {
               icon: Icons.logout_rounded,
               iconColor: AppColors.error,
               label: 'profile.logout'.tr(),
-              trailing: Icon(Icons.arrow_forward_ios_rounded, size: 16.sp, color: AppColors.labelColor),
+              trailing: Icon(
+                Icons.arrow_forward_ios_rounded,
+                size: 16.sp,
+                color: AppColors.labelColor,
+              ),
             ),
           ),
         ],

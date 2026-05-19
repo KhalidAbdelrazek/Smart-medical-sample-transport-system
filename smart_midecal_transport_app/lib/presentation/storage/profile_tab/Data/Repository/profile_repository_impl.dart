@@ -9,7 +9,7 @@ import 'package:smart_midecal_transport_app/presentation/storage/profile_tab/Dom
 class ProfileRepositoryImpl extends ProfileRepository {
   ProfileDataSource profileDataSource;
   ProfileRepositoryImpl({required this.profileDataSource});
-  
+
   @override
   Future<Either<Failures, GetProfileEntity>> getProfile() {
     return profileDataSource.getProfile();

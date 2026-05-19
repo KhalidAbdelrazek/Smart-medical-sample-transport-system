@@ -41,19 +41,21 @@ class AdminLoginViewModel extends Cubit<AdminLoginState> {
       ),
     );
 
-    result.fold((failure) => emit(AdminLoginError(failure.errorMessage)), (
-      response,
-    ) async {
-      if (response.data?.access != null && response.data?.refresh != null) {
-        await SharedPrefService.instance.saveTokens(
-          response.data!.access!,
-          response.data!.refresh!,
-        );
-        emit(AdminLoginSuccess());
-      } else {
-        emit(AdminLoginError(response.message ?? "Login failed"));
-      }
-    });
+    result.fold(
+      (failure) => emit(AdminLoginError(message: failure.errorMessage)),
+      (response) async {
+        if (response.data?.access != null && response.data?.refresh != null) {
+          await SharedPrefService.instance.saveTokens(
+            response.data!.access!,
+            response.data!.refresh!,
+          );
+          await SharedPrefService.instance.saveRole("ADMIN");
+          emit(AdminLoginSuccess());
+        } else {
+          emit(AdminLoginError(message: response.message));
+        }
+      },
+    );
   }
 
   void _emitParamsChanged() {

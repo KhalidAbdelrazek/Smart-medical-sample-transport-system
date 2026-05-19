@@ -7,6 +7,7 @@ class LoginEmployeeResponseDm extends LoginEmployeeResponseEntity {
     super.refresh,
     super.access,
     super.user,
+    super.errors,
   });
 
   // from json to object
@@ -19,6 +20,7 @@ class LoginEmployeeResponseDm extends LoginEmployeeResponseEntity {
       user: (json['data'] != null && json['data']['user'] != null)
           ? UserEntity.fromJson(json['data']['user'])
           : null,
+      errors: json['errors']?['detail'],
     );
   }
 }

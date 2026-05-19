@@ -31,3 +31,55 @@ class ProfileSerializer(serializers.ModelSerializer):
         model = User
         fields = ['id', 'name', 'email', 'role', 'department', 'shift', 'employee_id']
         read_only_fields = ['id', 'role', 'employee_id']
+
+
+class UserListSerializer(serializers.ModelSerializer):
+    """
+    Serializer for listing users in admin users endpoint.
+    Displays essential user info for admin dashboard.
+    """
+    class Meta:
+        model = User
+        fields = ['id', 'full_name', 'email', 'role', 'department', 'employee_id']
+        read_only_fields = fields
+
+
+class UserListPaginationSerializer(serializers.Serializer):
+    """Pagination metadata for user list."""
+    page = serializers.IntegerField(help_text="Current page number")
+    page_size = serializers.IntegerField(help_text="Items per page")
+    total_count = serializers.IntegerField(help_text="Total number of users")
+
+
+class AdminUsersListResponseSerializer(serializers.Serializer):
+    """Response serializer for admin users list endpoint."""
+    users = UserListSerializer(many=True, help_text="List of users")
+    pagination = UserListPaginationSerializer(help_text="Pagination metadata")
+
+
+class AdminUsersListFilterSerializer(serializers.Serializer):
+    """Filter parameters for admin users list endpoint."""
+    role = serializers.ChoiceField(
+        choices=['DOCTOR', 'STORAGE_EMPLOYEE', 'ADMIN'],
+        required=False,
+        allow_null=True,
+        help_text="Filter by user role"
+    )
+    search = serializers.CharField(
+        required=False,
+        allow_blank=True,
+        help_text="Search by user name or email (case-insensitive)"
+    )
+    page = serializers.IntegerField(
+        required=False,
+        default=1,
+        min_value=1,
+        help_text="Page number for pagination"
+    )
+    page_size = serializers.IntegerField(
+        required=False,
+        default=20,
+        min_value=1,
+        max_value=100,
+        help_text="Number of users per page"
+    )

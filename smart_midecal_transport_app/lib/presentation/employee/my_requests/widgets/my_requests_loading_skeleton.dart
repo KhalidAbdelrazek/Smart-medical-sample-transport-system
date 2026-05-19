@@ -23,9 +23,10 @@ class _MyRequestsLoadingSkeletonState extends State<MyRequestsLoadingSkeleton>
       vsync: this,
       duration: const Duration(milliseconds: 1100),
     )..repeat(reverse: true);
-    _animation = Tween<double>(begin: 0.4, end: 0.9).animate(
-      CurvedAnimation(parent: _controller, curve: Curves.easeInOut),
-    );
+    _animation = Tween<double>(
+      begin: 0.4,
+      end: 0.9,
+    ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeInOut));
   }
 
   @override
@@ -98,7 +99,12 @@ class _SkeletonCard extends StatelessWidget {
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         _box(width: 90.w, height: 14.h, color: shimmer),
-                        _box(width: 70.w, height: 22.h, color: shimmer, radius: 20.r),
+                        _box(
+                          width: 70.w,
+                          height: 22.h,
+                          color: shimmer,
+                          radius: 20.r,
+                        ),
                       ],
                     ),
                     SizedBox(height: 10.h),
@@ -106,7 +112,12 @@ class _SkeletonCard extends StatelessWidget {
                     SizedBox(height: 14.h),
                     Row(
                       children: [
-                        _box(width: 38.w, height: 22.h, color: shimmer, radius: 8.r),
+                        _box(
+                          width: 38.w,
+                          height: 22.h,
+                          color: shimmer,
+                          radius: 8.r,
+                        ),
                         SizedBox(width: 8.w),
                         _box(width: 70.w, height: 12.h, color: shimmer),
                         SizedBox(width: 8.w),
