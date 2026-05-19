@@ -36,9 +36,6 @@ class _MyRequestsTabPageState extends State<MyRequestsTabPage>
   @override
   Widget build(BuildContext context) {
     super.build(context); // required by AutomaticKeepAliveClientMixin
-    return BlocProvider.value(
-      value: _cubit,
-      child: const MyRequestsView(),
-    );
+    return BlocProvider.value(value: _cubit, child: const MyRequestsView());
   }
 }

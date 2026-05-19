@@ -1,4 +1,5 @@
-﻿import 'package:flutter/material.dart';
+import 'package:easy_localization/easy_localization.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:smart_midecal_transport_app/core/theme/color.dart';
 
@@ -17,9 +18,9 @@ class RoomSelectorCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Ideally this list comes from the View Model or an API, 
+    // Ideally this list comes from the View Model or an API,
     // but we extract it cleanly for now.
-    final rooms = ['Room A', 'Room B', 'Room C'];
+    final rooms = ['1', '2', '3'];
 
     return Container(
       decoration: BoxDecoration(
@@ -47,7 +48,7 @@ class RoomSelectorCard extends StatelessWidget {
                 ),
                 SizedBox(width: 8.w),
                 Text(
-                  'Select Delivery Room',
+                  'extra.select_delivery_room'.tr(),
                   style: theme.textTheme.titleSmall?.copyWith(
                     fontWeight: FontWeight.bold,
                   ),
@@ -60,8 +61,8 @@ class RoomSelectorCard extends StatelessWidget {
                 final isSelected = selectedRoom == room;
                 return Expanded(
                   child: Padding(
-                    padding: EdgeInsets.only(
-                      right: room != rooms.last ? 10.w : 0,
+                    padding: EdgeInsetsDirectional.only(
+                      end: room != rooms.last ? 10.w : 0,
                     ),
                     child: InkWell(
                       onTap: () => onRoomSelected(room),
@@ -104,4 +105,3 @@ class RoomSelectorCard extends StatelessWidget {
     );
   }
 }
-

@@ -1,4 +1,4 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:smart_midecal_transport_app/core/theme/color.dart';
 import 'package:smart_midecal_transport_app/presentation/employee/requests/domain/entities/samples_response_entity.dart';
@@ -86,8 +86,9 @@ class SearchResultsOverlay extends StatelessWidget {
                       // Avatar
                       CircleAvatar(
                         radius: 20.r,
-                        backgroundColor:
-                            AppColors.buttonColor.withValues(alpha: 0.1),
+                        backgroundColor: AppColors.buttonColor.withValues(
+                          alpha: 0.1,
+                        ),
                         child: Icon(
                           Icons.person,
                           color: AppColors.buttonColor,
@@ -129,4 +130,3 @@ class SearchResultsOverlay extends StatelessWidget {
     );
   }
 }
-

@@ -38,4 +38,13 @@ class SharedPrefService {
     await _prefs.remove(_accessTokenKey);
     await _prefs.remove(_refreshTokenKey);
   }
+
+  String? getRole() => _prefs.getString('role');
+  Future<void> saveRole(String role) async {
+    await _prefs.setString('role', role);
+  }
+
+  Future<void> clearRole() async {
+    await _prefs.remove('role');
+  }
 }

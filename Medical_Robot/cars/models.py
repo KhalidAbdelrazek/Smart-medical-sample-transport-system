@@ -20,7 +20,16 @@ class Car(models.Model):
 
     car_number = models.CharField(max_length=50, unique=True, help_text="Unique car identifier, e.g. CAR-01")
     status = models.CharField(max_length=15, choices=STATUS_CHOICES, default='IDLE')
+    capacity = models.PositiveIntegerField(
+        default=10,
+        help_text="Maximum number of samples this car can carry (used for return batch picking)"
+    )
     created_at = models.DateTimeField(auto_now_add=True)
+    arrived_at_storage = models.DateTimeField(
+        null=True,
+        blank=True,
+        help_text="Timestamp when car arrived back at storage"
+    )
 
     class Meta:
         verbose_name = 'Car'

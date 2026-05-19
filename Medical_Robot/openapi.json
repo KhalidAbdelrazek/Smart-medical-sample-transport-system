@@ -254,6 +254,85 @@ paths:
                 items:
                   $ref: '#/components/schemas/TransportRequest'
           description: ''
+  /api/transport/my-requests/:
+    get:
+      operationId: api_transport_my_requests_list
+      description: Returns all sample transport requests created by the authenticated doctor.
+      summary: List My Requests
+      tags:
+      - Transport
+      security:
+      - jwtAuth: []
+      - tokenAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  message:
+                    type: string
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/TransportRequest'
+          description: ''
+  /api/transport/requests/{request_id}/cancel/:
+    delete:
+      operationId: api_transport_requests_cancel_delete
+      description: Allows a doctor to cancel a transport request they made, provided it is still PENDING.
+      summary: Cancel Transport Request
+      parameters:
+      - in: path
+        name: request_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - Transport
+      security:
+      - jwtAuth: []
+      - tokenAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  message:
+                    type: string
+                  data:
+                    nullable: true
+          description: ''
+        '403':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  message:
+                    type: string
+          description: ''
+        '404':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  message:
+                    type: string
+          description: ''
   /auth/token/:
     post:
       operationId: auth_token_create

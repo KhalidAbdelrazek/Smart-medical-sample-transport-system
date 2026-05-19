@@ -54,7 +54,7 @@ class _ProfileTabPageState extends State<ProfileTabPage>
             Navigator.pushNamedAndRemoveUntil(
               context,
               RouteNames.register,
-              (route) => false,
+              (routes) => false,
             );
           }
         },
@@ -144,31 +144,31 @@ class _ProfileTabPageState extends State<ProfileTabPage>
           ),
           SizedBox(height: 16.h),
 
-          // Today's Stats Card
-          InfoCard(
-            title: 'profile.today_stats'.tr(),
-            items: [
-              InfoItem(
-                icon: Icons.bloodtype_rounded,
-                color: AppColors.error,
-                label: 'profile.bags_processed'.tr(),
-                value: '0',
-              ),
-              InfoItem(
-                icon: Icons.science_rounded,
-                color: AppColors.info,
-                label: 'profile.samples_processed'.tr(),
-                value: '0',
-              ),
-              InfoItem(
-                icon: Icons.local_shipping_rounded,
-                color: AppColors.success,
-                label: 'profile.cars_dispatched'.tr(),
-                value: '0',
-              ),
-            ],
-          ),
-          SizedBox(height: 16.h),
+          // // Today's Stats Card
+          // InfoCard(
+          //   title: 'profile.today_stats'.tr(),
+          //   items: [
+          //     InfoItem(
+          //       icon: Icons.bloodtype_rounded,
+          //       color: AppColors.error,
+          //       label: 'profile.bags_processed'.tr(),
+          //       value: '0',
+          //     ),
+          //     InfoItem(
+          //       icon: Icons.science_rounded,
+          //       color: AppColors.info,
+          //       label: 'profile.samples_processed'.tr(),
+          //       value: '0',
+          //     ),
+          //     InfoItem(
+          //       icon: Icons.local_shipping_rounded,
+          //       color: AppColors.success,
+          //       label: 'profile.cars_dispatched'.tr(),
+          //       value: '0',
+          //     ),
+          //   ],
+          // ),
+          // SizedBox(height: 16.h),
 
           // Settings Section
           const SettingsSection(),

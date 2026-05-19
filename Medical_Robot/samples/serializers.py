@@ -36,16 +36,6 @@ class SamplePreviewSerializer(serializers.ModelSerializer):
         ]
 
 
-class SampleRequestSerializer(serializers.Serializer):
-    """
-    Used by Doctors when requesting a sample.
-    The doctor sends: sample_code and room_number.
-    """
-
-    sample_code = serializers.CharField()
-    room_number = serializers.CharField(max_length=50)
-
-
 class BulkSampleRequestSerializer(serializers.Serializer):
     """Serialize bulk sample requests with single room number"""
 

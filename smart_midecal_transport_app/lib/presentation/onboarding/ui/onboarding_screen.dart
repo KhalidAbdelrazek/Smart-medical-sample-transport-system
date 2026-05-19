@@ -34,7 +34,6 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
           description: "onboarding.onboarding_1_description".tr(),
           nextText: "onboarding.next_button".tr(),
           onNextPressed: () => introKey.currentState?.next(),
-
         ),
 
         TravelIntroScreen(
@@ -65,6 +64,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
           backText: "onboarding.back_button".tr(),
           onNextPressed: () async {
             await SharedPrefService.instance.setOnboardingViewed(true);
+            if (!context.mounted) return;
             Navigator.pushReplacementNamed(context, RouteNames.register);
           },
           onBackPressed: () => introKey.currentState?.previous(),

@@ -1,4 +1,4 @@
-import 'package:smart_midecal_transport_app/presentation/employee/requests/domain/entities/transport_request_entity.dart';
+import 'package:smart_midecal_transport_app/presentation/employee/my_requests/domain/entities/tranport_req_entities.dart';
 
 /// States for the My Requests feature (doctor's own transport requests).
 abstract class MyRequestsState {}
@@ -9,7 +9,7 @@ class MyRequestsLoading extends MyRequestsState {}
 
 /// All requests loaded successfully.
 class MyRequestsLoaded extends MyRequestsState {
-  final List<TransportRequestEntity> requests;
+  final List<TransportMyRequestEntity> requests;
   MyRequestsLoaded({required this.requests});
 }
 
@@ -20,18 +20,15 @@ class MyRequestsEmpty extends MyRequestsState {}
 /// so the UI can still render the other cards.
 class MyRequestsCancelling extends MyRequestsState {
   final String cancellingId;
-  final List<TransportRequestEntity> requests;
+  final List<TransportMyRequestEntity> requests;
 
-  MyRequestsCancelling({
-    required this.cancellingId,
-    required this.requests,
-  });
+  MyRequestsCancelling({required this.cancellingId, required this.requests});
 }
 
 /// Cancel succeeded — carries the old list so the UI can stay visible
 /// while the subsequent reload is in progress.
 class MyRequestsCancelSuccess extends MyRequestsState {
-  final List<TransportRequestEntity> requests;
+  final List<TransportMyRequestEntity> requests;
   MyRequestsCancelSuccess({required this.requests});
 }
 
@@ -39,7 +36,7 @@ class MyRequestsCancelSuccess extends MyRequestsState {
 /// keep showing the list while the listener shows a snackbar.
 class MyRequestsCancelError extends MyRequestsState {
   final String message;
-  final List<TransportRequestEntity> requests;
+  final List<TransportMyRequestEntity> requests;
   MyRequestsCancelError({required this.message, required this.requests});
 }
 

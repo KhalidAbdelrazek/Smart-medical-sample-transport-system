@@ -1,4 +1,5 @@
-﻿import 'package:flutter/material.dart';
+import 'package:easy_localization/easy_localization.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:smart_midecal_transport_app/core/theme/color.dart';
 import 'package:smart_midecal_transport_app/presentation/employee/requests/domain/entities/bulk_request_response_entity.dart';
@@ -40,7 +41,7 @@ class BulkResultsBottomSheet extends StatelessWidget {
                 child: Container(
                   width: 40.w,
                   height: 4.h,
-                  margin: EdgeInsets.only(bottom: 20.h),
+                  margin: EdgeInsetsDirectional.only(bottom: 20.h),
                   decoration: BoxDecoration(
                     color: theme.dividerColor,
                     borderRadius: BorderRadius.circular(2.r),
@@ -50,7 +51,7 @@ class BulkResultsBottomSheet extends StatelessWidget {
 
               // Title
               Text(
-                'Request Summary',
+                'extra.request_summary'.tr(),
                 style: theme.textTheme.titleLarge?.copyWith(
                   fontWeight: FontWeight.bold,
                 ),
@@ -63,7 +64,7 @@ class BulkResultsBottomSheet extends StatelessWidget {
                   Expanded(
                     child: _StatCard(
                       icon: Icons.check_circle_rounded,
-                      label: 'Successful',
+                      label: 'extra.successful'.tr(),
                       count: successCount,
                       color: AppColors.success,
                     ),
@@ -72,7 +73,7 @@ class BulkResultsBottomSheet extends StatelessWidget {
                   Expanded(
                     child: _StatCard(
                       icon: Icons.cancel_rounded,
-                      label: 'Failed',
+                      label: 'extra.failed'.tr(),
                       count: failureCount,
                       color: failureCount > 0 ? AppColors.error : Colors.grey,
                     ),
@@ -84,7 +85,7 @@ class BulkResultsBottomSheet extends StatelessWidget {
               if (hasFailures) ...[
                 SizedBox(height: 24.h),
                 Text(
-                  'Failed Samples',
+                  'extra.failed_samples'.tr(),
                   style: theme.textTheme.titleSmall?.copyWith(
                     fontWeight: FontWeight.bold,
                     color: AppColors.error,
@@ -165,7 +166,7 @@ class BulkResultsBottomSheet extends StatelessWidget {
                     ),
                   ),
                   child: Text(
-                    'Done',
+                    'extra.done'.tr(),
                     style: TextStyle(
                       fontSize: 15.sp,
                       fontWeight: FontWeight.bold,
@@ -231,4 +232,3 @@ class _StatCard extends StatelessWidget {
     );
   }
 }
-
