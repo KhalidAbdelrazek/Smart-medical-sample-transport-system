@@ -8,8 +8,8 @@
       "args": [],
       "stopAtEntry": false,
       "externalConsole": true,
-      "cwd": "h:/_graduation_project/Smart-medical-sample-transport-system/Embedded/Car_main_controller",
-      "program": "h:/_graduation_project/Smart-medical-sample-transport-system/Embedded/Car_main_controller/build/Debug/outDebug",
+      "cwd": "h:/_graduation_project/ir-atmega/Embedded/Car_main_controller",
+      "program": "h:/_graduation_project/ir-atmega/Embedded/Car_main_controller/build/Debug/outDebug",
       "MIMode": "gdb",
       "miDebuggerPath": "gdb",
       "setupCommands": [
