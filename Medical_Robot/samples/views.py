@@ -10,7 +10,6 @@ from common.utils.response import unified_response
 from .models import BloodSample
 from .serializers import (
     BloodSampleSerializer,
-    SampleRequestSerializer,
     SamplePreviewSerializer,
     CreateBloodSampleSerializer,
     BulkSampleRequestSerializer,
@@ -160,49 +159,6 @@ class BloodSampleDetailView(APIView):
                 status=status.HTTP_200_OK,
             )
 
-
-class RequestSampleView(APIView):
-    """
-    POST /api/samples/request/
-    Doctor requests a blood sample using sample_code.
-    """
-
-    permission_classes = [IsAuthenticated, IsDoctor]
-
-    @extend_schema(
-        tags=["Samples"],
-        summary="Request a Blood Sample",
-        description="Doctor sends sample_code and room_number.",
-        request=SampleRequestSerializer,
-        responses={201: TransportRequestSerializer},
-        examples=[
-            OpenApiExample(
-                "Sample Request",
-                value={
-                    "sample_code": "PT-0001",
-                    "room_number": "305",
-                },
-                request_only=True,
-            ),
-        ],
-    )
-    def post(self, request):
-        serializer = SampleRequestSerializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-
-        transport_request = request_sample(
-            sample_code=serializer.validated_data["sample_code"],
-            room_number=serializer.validated_data["room_number"],
-            doctor=request.user,
-        )
-
-        response_data = TransportRequestSerializer(transport_request).data
-        return unified_response(
-            success=True,
-            message="Sample transport requested successfully",
-            data=response_data,
-            status=status.HTTP_201_CREATED,
-        )
 
 
 class BulkRequestSampleView(APIView):
