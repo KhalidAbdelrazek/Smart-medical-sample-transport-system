@@ -38,10 +38,10 @@ class StatsErrorWidget extends StatelessWidget {
         : AppColors.error;
 
     final title = isTokenExpired
-        ? 'Session Expired'
+        ? 'statistics.error_session_expired'.tr()
         : isNetwork
-        ? 'No Connection'
-        : 'Something went wrong';
+        ? 'statistics.error_no_connection'.tr()
+        : 'statistics.error_something_wrong'.tr();
 
     return Center(
       child: Padding(

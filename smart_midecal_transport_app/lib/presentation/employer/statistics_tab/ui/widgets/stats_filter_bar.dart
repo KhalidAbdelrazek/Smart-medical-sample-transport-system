@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:smart_midecal_transport_app/core/theme/color.dart';
@@ -24,12 +25,12 @@ class StatsFilterBar extends StatelessWidget {
       scrollDirection: Axis.horizontal,
       physics: const BouncingScrollPhysics(),
       child: Row(
-        children: filterLabels.entries.map((entry) {
+        children: filterLabelKeys.entries.map((entry) {
           final isSelected = entry.key == selectedFilter;
           return Padding(
             padding: EdgeInsetsDirectional.only(end: 8.w),
             child: _FilterChip(
-              label: entry.value,
+              label: entry.value.tr(),
               isSelected: isSelected,
               primary: primary,
               isDark: isDark,
