@@ -117,3 +117,7 @@ def build_arrival_payload(room: str, request_ids: list[str]) -> dict:
         "room": room,
         "arrived_request_ids": request_ids
     }
+
+def read_sensors_fast():
+    """Direct raw read, no filtering — for emergency stop detection."""
+    return GPIO.input(SENSOR_LEFT_PIN), GPIO.input(SENSOR_RIGHT_PIN)
