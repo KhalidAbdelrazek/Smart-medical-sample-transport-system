@@ -32,7 +32,21 @@ BROKER_URL = "81758f399b5b46b9875ac5e5f1e3ef1e.s1.eu.hivemq.cloud"
 BROKER_PORT = 8883
 MQTT_USERNAME = "hivemq.webclient.1764285829577"
 MQTT_PASSWORD = "bNtHo2#E,9>w18<CcOfF"
-TOPIC = "carts/+/status"
+TOPIC = "carts/1/command"
+
+# MQTT dispatch settings
+MQTT_BROKER_HOST = BROKER_URL
+MQTT_BROKER_PORT = BROKER_PORT
+MQTT_BROKER_USERNAME = MQTT_USERNAME
+MQTT_BROKER_PASSWORD = MQTT_PASSWORD
+MQTT_DISPATCH_TOPIC = TOPIC
+MQTT_DISPATCH_QOS = 1
+MQTT_DISPATCH_TIMEOUT_SECONDS = 300
+MQTT_BROKER_USE_TLS = True
+
+# MQTT ACK-gated dispatch settings
+MQTT_ACK_TIMEOUT_SECONDS = 300        # Seconds to wait for device ACK per attempt
+MQTT_ACK_RETRY_COUNT = 1            # Number of retries on ACK timeout (total = 1 + retries)
 
 # Application definition
 INSTALLED_APPS = [
@@ -54,6 +68,9 @@ INSTALLED_APPS = [
     'samples',
     'cars',
     'transport',
+    'dashboard',
+    'analytics',
+    'restrictions',
 ]
 
 # Custom user model — replaces Django's default User
