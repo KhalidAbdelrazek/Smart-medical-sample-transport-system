@@ -1,3 +1,12 @@
+# version 1.10 18/5/2026 9:21 PM
+#
+# Changes from 1.8:
+#   • RETURN_TO_STORAGE no longer sends 'B'.
+#     Instead it sends '1', '2', or '3' based on the current room index (i)
+#     so the ATmega knows how many intersections to cross before stopping.
+#   • print_uart_send() updated with labels for '1', '2', '3'.
+#   • uart_controller.skip_lines_backward(count) is the new call.
+
 import logging
 import time
 import queue
@@ -11,12 +20,6 @@ from mqtt_controller import MQTTController
 from console_interface import SharedState, ConsoleMonitor
 from functons import (
     setup_gpio,
-    filter_sensors,
-    read_sensors_fast,
-    confirm_intersection,
-    decide_movement,
-    get_rooms,
-    get_request_ids_for_room
 )
 from camera_module import read_room_number
 
@@ -41,7 +44,6 @@ logging.basicConfig(
 # Constants
 # =========================
 CAR_ID = "3"
-MOVEMENT_DURATION_PER_ROOM = 5.0
 LOOP_DELAY = 0.05
 
 # =========================
@@ -60,7 +62,49 @@ GYRO_SCALE_CORRECTION = 1.0
 GYRO_DEADBAND     = 0.5   # deg/s
 
 # =========================
-# IMU Functions
+# Rotation Target Constants
+# =========================
+ROTATION_TARGET_MIN = 85.0   # degrees — acceptable lower bound
+ROTATION_TARGET_MAX = 90.0   # degrees — stop immediately at / above this
+
+# =========================
+# Shared IMU State
+# Yaw is written by the IMU thread and read by the main thread.
+# A threading.Lock protects concurrent access.
+# =========================
+_imu_lock     = threading.Lock()
+_shared_yaw   = 0.0          # current integrated yaw (degrees)
+_yaw_baseline = 0.0          # yaw value at the moment rotation starts
+
+
+def get_current_yaw() -> float:
+    """Thread-safe read of the latest absolute yaw."""
+    with _imu_lock:
+        return _shared_yaw
+
+
+def set_yaw_baseline():
+    """
+    Snapshot the current yaw so that rotation progress can be measured
+    as a delta from this point.  Call this just before issuing 'N'.
+    """
+    global _yaw_baseline
+    with _imu_lock:
+        _yaw_baseline = _shared_yaw
+    logging.info(f"[IMU] Yaw baseline set to {_yaw_baseline:.2f}°")
+
+
+def get_rotation_delta() -> float:
+    """
+    Returns how many degrees the robot has rotated since set_yaw_baseline()
+    was called.  The absolute value is used so the sign of gz does not matter.
+    """
+    with _imu_lock:
+        return abs(_shared_yaw - _yaw_baseline)
+
+
+# =========================
+# IMU Functions  (UNCHANGED)
 # =========================
 
 def init_imu(bus):
@@ -69,9 +113,9 @@ def init_imu(bus):
         time.sleep(0.1)
         bus.write_byte_data(MPU_ADDR, SMPLRT_DIV, 0x04)   # 200 Hz sample rate
         bus.write_byte_data(MPU_ADDR, CONFIG_REG,  0x03)   # DLPF ~44 Hz
-        bus.write_byte_data(MPU_ADDR, GYRO_CONFIG, 0x00)   # Â±250Â°/s
+        bus.write_byte_data(MPU_ADDR, GYRO_CONFIG, 0x00)   # ±250°/s
         time.sleep(0.5)
-        logging.info("[IMU] MPU6050 initialized (200 Hz, DLPF 44 Hz, Â±250Â°/s)")
+        logging.info("[IMU] MPU6050 initialized (200 Hz, DLPF 44 Hz, ±250°/s)")
         return True
     except Exception as e:
         logging.error(f"[IMU] Initialization failed: {e}")
@@ -133,7 +177,7 @@ class MovingAverage:
 
 def calibrate_gyro(bus):
     SAMPLES = 500
-    logging.info("[IMU] Keep IMU PERFECTLY STILL â€” calibrating gyroscope (%d samples)...", SAMPLES)
+    logging.info("[IMU] Keep IMU PERFECTLY STILL — calibrating gyroscope (%d samples)...", SAMPLES)
 
     readings = [[], [], []]
     for _ in range(SAMPLES):
@@ -144,25 +188,30 @@ def calibrate_gyro(bus):
 
     offsets = []
     for axis_readings in readings:
-        axis_sorted = sorted(axis_readings)+
+        axis_sorted = sorted(axis_readings)
         trim    = int(SAMPLES * 0.10)
         trimmed = axis_sorted[trim: SAMPLES - trim]
         offsets.append(sum(trimmed) / len(trimmed))
 
-    logging.info("[IMU] Calibration complete â€” offsets: X=%.2f  Y=%.2f  Z=%.2f",
+    logging.info("[IMU] Calibration complete — offsets: X=%.2f  Y=%.2f  Z=%.2f",
                  offsets[0], offsets[1], offsets[2])
     return tuple(offsets)
 
 
 # =========================
 # IMU Background Thread
+# Now also writes the live yaw to the shared _shared_yaw variable so the
+# main thread can read it without running a second I2C session.
 # =========================
 
 def imu_thread_func(stop_event: threading.Event):
     """
     Runs in a daemon thread alongside the main robot loop.
-    Reads the MPU6050 at ~50 Hz and logs the readings.
+    Reads the MPU6050 at ~50 Hz, integrates yaw, and exposes it via
+    the module-level _shared_yaw variable (protected by _imu_lock).
     """
+    global _shared_yaw
+
     try:
         bus = SMBus(1)
     except Exception as e:
@@ -182,19 +231,29 @@ def imu_thread_func(stop_event: threading.Event):
 
     try:
         while not stop_event.is_set():
-            # Gyroscope
             gx, gy, gz = get_gyro(bus, gyro_offsets)
 
-            # Yaw integration
             current_time  = time.time()
             dt            = current_time - previous_time
             previous_time = current_time
             yaw          += gz * dt
 
-            # Log yaw only
-#            logging.info("[IMU] Yaw = %.2fÂ°", yaw)
+            # Write to shared state so main thread can read it
+            # Write to shared state so main thread can read it
+            with _imu_lock:
+                _shared_yaw = yaw
 
-            time.sleep(0.02)   # 50 Hz
+            # Print yaw at 10 Hz without affecting logic
+            if not hasattr(imu_thread_func, "_last_yaw_print"):
+                imu_thread_func._last_yaw_print = 0
+
+            now = time.time()
+            if now - imu_thread_func._last_yaw_print >= 0.1:
+                # print(f"  🧭 [IMU] Current Yaw = {yaw:.2f}°")
+                # logging.info(f"[IMU] Current Yaw = {yaw:.2f}°")
+                imu_thread_func._last_yaw_print = now
+
+            time.sleep(0.02)   # 50 Hz  # 50 Hz
 
     except Exception as e:
         logging.error(f"[IMU] Thread error: {e}")
@@ -204,35 +263,134 @@ def imu_thread_func(stop_event: threading.Event):
 
 
 # =========================
-# Line Follower
+# Rotation Helper
+# Blocks until the robot has rotated >= ROTATION_TARGET_MIN degrees
+# relative to the yaw baseline captured by set_yaw_baseline().
+# Prints live yaw delta at ~10 Hz.
 # =========================
 
-def run_line_follower_until_intersection(car: UARTCarController):
-    logging.info("[ROBOT] Starting continuous line follower until intersection...")
+def rotate_to_90(car: UARTCarController, shared_state: 'SharedState') -> None:
+    """
+    Sends 'N' (Nve_Rotate) to the ATmega and blocks until the IMU
+    yaw delta reaches the [85°, 90°] acceptance window, then sends 'S'.
+
+    State transitions:  ROTATING  →  AT_DOOR
+    """
+    print_state("ROTATING", "Starting 90° rotation using IMU yaw feedback...")
+    shared_state.update(current_state="ROTATING")
+
+    # Snapshot yaw reference point BEFORE issuing the rotate command
+    # set_yaw_baseline()
+
+    # Tell ATmega to start negative rotation
+    print_uart_send("N\n")
+    car.nve_rotate()
+
+    logging.info("[ROTATE] Rotating... target %.1f°–%.1f°", ROTATION_TARGET_MIN, ROTATION_TARGET_MAX)
+
+    last_print_time = time.time()
 
     while True:
-        # Fast raw read first — no delays
-        left_fast, right_fast = read_sensors_fast()
+        delta = get_rotation_delta()
 
-        if left_fast == 1 and right_fast == 1:
-            print("True +++++===============================" if car.stop() else "False +++++===============================")# IMMEDIATE stop on raw read
-            logging.info("[ROBOT] Intersection confirmed (both sensors BLACK). Stopping.")
+        # Print yaw reading at ~10 Hz (every 0.1 s)
+        now = time.time()
+        if now - last_print_time >= 0.1:
+            print(f"  🔄 [IMU] Yaw delta = {delta:.2f}°  (target: {ROTATION_TARGET_MIN}°–{ROTATION_TARGET_MAX}°)")
+            logging.info("[ROTATE] Yaw delta = %.2f°", delta)
+            last_print_time = now
+
+        # Check acceptance window
+        if delta >= ROTATION_TARGET_MIN:
+            # Stop rotation
+            print_uart_send("F\n")
+            car.forward()
+            print(f"  ✅ [IMU] Target reached — Yaw delta = {delta:.2f}°. Rotation complete.")
+            logging.info("[ROTATE] Target reached at %.2f° — rotation stopped.", delta)
             break
 
-        # False positive — resume
-        action, cmd = decide_movement(left_fast, right_fast)
-        car.send_command_and_reconnect_if_failed(cmd)
-        car.read_and_reconnect_if_failed()
-        time.sleep(LOOP_DELAY)
+        time.sleep(0.02)   # 50 Hz poll matches IMU update rate
 
-        # Normal path — filtered read for steering decisions
-        left, right = filter_sensors()
-        action, cmd = decide_movement(left, right)
+    print_state("AT_DOOR", "Rotation complete. Robot is at the door.")
+    shared_state.update(current_state="AT_DOOR")
 
-        if not car.send_command_and_reconnect_if_failed(cmd):
-            continue
 
-        car.read_and_reconnect_if_failed()
+# =========================
+# MQTT Helpers
+# =========================
+
+def get_rooms(json_dispatch_data: dict):
+    rooms = list(json_dispatch_data.get("grouped_by_room", {}).keys())
+    return rooms, json_dispatch_data.get("batch_id")
+
+
+def get_request_ids_for_room(json_dispatch_data: dict, room: str) -> list:
+    room_data = json_dispatch_data.get("grouped_by_room", {}).get(room, [])
+    return [req.get("request_id") for req in room_data if req.get("request_id")]
+
+
+# =========================
+# State Printer
+# =========================
+
+def print_state(state: str, extra: str = ""):
+    bar = "=" * 50
+    msg = f"\n{bar}\n  🚗 STATE → {state}"
+    if extra:
+        msg += f"\n  ℹ️  {extra}"
+    msg += f"\n{bar}"
+    print(msg)
+    logging.info(f"[STATE] {state}" + (f" | {extra}" if extra else ""))
+
+
+def print_uart_send(cmd: str):
+    label_map = {
+        "F\n": "Push_Forward()         → ATmega cmd: 'F'",
+        "B\n": "Push_Backward()        → ATmega cmd: 'B'",
+        "P\n": "Pve_Rotate()           → ATmega cmd: 'P'",
+        "N\n": "Nve_Rotate()           → ATmega cmd: 'N'",
+        "S\n": "Stop_Car()             → ATmega cmd: 'S'",
+        "1\n": "skip_lines_backward(1) → ATmega cmd: '1'  (stop at 1st line, skip 0)",
+        "2\n": "skip_lines_backward(2) → ATmega cmd: '2'  (skip 1, stop at 2nd line)",
+        "3\n": "skip_lines_backward(3) → ATmega cmd: '3'  (skip 2, stop at 3rd line)",
+    }
+    label = label_map.get(cmd, f"RAW CMD: {repr(cmd)}")
+    print(f"  ➤  [UART TX] {label}")
+    logging.info(f"[UART TX] {label}")
+
+
+def print_uart_recv(data: str):
+    print(f"  ◀  [UART RX] ATmega replied: '{data}'")
+    logging.info(f"[UART RX] ATmega replied: '{data}'")
+
+
+def print_mqtt_event(direction: str, topic: str, payload):
+    arrow = "↑ PUBLISH" if direction == "pub" else "↓ RECEIVED"
+    print(f"  {arrow} [{topic}] → {payload}")
+    logging.info(f"[MQTT {direction.upper()}] [{topic}] {payload}")
+
+
+# =========================
+# Wait for ATmega stop signal ('s')
+# =========================
+
+def wait_for_atmega_stop(car: UARTCarController) -> None:
+    """
+    Polls UART for the ATmega's stop signal ('s').
+    The ATmega is autonomously following the line via Forward_decide_mov().
+    When it detects both IR sensors = BLACK it sends 's' to RPi.
+    """
+    print("  ⏳ [UART] Waiting for ATmega stop signal ('s')...")
+    logging.info("[UART] Listening for ATmega stop signal ('s')...")
+
+    while True:
+        resp = car.read_and_reconnect_if_failed()
+        if resp is not None:
+            print_uart_recv(resp)
+            if resp.lower() == 's':
+                print("  🛑 [UART] ATmega reported intersection (both IR = BLACK). Car stopped.")
+                logging.info("[UART] Intersection signal 's' received from ATmega.")
+                return
         time.sleep(LOOP_DELAY)
 
 
@@ -264,15 +422,29 @@ def main():
         # Start IMU thread before the main loop
         imu_thread.start()
         logging.info("[MAIN] IMU thread started.")
+ 
+        # ── Wait for IMU to produce first reading, then lock baseline ──
+        logging.info("[MAIN] Waiting for IMU to stabilize before locking yaw baseline...")
+        time.sleep(2.0)          # give calibrate_gyro + first reads time to run
+        set_yaw_baseline()
+        logging.info("[MAIN] Yaw baseline locked at IDLE — will not change again.")
 
+        # ── UART ──────────────────────────────────────────────
         shared_state.update(uart_status="CONNECTING")
+        print_state("UART CONNECTING", f"Port /dev/serial0 @ 9600 baud")
         car = UARTCarController(port='/dev/serial0', baudrate=9600)
         shared_state.update(uart_status="CONNECTED")
+        print_state("UART CONNECTED")
 
+        # ── MQTT ──────────────────────────────────────────────
         mqtt_controller = MQTTController(CAR_ID, dispatch_queue, control_queue)
         mqtt_controller.start()
 
         console.start()
+
+        # ── Main state machine ────────────────────────────────
+        print_state("IDLE", "Waiting for dispatch from backend...")
+        shared_state.update(current_state="IDLE")
 
         while True:
             mqtt_status = "CONNECTED" if mqtt_controller.connected else "DISCONNECTED"
@@ -280,122 +452,263 @@ def main():
 
             current_state = shared_state.get_snapshot()['state']
 
+            # ════════════════════════════════════════════
+            # IDLE — wait for dispatch
+            # ════════════════════════════════════════════
             if current_state == "IDLE":
                 try:
                     payload = dispatch_queue.get(timeout=1.0)
+                    print_mqtt_event("recv", f"transport/commands/{CAR_ID}/dispatch", payload)
 
                     rooms, batch_id = get_rooms(payload)
 
                     if not rooms or not batch_id:
-                        logging.error("[ROBOT] Invalid dispatch payload.")
+                        logging.error("[ROBOT] Invalid dispatch payload — missing rooms or batch_id.")
                         continue
 
+                    print_state("RUNNING_BATCH", f"Batch ID: {batch_id} | Rooms: {rooms}")
                     shared_state.update(
                         current_state="RUNNING_BATCH",
                         current_batch=batch_id
                     )
 
+                    # ACK the batch
+                    ack_payload = {"status": "OK", "batch_id": batch_id}
                     mqtt_controller.publish_ack(batch_id)
+                    print_mqtt_event("pub", f"transport/acks/{CAR_ID}", ack_payload)
 
-                    for room in rooms:
+                    go_to_storage  = False
+                    rooms_to_visit = list(rooms)
+                    i = 0
+
+                    # ── Iterate through rooms ──────────────────
+                    while i < len(rooms_to_visit):
+                        if go_to_storage:
+                            break
+
+                        room = rooms_to_visit[i]
+
+                        print_state("MOVING_TO_ROOM", f"Target room: {room}")
                         shared_state.update(
                             current_state="MOVING_TO_ROOM",
                             current_room=room
                         )
 
+                        # ── Room seek loop ─────────────────────
                         while True:
-                            logging.info(f"[ROBOT] Moving towards room {room}...")
-                            run_line_follower_until_intersection(car)
+                            # Flush stale UART bytes before commanding forward
+                            if i == 0:
+                                car.flush_input()
+                                # Tell ATmega to start forward line-following
+                                print_uart_send("F\n")
+                                car.forward()
+                                # Block until ATmega detects intersection and sends 's'
+                                wait_for_atmega_stop(car)
 
-                            logging.info("[ROBOT] Scanning room number...")
+                            
+
+                            # ATmega already stopped itself; RPi records the stop
+                            print_state("SCANNING_ROOM", f"Intersection reached — scanning camera for room number...")
+                            shared_state.update(current_state="SCANNING_ROOM")
+
+                            # Camera scan
+                            logging.info("[ROBOT] Starting camera scan for room number...")
                             detected_room = read_room_number()
-                            logging.info(f"[ROBOT] Detected room: {detected_room}, Expected: {room}")
+                            logging.info(f"[ROBOT] Camera detected room: '{detected_room}' | Expected: '{room}'")
+                            print(f"  📷 [CAMERA] Detected room: '{detected_room}' | Expected: '{room}'")
 
+                            # ── Room match ────────────────────
                             if str(detected_room) == str(room):
-                                logging.info("[ROBOT] Room match confirmed. Publishing arrival.")
-                                request_ids = get_request_ids_for_room(payload, room)
-                                mqtt_controller.publish_arrival(room, request_ids)
 
+                                # ── NEW: Rotate 90° using IMU before publishing arrival ──
+                                # State transitions: SCANNING_ROOM → ROTATING → AT_DOOR
+                                rotate_to_90(car, shared_state)
+                                # ── End of rotation block ──────────────────────────────
+
+                                                                # ── Move forward after rotation until ATmega detects intersection ──
+                                print_state("MOVING_TO_DOOR", f"Moving forward into room {room} after rotation...")
+                                shared_state.update(current_state="MOVING_TO_DOOR")
+                                # car.flush_input()
+                                # print_uart_send("F\n")
+                                # car.forward()
+                                wait_for_atmega_stop(car)
+                                # ── End of forward-to-door block ──────────────────────────────────
+
+
+                                # Now transition to ARRIVED and publish as before
+                                print_state("ARRIVED", f"Room {room} confirmed! Publishing arrival.")
+                                shared_state.update(current_state="ARRIVED")
+
+                                request_ids = get_request_ids_for_room(payload, room)
+                                arrival_payload = {
+                                    "room": room,
+                                    "arrived_request_ids": request_ids
+                                }
+                                mqtt_controller.publish_arrival(room, request_ids)
+                                print_mqtt_event("pub", f"transport/arrivals/{CAR_ID}", arrival_payload)
+
+                                # Send X for Turning Buzzer on ATmega
+                                car.buzzer()
+                                
+
+                                # Ensure car is stopped while waiting
+                                print_uart_send("S\n")
                                 car.stop()
 
-                                logging.info(f"[ROBOT] WAITING for 'proceed' command for room {room}...")
+                                print_state("WAITING_FOR_PROCEED", f"Room {room} — awaiting 'proceed' command from backend...")
                                 shared_state.update(current_state="WAITING_FOR_PROCEED")
 
                                 proceed_received = False
-                                go_to_storage    = False
 
                                 while not proceed_received:
                                     try:
                                         ctrl_msg = control_queue.get(timeout=1.0)
+                                        print_mqtt_event("recv", f"transport/commands/{CAR_ID}/control", ctrl_msg)
+
                                         cmd_type = ctrl_msg.get("command", "").lower()
                                         cmd_room = str(ctrl_msg.get("room", ""))
                                         cmd_car  = str(ctrl_msg.get("car_id", CAR_ID))
 
                                         if cmd_type != "proceed" or cmd_car != CAR_ID:
-                                            logging.warning(f"[ROBOT] Ignored control msg: {ctrl_msg}")
+                                            logging.warning(f"[ROBOT] Ignored control msg (wrong type/car): {ctrl_msg}")
+                                            print(f"  ⚠️  [CONTROL] Ignored msg: {ctrl_msg}")
                                             continue
 
-                                        current_room_index = rooms.index(room)
                                         next_room = (
-                                            rooms[current_room_index + 1]
-                                            if current_room_index + 1 < len(rooms)
+                                            rooms_to_visit[i + 1]
+                                            if i + 1 < len(rooms_to_visit)
                                             else None
                                         )
+                                        # ── Step 1: Move BACKWARD until intersection ──────────────
+                                        print_state("LEAVING_ROOM", f"Proceed received — moving backward out of room {room}...")
+                                        shared_state.update(current_state="LEAVING_ROOM")
+                                        car.flush_input()
+                                        print_uart_send("B\n")
+                                        car.backward()
+                                        wait_for_atmega_stop(car)
 
+                                        # ── Step 2: Rotate +90° using IMU (mirrors rotate_to_90 but uses 'P') ──
+                                        print_state("ROTATING", "Starting +90° rotation using IMU yaw feedback...")
+                                        shared_state.update(current_state="ROTATING")
+                                        # set_yaw_baseline()
+                                        print_uart_send("P\n")
+                                        car.pve_rotate()
+                                        logging.info("[ROTATE] Rotating +ve... target %.1f°–%.1f°", ROTATION_TARGET_MIN, ROTATION_TARGET_MAX)
+                                        last_print_time = time.time()
+                                        while True:
+                                            delta = get_rotation_delta()
+                                            now = time.time()
+                                            if now - last_print_time >= 0.1:
+                                                print(f"  🔄 [IMU] Yaw delta = {delta:.2f}°  (target: {ROTATION_TARGET_MIN}°–{ROTATION_TARGET_MAX}°)")
+                                                logging.info("[ROTATE+] Yaw delta = %.2f°", delta)
+                                                last_print_time = now
+                                            if delta <= 5:
+                                                # ── Proceed to STORAGE ─────────────
+                                                if cmd_room.lower() == "storage":
+                                                    print_uart_send("B\n")
+                                                    car.backward()   # raw write — exits ATmega 'P' loop immediately
+                                                # ── Proceed to next room ────────────
+                                                else:
+                                                    print_uart_send("F\n")
+                                                    car.forward()   # raw write — exits ATmega 'P' loop immediately
+                                                print(f"  ✅ [IMU] +90° target reached — Yaw delta = {delta:.2f}°. Rotation complete.")
+                                                logging.info("[ROTATE+] Target reached at %.2f°", delta)
+                                                break
+                                        #     time.sleep(0.02)
+                                        # print_state("AT_CORRIDOR", "Positive rotation complete. Robot back on corridor.")
+                                        # shared_state.update(current_state="AT_CORRIDOR")
+
+                                        # # ── Step 3: Wait for ATmega 's' after rotation exit move ──
+                                        # print_state("MOVING_TO_DOOR", f"Moving toward {'STORAGE' if cmd_room.lower() == 'storage' else 'next room'}...")
+                                        # shared_state.update(current_state="MOVING_TO_DOOR")
+                                        wait_for_atmega_stop(car)
+
+                                        # ── Proceed to STORAGE ─────────────
                                         if cmd_room.lower() == "storage":
-                                            logging.info("[ROBOT] Received 'proceed' with room=storage â†’ returning to STORAGE.")
-                                            shared_state.update(current_state="RETURNING_TO_STORAGE")
+                                            print_state("RETURN_TO_STORAGE", "Proceed=STORAGE received — moving backward to storage.")
+                                            shared_state.update(current_state="RETURN_TO_STORAGE")
 
-                                            car.backward()
-                                            logging.info("[ROBOT] Moving BACKWARD for 5 seconds toward STORAGE...")
-                                            time.sleep(5)
-                                            car.stop()
-                                            logging.info("[ROBOT] Stopped at STORAGE. Publishing STORAGE arrival...")
+                                            if int(room) == 1:
+                                                # Already at storage intersection after post-rotation backward move
+                                                print_uart_send("S\n")
+                                                car.stop()
+                                                logging.info("[ROBOT] Room 1 — already at STORAGE after backward move, stopping.")
+                                            else:
+                                                skip_count = min(int(room) - 1, 3)
+                                                print_uart_send(f"{skip_count}\n")
+                                                car.skip_lines_backward(skip_count)
+                                                logging.info(
+                                                    f"[ROBOT] Moving BACKWARD toward STORAGE — "
+                                                    f"skip command '{skip_count}' sent (room {room})..."
+                                                )
+                                                print(
+                                                    f"  ⏩ [MOVEMENT] Backward skip-{skip_count} command sent to ATmega "
+                                                    f"— waiting for STORAGE intersection signal..."
+                                                )
+                                                wait_for_atmega_stop(car)
+                                                print_uart_send("S\n")
+                                                car.stop()
+
+                                            # ... rest of STORAGE arrival (publish MQTT, set flags) unchanged
+
+                                            print_state("ARRIVED", "Arrived at STORAGE. Publishing STORAGE arrival.")
+                                            shared_state.update(current_state="ARRIVED")
 
                                             storage_topic   = f"transport/arrivals/{CAR_ID}"
                                             storage_payload = {
                                                 "car_id":    int(CAR_ID),
                                                 "room":      "STORAGE",
-                                                "timestamp": datetime.datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%SZ")
+                                                "timestamp": datetime.datetime.now(datetime.UTC).strftime("%Y-%m-%dT%H:%M:%SZ")
                                             }
                                             mqtt_controller.publish_raw(storage_topic, storage_payload)
-                                            logging.info(f"[ROBOT] STORAGE arrival published: {storage_payload}")
+                                            print_mqtt_event("pub", storage_topic, storage_payload)
 
                                             go_to_storage    = True
                                             proceed_received = True
 
+                                        # ── Proceed to next room ────────────
                                         elif next_room is not None and cmd_room == str(next_room):
-                                            logging.info(f"[ROBOT] Received 'proceed' for next room {next_room}. Continuing forward.")
+                                            print_state("MOVING_TO_ROOM", f"Proceed to next room: {next_room}")
+                                            shared_state.update(
+                                                current_state="MOVING_TO_ROOM",
+                                                current_room=next_room
+                                            )
                                             proceed_received = True
+                                            # wait_for_atmega_stop(car)
 
                                         else:
-                                            logging.warning(f"[ROBOT] Ignored control msg (unexpected room {cmd_room}): {ctrl_msg}")
+                                            logging.warning(f"[ROBOT] Ignored control msg (unexpected room '{cmd_room}'): {ctrl_msg}")
+                                            print(f"  ⚠️  [CONTROL] Unexpected room '{cmd_room}' in proceed — ignoring.")
 
                                     except queue.Empty:
                                         car.stop()
 
-                                if not go_to_storage:
-                                    logging.info("[ROBOT] Moving slightly forward to clear current intersection...")
-                                    car.forward()
-                                    time.sleep(0.5)
-                                    car.stop()
+                                break  # exit room seek loop — proceed received
 
-                                break
-
+                            # ── Room mismatch ─────────────────
                             else:
-                                logging.warning(f"[ROBOT] Room mismatch. Expected {room}, Got {detected_room}. Moving again.")
-                                logging.info("[ROBOT] Moving slightly forward to clear wrong intersection...")
+                                logging.warning(f"[ROBOT] Room mismatch: expected '{room}', got '{detected_room}'. Advancing.")
+                                print(f"  ⚠️  [CAMERA] Mismatch — expected '{room}', got '{detected_room}'. Advancing past intersection...")
+                                car.flush_input()
+                                print_uart_send("F\n")
                                 car.forward()
                                 time.sleep(0.5)
+                                print_uart_send("S\n")
                                 car.stop()
+                                # Loop back to room seek loop for next intersection
 
                         if go_to_storage:
-                            logging.info("[ROBOT] Batch aborted â€” car returned to STORAGE.")
+                            logging.info("[ROBOT] Batch aborted — car returned to STORAGE.")
+                            print_state("IDLE", "Batch aborted. Car at STORAGE. Returning to IDLE.")
                             break
 
                         time.sleep(2.0)
+                        i += 1  # advance to next room only after fully completing current one
 
-                    logging.info("[ROBOT] Batch complete. Returning to IDLE.")
+                    if not go_to_storage:
+                        logging.info("[ROBOT] All rooms in batch visited. Batch complete.")
+                        print_state("IDLE", f"Batch {batch_id} complete. All rooms served.")
+
                     shared_state.update(
                         current_state="IDLE",
                         current_batch=None,
@@ -403,14 +716,15 @@ def main():
                     )
 
                 except queue.Empty:
-                    pass
+                    pass  # still IDLE, keep polling
 
     except KeyboardInterrupt:
-        logging.info("\n[SHUTDOWN] Stopping...")
+        logging.info("\n[SHUTDOWN] Keyboard interrupt — stopping...")
+        print("\n  🔴 [SHUTDOWN] Keyboard interrupt received.")
     except Exception as e:
         logging.error(f"[FATAL] System crashed: {e}")
+        print(f"  💥 [FATAL] {e}")
     finally:
-        # Stop IMU thread first
         imu_stop_event.set()
         imu_thread.join(timeout=3)
         logging.info("[MAIN] IMU thread stopped.")
@@ -420,6 +734,7 @@ def main():
         if mqtt_controller:
             mqtt_controller.stop()
         if car:
+            print_uart_send("S\n")
             car.cleanup()
 
         try:
@@ -428,7 +743,7 @@ def main():
         except Exception:
             pass
 
-        print("Clean exit")
+        print("  ✅ Clean exit")
 
 
 if __name__ == "__main__":
