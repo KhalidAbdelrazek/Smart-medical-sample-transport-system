@@ -1,4 +1,5 @@
 from rest_framework.exceptions import NotFound, ValidationError
+from restrictions.services import check_doctor_samples_restriction
 
 
 def get_sample_by_code(sample_code):
@@ -26,6 +27,10 @@ def request_sample(sample_code, room_number, doctor):
     from .models import BloodSample
     from transport.models import TransportRequest
 
+    # ── RESTRICTION CHECK ──────────────────────────────
+    check_doctor_samples_restriction(doctor)
+    # ──────────────────────────────────────────────────
+
     sample = get_sample_by_code(sample_code)
 
     # Business rule: sample must be physically in storage
@@ -45,12 +50,14 @@ def request_sample(sample_code, room_number, doctor):
     sample.status = 'REQUESTED'
     sample.save()
 
-    # Create transport request
+    # Create transport request (DELIVERY type - outbound)
     transport_request = TransportRequest.objects.create(
         sample=sample,
         requested_by=doctor,
         room_number=room_number,
         status='PENDING',
+        request_type='DELIVERY',  # Outbound delivery
     )
+
 
     return transport_request
