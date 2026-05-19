@@ -1,0 +1,48 @@
+===================================================
+UNDERSTANDING THE IMU SENSOR (MPU-6050)
+===================================================
+
+1. ACCELEROMETER vs GYROSCOPE
+---------------------------------------------------
+- Accelerometer: Measures linear acceleration along 3 axes. Even when stationary, it measures the force of gravity (1g pointing upwards relative to the earth). It's great for knowing which way is "down" (tilt/angles), but it is very sensitive to vibrations, bumps, and sudden linear movements.
+  * Ax: Acceleration along the X-axis (left/right motion or tilt).
+  * Ay: Acceleration along the Y-axis (forward/backward motion or tilt).
+  * Az: Acceleration along the Z-axis (up/down motion). When flat, it usually reads ~1g due to gravity pulling down.
+
+- Gyroscope: Measures the rate of rotation (angular velocity) around the 3 axes in degrees per second (°/s). It is not affected by gravity or linear movement, making it great for detecting turns, but it suffers from "drift" over time.
+  * Gx: Rotation around the X-axis (Roll).
+  * Gy: Rotation around the Y-axis (Pitch).
+  * Gz: Rotation around the Z-axis (Yaw).
+
+2. HOW TO DETECT MOVEMENT
+---------------------------------------------------
+- Turning Right/Left:
+  Use the Gyroscope Z-axis (Gz). When the robot turns left or right, it is rotating around the vertical axis (Z-axis). 
+  * A positive Gz might mean turning one direction (e.g., right), and negative means the other (e.g., left), depending on how the sensor is physically mounted on the chassis.
+
+- Tilting Forward/Backward:
+  Use the Accelerometer. As the robot tilts forward or backward, the gravity vector shifts from the Z-axis to the X or Y axis. 
+  * The formula: Pitch = atan2(-Ax, sqrt(Ay^2 + Az^2)) (or similar depending on orientation) calculates this tilt angle.
+
+3. DETECTING A 90-DEGREE ROTATION USING GYRO Z-AXIS
+---------------------------------------------------
+Since the gyroscope measures the *rate* of rotation (°/s), to find the total angle rotated, you must "integrate" (sum up) the Gz values over time.
+
+Formula: Current_Angle = Previous_Angle + (Gz * Time_Elapsed_Since_Last_Read)
+
+Example:
+- You read Gz = 90 °/s.
+- You waited 0.1 seconds since the last read.
+- Angle rotated in this tiny step = 90 * 0.1 = 9 degrees.
+- You add 9 degrees to your running total.
+- Once the running total reaches 90 (or -90), you know the robot has successfully completed a 90-degree turn.
+
+4. NOISE AND DRIFT
+---------------------------------------------------
+- Accelerometer Noise: The accelerometer is extremely sensitive to motor vibrations and physical bumps. While it won't drift over time, its instant readings can be very noisy and jumpy.
+- Gyroscope Drift: The gyroscope does not suffer from vibration noise, but its readings are never perfectly 0 when still (e.g., it might read 0.5 °/s when completely stationary). When you integrate this over time to calculate angles, the calculated angle will slowly increase or decrease even if the robot isn't moving. This cumulative error is called "drift".
+
+Best Practice (Sensor Fusion): 
+To get accurate and stable movement tracking, we typically combine both sensors using algorithms like a "Complementary Filter" or "Kalman Filter". 
+- Use the Gyroscope for short-term fast changes (turning).
+- Use the Accelerometer for long-term correction (to cancel out the gyro's drift by using gravity as an absolute reference).
