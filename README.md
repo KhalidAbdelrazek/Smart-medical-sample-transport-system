@@ -57,7 +57,8 @@ Smart-medical-sample-transport-system/
 1. Navigate to the `Iot` directory.
 2. Install the required MQTT library: `pip install paho-mqtt`
 3. If running on a Raspberry Pi, ensure `RPi.GPIO` is installed.
-4. Run the script: `python ledcontrol.py`
+4. Configure the MQTT broker IP address and port inside the script before running.
+5. Run the script: `python ledcontrol.py`
 
 ## 👥 Contributors
 Developed as part of a Graduation Project.
