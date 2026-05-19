@@ -115,18 +115,19 @@ class StatisticsCubit extends Cubit<StatisticsState> {
     final total = d.totalRequests ?? 0;
     if (total == 0) return [];
 
+    // Store translation KEYS — the UI calls .tr() so language switches re-render
     final items = [
-      ('statistics.segment_successful'.tr(), d.successful ?? 0),
-      ('statistics.segment_failed'.tr(), d.failed ?? 0),
-      ('statistics.segment_cancelled'.tr(), d.cancelled ?? 0),
-      ('statistics.segment_pending'.tr(), d.pending ?? 0),
+      ('statistics.segment_successful', d.successful ?? 0),
+      ('statistics.segment_failed', d.failed ?? 0),
+      ('statistics.segment_cancelled', d.cancelled ?? 0),
+      ('statistics.segment_pending', d.pending ?? 0),
     ];
 
     return items
         .where((e) => e.$2 > 0)
         .map(
           (e) => ChartSegment(
-            label: e.$1,
+            labelKey: e.$1,
             value: e.$2,
             percentage: _pct(e.$2, total),
           ),
@@ -138,19 +139,20 @@ class StatisticsCubit extends Cubit<StatisticsState> {
     final total = s.totalActions ?? 0;
     if (total == 0) return [];
 
+    // Store translation KEYS — the UI calls .tr() so language switches re-render
     final items = [
-      ('statistics.segment_car_dispatch'.tr(), s.carDispatch ?? 0),
-      ('statistics.segment_sample_added'.tr(), s.sampleAddedToCar ?? 0),
-      ('statistics.segment_sample_removed'.tr(), s.sampleRemovedFromCar ?? 0),
-      ('statistics.segment_transport_updates'.tr(), s.transportRequestUpdate ?? 0),
-      ('statistics.segment_other'.tr(), s.other ?? 0),
+      ('statistics.segment_car_dispatch', s.carDispatch ?? 0),
+      ('statistics.segment_sample_added', s.sampleAddedToCar ?? 0),
+      ('statistics.segment_sample_removed', s.sampleRemovedFromCar ?? 0),
+      ('statistics.segment_transport_updates', s.transportRequestUpdate ?? 0),
+      ('statistics.segment_other', s.other ?? 0),
     ];
 
     return items
         .where((e) => e.$2 > 0)
         .map(
           (e) => ChartSegment(
-            label: e.$1,
+            labelKey: e.$1,
             value: e.$2,
             percentage: _pct(e.$2, total),
           ),

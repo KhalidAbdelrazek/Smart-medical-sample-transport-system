@@ -3,12 +3,14 @@ import 'package:smart_midecal_transport_app/presentation/employer/statistics_tab
 // ─── Chart data point model ────────────────────────────────────────────────
 
 class ChartSegment {
-  final String label;
+  /// Translation key — resolved to a display string in the UI via .tr(),
+  /// never translated inside the cubit so language switches work correctly.
+  final String labelKey;
   final int value;
   final double percentage;
 
   const ChartSegment({
-    required this.label,
+    required this.labelKey,
     required this.value,
     required this.percentage,
   });

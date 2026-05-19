@@ -188,28 +188,28 @@ class _DashboardContent extends StatelessWidget {
           // Convert your basic state data into the ChartSegment list required by the widget
           segments: [
             ChartSegment(
-              label: 'extra.successful'.tr(),
+              labelKey: 'extra.successful'.tr(),
               value: state.successfulRequests,
               percentage: state.totalRequests > 0
                   ? (state.successfulRequests / state.totalRequests * 100)
                   : 0,
             ),
             ChartSegment(
-              label: 'my_requests.status_pending'.tr(),
+              labelKey: 'my_requests.status_pending'.tr(),
               value: state.pendingRequests,
               percentage: state.totalRequests > 0
                   ? (state.pendingRequests / state.totalRequests * 100)
                   : 0,
             ),
             ChartSegment(
-              label: 'my_requests.status_cancelled'.tr(),
+              labelKey: 'my_requests.status_cancelled'.tr(),
               value: state.cancelledRequests,
               percentage: state.totalRequests > 0
                   ? (state.cancelledRequests / state.totalRequests * 100)
                   : 0,
             ),
             ChartSegment(
-              label: 'extra.failed'.tr(),
+              labelKey: 'extra.failed'.tr(),
               value: state.failedRequests,
               percentage: state.totalRequests > 0
                   ? (state.failedRequests / state.totalRequests * 100)
