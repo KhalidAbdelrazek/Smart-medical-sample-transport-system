@@ -78,7 +78,11 @@ int Push_Forward(void)
 	Left_IR_B = Button_Read('D', 5);
 	Right_IR_B = Button_Read('D', 6);
 
-	if (Left_IR == 1 && Right_IR == 0)
+	if (Left_IR_B == 1 && Right_IR_B == 1)
+	{
+		return 1; // already on an intersection – just push through it
+	}
+	else if (Left_IR == 1 && Right_IR == 0)
 	{
 		Move_Left();
 	}
@@ -87,14 +91,11 @@ int Push_Forward(void)
 		Move_Right();
 	}
 
-	else if (Left_IR == 0 && Right_IR == 0)
+	else if ((Left_IR == 0 && Right_IR == 0) || Left_IR == 1 && Right_IR == 1)
 	{
 		Move_Up();
 	}
-	else if (Left_IR_B == 1 && Right_IR_B == 1)
-	{
-		return 1; // already on an intersection – just push through it
-	}
+
 }
 
 int Push_Backward(void)
@@ -104,7 +105,11 @@ int Push_Backward(void)
 	Left_IR_B = Button_Read('D', 5);
 	Right_IR_B = Button_Read('D', 6);
 
-	if (Left_IR_B == 1 && Right_IR_B == 0)
+	if (Left_IR == 0 && Right_IR == 0)
+	{
+		return 1; // already on an intersection – just push through it
+	}
+	else if (Left_IR_B == 1 && Right_IR_B == 0)
 	{
 		Move_Left();
 	}
@@ -112,13 +117,8 @@ int Push_Backward(void)
 	{
 		Move_Right();
 	}
-
-	else if (Left_IR == 1 && Right_IR == 1)
+	else if ((Left_IR == 1 && Right_IR == 1) || (Left_IR_B == 1 && Right_IR_B == 1))
 	{
 		Move_Down();
-	}
-	else if ((Left_IR == 0 && Right_IR == 0))
-	{
-		return 1; // already on an intersection – just push through it
 	}
 }
