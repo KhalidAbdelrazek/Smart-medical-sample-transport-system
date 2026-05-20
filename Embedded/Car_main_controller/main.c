@@ -75,7 +75,10 @@ int main(void)
             while (1)
             {
                 if (Push_Forward())
+                {
+                    Stop();
                     break;
+                }
             }
 
             _delay_ms(50);
@@ -104,7 +107,10 @@ int main(void)
             while (1)
             {
                 if (Push_Backward())
+                {
+                    Stop();
                     break;
+                }
             }
             _delay_ms(50);
 
@@ -139,7 +145,10 @@ int main(void)
                     while (1)
                     {
                         if (Push_Forward())
+                        {
+                            Stop();
                             break;
+                        }
                     }
                     _delay_ms(50);
 
@@ -166,7 +175,10 @@ int main(void)
                     while (1)
                     {
                         if (Push_Backward())
+                        {
+                            Stop();
                             break;
+                        }
                     }
                     _delay_ms(50);
 
@@ -212,7 +224,10 @@ int main(void)
                     while (1)
                     {
                         if (Push_Forward())
+                        {
+                            Stop();
                             break;
+                        }
                     }
                     _delay_ms(50);
                     // int counter = 1;
@@ -248,7 +263,10 @@ int main(void)
                     while (1)
                     {
                         if (Push_Backward())
+                        {
+                            Stop();
                             break;
+                        }
                     }
                     _delay_ms(50);
 

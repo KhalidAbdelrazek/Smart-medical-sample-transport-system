@@ -80,6 +80,7 @@ int Push_Forward(void)
 
 	if (Left_IR_B == 1 && Right_IR_B == 1)
 	{
+		Stop();
 		return 1; // already on an intersection – just push through it
 	}
 	else if (Left_IR == 1 && Right_IR == 0)
@@ -91,11 +92,10 @@ int Push_Forward(void)
 		Move_Right();
 	}
 
-	else if ((Left_IR == 0 && Right_IR == 0) || Left_IR == 1 && Right_IR == 1)
+	else if ((Left_IR == 0 && Right_IR == 0) || (Left_IR == 1 && Right_IR == 1))
 	{
 		Move_Up();
 	}
-
 }
 
 int Push_Backward(void)
