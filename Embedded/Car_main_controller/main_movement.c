@@ -80,7 +80,7 @@
 /* =========================================================
  * PRIVATE HELPER — set both PWM channels at once
  * =========================================================*/
-static void set_pwm(uint8_t left_duty, uint8_t right_duty)
+static void set_pwm(unsigned char left_duty, unsigned char right_duty)
 {
     Timer_wave_fastPWM(left_duty);
     Timer2_wave_fastPWM(right_duty);

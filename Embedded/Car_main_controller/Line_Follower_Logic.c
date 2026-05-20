@@ -102,17 +102,17 @@
 static int8_t  last_direction       = 0;
 
 /* Counters for stable-state confirmation.                           */
-static uint8_t fwd_confirm_count    = 0;
-static uint8_t bwd_confirm_count    = 0;
+static unsigned char fwd_confirm_count    = 0;
+static unsigned char bwd_confirm_count    = 0;
 
 /* Line-lost counter for recovery.                                   */
-static uint8_t line_lost_count      = 0;
-static uint8_t recovery_sweep       = 0;
-static uint8_t recovery_cycle_count = 0;
+static unsigned char line_lost_count      = 0;
+static unsigned char recovery_sweep       = 0;
+static unsigned char recovery_cycle_count = 0;
 
 /* Stop-condition confirmation inside Push functions.                */
-static uint8_t push_fwd_stop_confirm = 0;
-static uint8_t push_bwd_stop_confirm = 0;
+static unsigned char push_fwd_stop_confirm = 0;
+static unsigned char push_bwd_stop_confirm = 0;
 
 /* =========================================================
  * PRIVATE HELPERS
@@ -128,10 +128,10 @@ static uint8_t push_bwd_stop_confirm = 0;
  * This eliminates single-sample noise spikes caused by vibration,
  * electrical interference, or imperfect tape edges.
  */
-static uint8_t read_sensor_filtered(char port, uint8_t pin)
+static unsigned char read_sensor_filtered(char port, unsigned char pin)
 {
-    uint8_t count_high = 0;
-    for (uint8_t i = 0; i < SENSOR_SAMPLES; i++)
+    unsigned char count_high = 0;
+    for (unsigned char i = 0; i < SENSOR_SAMPLES; i++)
     {
         if (Button_Read(port, pin) == 1)
             count_high++;
@@ -146,8 +146,8 @@ static uint8_t read_sensor_filtered(char port, uint8_t pin)
  * Reads all four IR sensors (front-left, front-right, back-left,
  * back-right) with filtering.  Populates caller-supplied pointers.
  */
-static void read_all_sensors(uint8_t *fl, uint8_t *fr,
-                              uint8_t *bl, uint8_t *br)
+static void read_all_sensors(unsigned char *fl, unsigned char *fr,
+                              unsigned char *bl, unsigned char *br)
 {
     *fl = read_sensor_filtered('D', 3);   /* front-left              */
     *fr = read_sensor_filtered('D', 4);   /* front-right             */
@@ -168,7 +168,7 @@ static void read_all_sensors(uint8_t *fl, uint8_t *fr,
  * =========================================================*/
 int Decide_Movement(void)
 {
-    uint8_t fl, fr, bl, br;
+    unsigned char fl, fr, bl, br;
     read_all_sensors(&fl, &fr, &bl, &br);
 
     /* ── INTERSECTION: both front sensors detect black ──────────── */
@@ -269,7 +269,7 @@ int Decide_Movement(void)
  * =========================================================*/
 int Back_Decide_Movement(void)
 {
-    uint8_t fl, fr, bl, br;
+    unsigned char fl, fr, bl, br;
     read_all_sensors(&fl, &fr, &bl, &br);
 
     /* ── FRONT INTERSECTION (used by caller to stop) ────────────── */
@@ -376,8 +376,8 @@ void Cross_Intersection_Backward(void)
     uint16_t timeout = 400;   /* ms                                  */
     while (timeout > 0)
     {
-        uint8_t fl = read_sensor_filtered('D', 3);
-        uint8_t fr = read_sensor_filtered('D', 4);
+        unsigned char fl = read_sensor_filtered('D', 3);
+        unsigned char fr = read_sensor_filtered('D', 4);
         if (fl != 1 || fr != 1)
             break;
         Move_Down_Straight();
