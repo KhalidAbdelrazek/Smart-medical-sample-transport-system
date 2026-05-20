@@ -11,6 +11,22 @@
 #include <util/delay.h>
 #include "USART.h"
 
+<<<<<<< HEAD
+
+char Left_IR;
+char Right_IR;
+char Left_IR_B;
+char Right_IR_B;
+Button_Init('D', 3);
+Button_Init('D', 4);
+Button_Init('D', 5);
+Button_Init('D', 6);
+
+// In Line_Follower_Logic.c
+int Decide_Movement()
+{
+	
+=======
 // In Line_Follower_Logic.c
 int Decide_Movement()
 {
@@ -18,6 +34,7 @@ int Decide_Movement()
 	char Right_IR;
 	Button_Init('D', 3);
 	Button_Init('D', 4);
+>>>>>>> 707cb4859e36cf75b27e2e24337aa155f3947e2d
 	Left_IR  = Button_Read('D', 3);
 	Right_IR = Button_Read('D', 4);
 
@@ -32,7 +49,11 @@ int Decide_Movement()
 	else if (Left_IR == 1 && Right_IR == 1)
 	{
 		Stop();
+<<<<<<< HEAD
+		// ? DO NOT send 's' here ï¿½ let main.c handle it ONCE
+=======
 		// ? DO NOT send 's' here — let main.c handle it ONCE
+>>>>>>> 707cb4859e36cf75b27e2e24337aa155f3947e2d
 	}
 	else if (Left_IR == 0 && Right_IR == 0)
 	{
@@ -44,6 +65,18 @@ int Decide_Movement()
 
 int Back_Decide_Movement()
 {
+<<<<<<< HEAD
+	
+	Left_IR_B  = Button_Read('D', 5);
+	Right_IR_B = Button_Read('D', 6);
+
+	// Conditions are SAME as forward, but movements are mirrored
+	if (Left_IR_B == 1 && Right_IR_B == 0)       // line is on the left
+	{
+		Move_Right()   ;                       // steer left while reversing
+	}
+	else if (Left_IR_B == 0 && Right_IR_B == 1)  // line is on the right
+=======
 	char Left_IR;
 	char Right_IR;
 	Button_Init('D', 3);
@@ -57,6 +90,7 @@ int Back_Decide_Movement()
 		Move_Right()   ;                       // steer left while reversing
 	}
 	else if (Left_IR == 0 && Right_IR == 1)  // line is on the right
+>>>>>>> 707cb4859e36cf75b27e2e24337aa155f3947e2d
 	{
 		Move_Left();                        // steer right while reversing
 	}
@@ -64,7 +98,11 @@ int Back_Decide_Movement()
 	{
 		Stop();
 	}
+<<<<<<< HEAD
+	else if (Left_IR_B == 0 && Right_IR_B == 0)  // on track
+=======
 	else if (Left_IR == 0 && Right_IR == 0)  // on track
+>>>>>>> 707cb4859e36cf75b27e2e24337aa155f3947e2d
 	{
 		Move_Down();                          // keep reversing
 	}
