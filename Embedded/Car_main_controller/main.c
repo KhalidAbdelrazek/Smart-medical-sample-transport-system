@@ -39,7 +39,8 @@
 int main(void)
 {
     // -------- Motor Pins Init (Port A) --------
-    for (int i = 0; i < 8; i++) {
+    for (int i = 0; i < 8; i++)
+    {
         DIO_Setpindir('A', i, 1);
     }
 
@@ -63,9 +64,8 @@ int main(void)
     // -------- Main Loop --------
     while (1)
     {
-        
-		
-		Commands = UART_Receive_data();
+
+        Commands = UART_Receive_data();
 
         // ── FORWARD ──────────────────────────────────────────
         if (Commands == 'F')
@@ -74,15 +74,15 @@ int main(void)
 
             while (1)
             {
-                 Push_Forward();
+                if (Push_Forward())
+                    break;
             }
-            
-           
+
             _delay_ms(50);
 
             while (1)
             {
-                char Left_IR  = Button_Read('D', 3);
+                char Left_IR = Button_Read('D', 3);
                 char Right_IR = Button_Read('D', 4);
 
                 if (Left_IR == 1 && Right_IR == 1)
@@ -101,18 +101,19 @@ int main(void)
         {
             UART_Send_string("OK:B\r\n");
 
-            while(1){
-                Push_Backward();
+            while (1)
+            {
+                if (Push_Backward())
+                    break;
             }
             _delay_ms(50);
 
             while (1)
             {
-                char Left_IR  = Button_Read('D', 3);
+                char Left_IR = Button_Read('D', 3);
                 char Right_IR = Button_Read('D', 4);
-                char Left_IR_B  = Button_Read('D', 5);
-	            char Right_IR_B = Button_Read('D', 6);
-
+                char Left_IR_B = Button_Read('D', 5);
+                char Right_IR_B = Button_Read('D', 6);
 
                 if (Left_IR == 1 && Right_IR == 1)
                 {
@@ -135,14 +136,16 @@ int main(void)
                 if (Commands == 'F')
                 {
                     UART_Send_string("OK:F\r\n");
-                    while(1){
-                    Push_Forward();
+                    while (1)
+                    {
+                        if (Push_Forward())
+                            break;
                     }
                     _delay_ms(50);
 
                     while (1)
                     {
-                        char Left_IR  = Button_Read('D', 3);
+                        char Left_IR = Button_Read('D', 3);
                         char Right_IR = Button_Read('D', 4);
 
                         if (Left_IR == 1 && Right_IR == 1)
@@ -160,17 +163,19 @@ int main(void)
                 {
                     UART_Send_string("OK:B\r\n");
 
-                    while(1){
-                    Push_Backward();
+                    while (1)
+                    {
+                        if (Push_Backward())
+                            break;
                     }
                     _delay_ms(50);
 
                     while (1)
                     {
-                        char Left_IR  = Button_Read('D', 3);
+                        char Left_IR = Button_Read('D', 3);
                         char Right_IR = Button_Read('D', 4);
-                        char Left_IR_B  = Button_Read('D', 5);
-	                    char Right_IR_B = Button_Read('D', 6);
+                        char Left_IR_B = Button_Read('D', 5);
+                        char Right_IR_B = Button_Read('D', 6);
 
                         if (Left_IR == 1 && Right_IR == 1)
                         {
@@ -204,21 +209,26 @@ int main(void)
                 if (Commands == 'F')
                 {
                     UART_Send_string("OK:F\r\n");
-                while(1){
-                    Push_Forward();
-                }
-                    _delay_ms(50);
-                    int counter = 1;
-                
                     while (1)
                     {
-                        if (counter == 1) {
-                            while(1){
-                            Push_Forward();
-                            }
-                            counter = 0;
-                        }
-                        char Left_IR  = Button_Read('D', 3);
+                        if (Push_Forward())
+                            break;
+                    }
+                    _delay_ms(50);
+                    // int counter = 1;
+
+                    while (1)
+                    {
+                        // if (counter == 1)
+                        // {
+                        //     while (1)
+                        //     {
+                        //         if (Push_Forward())
+                        //             break;
+                        //     }
+                        //     counter = 0;
+                        // }
+                        char Left_IR = Button_Read('D', 3);
                         char Right_IR = Button_Read('D', 4);
 
                         if (Left_IR == 1 && Right_IR == 1)
@@ -235,17 +245,19 @@ int main(void)
                 else if (Commands == 'B')
                 {
                     UART_Send_string("OK:B\r\n");
-                    while(1){
-                    Push_Backward();
+                    while (1)
+                    {
+                        if (Push_Backward())
+                            break;
                     }
                     _delay_ms(50);
 
                     while (1)
                     {
-                        char Left_IR  = Button_Read('D', 3);
+                        char Left_IR = Button_Read('D', 3);
                         char Right_IR = Button_Read('D', 4);
-                        char Left_IR_B  = Button_Read('D', 5);
-	                    char Right_IR_B = Button_Read('D', 6);
+                        char Left_IR_B = Button_Read('D', 5);
+                        char Right_IR_B = Button_Read('D', 6);
 
                         if (Left_IR == 1 && Right_IR == 1)
                         {
@@ -296,43 +308,46 @@ int main(void)
         //
         else if (Commands == '1' || Commands == '2' || Commands == '3')
         {
-			int linesToSkip = 0;
-			if (Commands == '1')
-			{
-				linesToSkip = 0;
-			}
-			else if (Commands == '2')
-			{
-				linesToSkip = 1;
-			}
-			else if (Commands == '3')
-			{
-				linesToSkip = 2;
-			}
+            int linesToSkip = 0;
+            if (Commands == '1')
+            {
+                linesToSkip = 0;
+            }
+            else if (Commands == '2')
+            {
+                linesToSkip = 1;
+            }
+            else if (Commands == '3')
+            {
+                linesToSkip = 2;
+            }
             // Number of lines to SKIP before stopping
             // int linesToSkip = (Commands - '0') - 1;  // '1'->0, '2'->1, '3'->2
             int lines_skipped = 0;
 
             // Debug acknowledgement
-            if      (Commands == '1') UART_Send_string("OK:1\r\n");
-            else if (Commands == '2') UART_Send_string("OK:2\r\n");
-            else                      UART_Send_string("OK:3\r\n");
+            if (Commands == '1')
+                UART_Send_string("OK:1\r\n");
+            else if (Commands == '2')
+                UART_Send_string("OK:2\r\n");
+            else
+                UART_Send_string("OK:3\r\n");
 
             // Small initial push to get off any current intersection
             while (1)
             {
-               Push_Backward();
+                if (Push_Forward())
+                    break;
             }
-            
-            
+
             _delay_ms(50);
 
             while (1)
             {
-                char Left_IR  = Button_Read('D', 3);
+                char Left_IR = Button_Read('D', 3);
                 char Right_IR = Button_Read('D', 4);
-                char Left_IR_B  = Button_Read('D', 5);
-	            char Right_IR_B = Button_Read('D', 6);
+                char Left_IR_B = Button_Read('D', 5);
+                char Right_IR_B = Button_Read('D', 6);
 
                 if (Left_IR == 1 && Right_IR == 1)
                 {
@@ -341,10 +356,10 @@ int main(void)
                     {
                         // Push through this line (~120 ms clears 2 cm stripe)
                         while (1)
-                         {
-                         Push_Backward();
-                         }
-                       
+                        {
+                            if (Push_Backward())
+                                break;
+                        }
 
                         // Wait until both sensors leave the black line
                         // while (1)
@@ -384,7 +399,5 @@ int main(void)
             _delay_ms(2000);
             LED_Off('C', 7);
         }
-		
-		
     }
 }
