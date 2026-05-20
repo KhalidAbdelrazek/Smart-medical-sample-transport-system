@@ -27,11 +27,11 @@ int Decide_Movement()
 
 	if (Left_IR == 1 && Right_IR == 0)
 	{
-		Move_Left();
+		Move_Left_correction();
 	}
 	else if (Left_IR == 0 && Right_IR == 1)
 	{
-		Move_Right();
+		Move_Right_correction();
 	}
 	else if (Left_IR == 1 && Right_IR == 1)
 	{
@@ -55,11 +55,11 @@ int Back_Decide_Movement()
 	// Conditions are SAME as forward, but movements are mirrored
 	if (Left_IR_B == 1 && Right_IR_B == 0)       // line is on the left
 	{
-		Move_Right()   ;                       // steer left while reversing
+		Move_Right_correction()   ;                       // steer left while reversing
 	}
 	else if (Left_IR_B == 0 && Right_IR_B == 1)  // line is on the right
 	{
-		Move_Left();                        // steer right while reversing
+		Move_Left_correction();                        // steer right while reversing
 	}
 	else if (Left_IR == 1 && Right_IR == 1)  // intersection
 	{
@@ -75,42 +75,56 @@ int Back_Decide_Movement()
 
 int Push_Forward(void)
 {
-	Move_Up();
-	_delay_ms(500);
-	Stop();
-	//_delay_ms(250);
+	Left_IR  = Button_Read('D', 3);
+	Right_IR = Button_Read('D', 4);
+	Left_IR_B  = Button_Read('D', 5);
+	Right_IR_B = Button_Read('D', 6);
+
+	if (Left_IR == 1 && Right_IR == 0)
+	{
+		Move_Left_correction();
+	}
+	else if (Left_IR == 0 && Right_IR == 1)
+	{
+		Move_Right_correction();
+	}
+	
+	else if (Left_IR == 0 && Right_IR == 0)
+	{
+		Move_Up();
+	}
+	else if (Left_IR_B == 1 && Right_IR_B == 1)
+	{
+		break; // already on an intersection – just push through it
+	}
+	
+	
 }
 
 
 int Push_Backward(void)
 {
-	Move_Down();
-	_delay_ms(500);
-	Stop();
-	//_delay_ms(250);
-}
+	Left_IR  = Button_Read('D', 3);
+	Right_IR = Button_Read('D', 4);
+	Left_IR_B  = Button_Read('D', 5);
+	Right_IR_B = Button_Read('D', 6);
 
-int Pve_Rotate(char pve_state)
-{
-	if(pve_state == 1)
+	if (Left_IR_B == 1 && Right_IR_B == 0)
 	{
-		Move_Right();
+		Move_Left_correction();
 	}
-	else
+	else if (Left_IR_B == 0 && Right_IR_B == 1)
 	{
-		Stop();
+		Move_Right_correction();
 	}
-}
-
-int Nve_Rotate(char nve_state)
-{
-	if(nve_state == 1)
+	
+	else if (Left_IR == 1 && Right_IR == 1)
 	{
-		Move_Left();
+		Move_Down();
 	}
-	else
+	else if ((Left_IR == 0 && Right_IR == 0))
 	{
-		Stop();
+		break; // already on an intersection – just push through it
 	}
 }
 

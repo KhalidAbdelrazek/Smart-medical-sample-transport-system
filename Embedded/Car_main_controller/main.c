@@ -72,7 +72,12 @@ int main(void)
         {
             UART_Send_string("OK:F\r\n");
 
-            Push_Forward();
+            while (1)
+            {
+                 Push_Forward();
+            }
+            
+           
             _delay_ms(50);
 
             while (1)
@@ -305,8 +310,13 @@ int main(void)
             else                      UART_Send_string("OK:3\r\n");
 
             // Small initial push to get off any current intersection
-            Push_Backward();
-            _delay_ms(80);
+            while (1)
+            {
+               Push_Backward();
+            }
+            
+            
+            _delay_ms(50);
 
             while (1)
             {
@@ -321,18 +331,21 @@ int main(void)
                     if (lines_skipped < linesToSkip)
                     {
                         // Push through this line (~120 ms clears 2 cm stripe)
-                        Push_Backward();
-                        _delay_ms(120);
+                        while (1)
+                         {
+                         Push_Backward();
+                         }
+                       
 
                         // Wait until both sensors leave the black line
-                        while (1)
-                        {
-                            char L = Button_Read('D', 3);
-                            char R = Button_Read('D', 4);
-                            if (L != 1 || R != 1) break;   // off the line
-                            Push_Backward();                // keep pushing
-                            _delay_ms(10);
-                        }
+                        // while (1)
+                        // {
+                        //     char L = Button_Read('D', 3);
+                        //     char R = Button_Read('D', 4);
+                        //     if (L != 1 || R != 1) break;   // off the line
+                        //     Push_Backward();                // keep pushing
+                        //     _delay_ms(10);
+                        // }
 
                         lines_skipped++;
                         // Continue backward line-following
@@ -354,7 +367,7 @@ int main(void)
             }
         }
 
-        // ── LED TEST ─────────────────────────────────────────
+        // ── BUZZER TEST ─────────────────────────────────────────
         else if (Commands == 'X')
         {
             UART_Send_string("OK:K\r\n");
