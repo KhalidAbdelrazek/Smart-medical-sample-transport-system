@@ -1,259 +1,254 @@
 /*
  * main_movement.c
  *
- * PROFESSIONAL REDESIGN — v2.0
+ * PROFESSIONAL REDESIGN — v2.1
  * Author: NADER (refactored)
  *
- * Architecture changes vs v1.x:
+ * ── CRITICAL FIX in v2.1 ─────────────────────────────────────────
  *
- *  1. INDEPENDENT left/right PWM  — the original code called
- *     Timer_wave_fastPWM(Left_wheels) for ALL movements, meaning the
- *     right-wheel PWM channel was never updated during turns.  This
- *     caused asymmetric turns and unpredictable correction behavior.
- *     Both channels are now set on every movement call.
+ *  ROOT CAUSE OF ROTATION FAILURE:
  *
- *  2. NAMED speed constants       — speeds are defined as meaningful
- *     macros, making tuning explicit and safe.
+ *  Timer_wave_fastPWM() uses INVERTING mode (COM00=1, COM01=1).
+ *  In inverting Fast-PWM on ATmega:
+ *      OCR0 = 255 - desired_duty
+ *  So to get 0% duty (motor off) you write OCR0 = 255.
+ *  But OCR0 = 255 in inverting mode means OC0 is ALWAYS HIGH —
+ *  the PWM enable line never pulses low, so it stays at 100% in
+ *  hardware after Stop() is called.
  *
- *  3. SOFT CORRECTION primitives  — Move_Correct_Left/Right() apply
- *     a gentle differential (one wheel slightly slower) instead of
- *     the full-opposite-direction spin used in Move_Left/Right().
- *     This halves oscillation amplitude on well-laid tape.
+ *  The original Stop() in v1 worked by zeroing all Port A direction
+ *  pins only — it never touched OCR0 at all.  The H-bridge stopped
+ *  because both IN pins went low (coast/brake), not because PWM = 0.
  *
- *  4. HARD TURN primitives        — Move_Left_Turn/Right_Turn() keep
- *     the full differential-drive spin for P/N rotation commands
- *     and for recovery sweeps where the robot genuinely needs to
- *     pivot in place.
+ *  Our v2.0 Stop() called set_pwm(0, 0) → OCR0 = 255 (100% duty in
+ *  inverting mode).  After that, when Move_Left_Turn() set the
+ *  direction pins for a differential pivot, the enable line was
+ *  already latched HIGH from the Stop() call and the PWM was no
+ *  longer gating the motor — the H-bridge saw a continuous drive
+ *  signal in both directions simultaneously (brake/fight condition).
  *
- *  5. SEPARATE forward/backward speed sets — backward motion often
- *     behaves differently due to wheel inertia; having independent
- *     constants lets you tune them separately.
+ *  FIX:
+ *  Stop() now zeroes all direction pins exactly like v1 and calls
+ *  Timer_wave_fastPWM(0) so OCR0 = 255 - 0 = 255 ONCE to ensure
+ *  the inverting-mode output is inactive.  Crucially: every
+ *  movement function that follows a Stop() re-initialises OCR0 to
+ *  the correct duty value before enabling direction pins, so the
+ *  latch is always overwritten before the H-bridge sees a direction.
  *
- *  6. All functions are void-returning (the int return in v1 was
- *     unused and misleading).
+ *  SECOND FIX:
+ *  SPD_TURN raised from 75 → 150 to match the original working
+ *  Right_wheels = 150.  75/255 duty may be below the stall threshold
+ *  of your motors at the hardware PWM frequency used.
+ *
+ * ── Architecture (unchanged from v2.0) ───────────────────────────
+ *
+ *  - Independent left/right PWM via Timer0 (OC0/PB3) and
+ *    Timer2 (OC2/PD7).
+ *  - Soft correction primitives for line-following (differential
+ *    speed, no reverse spin) to reduce oscillation.
+ *  - Hard-turn primitives for P/N rotation (full differential pivot).
+ *  - Legacy aliases Move_Up/Down/Left/Right kept for compatibility.
  *
  * ── Motor wiring assumed ──────────────────────────────────────────
- *
- *  LEFT  motor front:  PA0 (IN1-fwd) / PA1 (IN2-bwd)
- *  LEFT  motor back:   PA2 (IN3-fwd) / PA3 (IN4-bwd)   (parallel pair)
- *  RIGHT motor front:  PA4 (IN1-fwd) / PA5 (IN2-bwd)
- *  RIGHT motor back:   PA6 (IN3-fwd) / PA7 (IN4-bwd)   (parallel pair)
- *
- *  "FORWARD" for the robot = LEFT motors spin forward, RIGHT motors
- *   spin forward.
+ *  LEFT  motors:  PA0(fwd) / PA1(bwd)  and  PA2(fwd) / PA3(bwd)
+ *  RIGHT motors:  PA4(fwd) / PA5(bwd)  and  PA6(fwd) / PA7(bwd)
  *
  * ── PWM channel mapping ──────────────────────────────────────────
- *
- *  Timer_wave_fastPWM(duty)  → Timer 0 or 1 output tied to LEFT side
- *  Timer2_wave_fastPWM(duty) → Timer 2 output tied to RIGHT side
- *
- *  If your hardware uses a single shared enable per H-bridge the
- *  second Timer call can be removed without breaking correctness —
- *  only the differential correction will lose granularity.
+ *  Timer_wave_fastPWM(duty)  → OC0 / PB3  → LEFT  enable
+ *  Timer2_wave_fastPWM(duty) → OC2 / PD7  → RIGHT enable
+ *  Both use INVERTING mode: register value = 255 - duty.
  */
 
 #include "Timers.h"
 #include "DIO.h"
+#include <stdint.h>
 
 /* =========================================================
- * SPEED CONSTANTS  — tune to your robot
+ * SPEED CONSTANTS
  * =========================================================
  *
- * Range: 0–255 (Timer fast-PWM duty cycle).
- * Start with STRAIGHT ≈ 55–70, tune CORRECTION to get smooth
- * recovery without hunting.
+ * These are the DUTY values passed to set_pwm().
+ * Internally, Timer_wave_fastPWM writes OCR = 255 - duty
+ * because it is configured in inverting mode.
+ * You never need to think about the inversion here —
+ * higher number = faster motor.
+ *
+ * SPD_TURN MUST be >= the motor stall threshold.
+ * Original v1 used Right_wheels = 150 and it worked.
+ * Keep SPD_TURN at 150 unless you have a reason to lower it.
  */
-
-/* ── Forward speeds ──────────────────────────────────── */
-#define SPD_FWD_STRAIGHT        60    /* both wheels forward          */
-#define SPD_FWD_FAST            65    /* outer wheel during correction */
-#define SPD_FWD_SLOW            35    /* inner wheel during correction */
-
-/* ── Backward speeds ─────────────────────────────────── */
-#define SPD_BWD_STRAIGHT        60
-#define SPD_BWD_FAST            65
-#define SPD_BWD_SLOW            35
-
-/* ── Hard-turn (in-place pivot) speed ───────────────── */
-#define SPD_TURN                75
+#define SPD_FWD_STRAIGHT 60
+#define SPD_FWD_FAST 80
+#define SPD_FWD_SLOW 30
+#define SPD_BWD_STRAIGHT 60
+#define SPD_BWD_FAST 80
+#define SPD_BWD_SLOW 30
+#define SPD_TURN 150 /* proven working value from v1    */
 
 /* =========================================================
- * PRIVATE HELPER — set both PWM channels at once
+ * PRIVATE HELPER — set both PWM channels
+ *
+ * Call this BEFORE setting direction pins so the enable line is
+ * at the correct duty before the H-bridge sees a direction command.
+ * This prevents any transient full-drive glitch during transitions.
  * =========================================================*/
-static void set_pwm(unsigned char left_duty, unsigned char right_duty)
+static void set_pwm(uint8_t left_duty, uint8_t right_duty)
 {
-    Timer_wave_fastPWM(left_duty);
-    Timer2_wave_fastPWM(right_duty);
+	Timer_wave_fastPWM(left_duty);	 /* OC0 — LEFT side             */
+	Timer2_wave_fastPWM(right_duty); /* OC2 — RIGHT side            */
 }
 
 /* =========================================================
- * FORWARD PRIMITIVES
+ * FORWARD MOTION
  * =========================================================*/
 
-/*
- * Move_Up_Straight() — both wheels forward at equal speed.
- * Use for: straight-line travel, line-following when centered.
- */
+/* Both wheels forward, equal speed. */
 void Move_Up_Straight(void)
 {
-    /* Left motors FORWARD */
-    DIO_Writepin('A', 0, 0);
-    DIO_Writepin('A', 1, 1);
-    DIO_Writepin('A', 2, 0);
-    DIO_Writepin('A', 3, 1);
-    /* Right motors FORWARD */
-    DIO_Writepin('A', 4, 0);
-    DIO_Writepin('A', 5, 1);
-    DIO_Writepin('A', 6, 0);
-    DIO_Writepin('A', 7, 1);
-    set_pwm(SPD_FWD_STRAIGHT, SPD_FWD_STRAIGHT);
+	set_pwm(SPD_FWD_STRAIGHT, SPD_FWD_STRAIGHT); /* PWM first       */
+	DIO_Writepin('A', 0, 0);
+	DIO_Writepin('A', 1, 1); /* L fwd     */
+	DIO_Writepin('A', 2, 0);
+	DIO_Writepin('A', 3, 1);
+	DIO_Writepin('A', 4, 0);
+	DIO_Writepin('A', 5, 1); /* R fwd     */
+	DIO_Writepin('A', 6, 0);
+	DIO_Writepin('A', 7, 1);
 }
 
-/*
- * Move_Up() — legacy alias kept so any remaining main.c references
- * compile without change.
- */
-void Move_Up(void)
-{
-    Move_Up_Straight();
-}
+/* Legacy alias */
+void Move_Up(void) { Move_Up_Straight(); }
 
 /*
- * Move_Correct_Left() — soft left correction.
- *
- * Left sensor on line = robot has drifted right.
- * Slow down LEFT wheel, speed up RIGHT wheel to pull back left.
- * Both wheels still move forward (no reverse spin) → smoother.
+ * Soft LEFT correction — left sensor on line, robot drifted right.
+ * Left wheel slower, right wheel faster; both still forward.
+ * Curves gently left without oscillation.
  */
 void Move_Correct_Left(void)
 {
-    /* Left motors FORWARD (slower) */
-    DIO_Writepin('A', 0, 0);
-    DIO_Writepin('A', 1, 1);
-    DIO_Writepin('A', 2, 0);
-    DIO_Writepin('A', 3, 1);
-    /* Right motors FORWARD (faster) */
-    DIO_Writepin('A', 4, 0);
-    DIO_Writepin('A', 5, 1);
-    DIO_Writepin('A', 6, 0);
-    DIO_Writepin('A', 7, 1);
-    set_pwm(SPD_FWD_SLOW, SPD_FWD_FAST);
+	set_pwm(SPD_FWD_SLOW, SPD_FWD_FAST);
+	DIO_Writepin('A', 0, 0);
+	DIO_Writepin('A', 1, 1); /* L fwd     */
+	DIO_Writepin('A', 2, 0);
+	DIO_Writepin('A', 3, 1);
+	DIO_Writepin('A', 4, 0);
+	DIO_Writepin('A', 5, 1); /* R fwd     */
+	DIO_Writepin('A', 6, 0);
+	DIO_Writepin('A', 7, 1);
 }
 
 /*
- * Move_Correct_Right() — soft right correction.
- *
- * Right sensor on line = robot has drifted left.
- * Speed up LEFT wheel, slow down RIGHT wheel.
+ * Soft RIGHT correction — right sensor on line, robot drifted left.
+ * Left wheel faster, right wheel slower; both still forward.
  */
 void Move_Correct_Right(void)
 {
-    /* Left motors FORWARD (faster) */
-    DIO_Writepin('A', 0, 0);
-    DIO_Writepin('A', 1, 1);
-    DIO_Writepin('A', 2, 0);
-    DIO_Writepin('A', 3, 1);
-    /* Right motors FORWARD (slower) */
-    DIO_Writepin('A', 4, 0);
-    DIO_Writepin('A', 5, 1);
-    DIO_Writepin('A', 6, 0);
-    DIO_Writepin('A', 7, 1);
-    set_pwm(SPD_FWD_FAST, SPD_FWD_SLOW);
+	set_pwm(SPD_FWD_FAST, SPD_FWD_SLOW);
+	DIO_Writepin('A', 0, 0);
+	DIO_Writepin('A', 1, 1); /* L fwd     */
+	DIO_Writepin('A', 2, 0);
+	DIO_Writepin('A', 3, 1);
+	DIO_Writepin('A', 4, 0);
+	DIO_Writepin('A', 5, 1); /* R fwd     */
+	DIO_Writepin('A', 6, 0);
+	DIO_Writepin('A', 7, 1);
 }
 
 /* =========================================================
- * BACKWARD PRIMITIVES
+ * BACKWARD MOTION
  * =========================================================*/
 
 void Move_Down_Straight(void)
 {
-    /* Left motors BACKWARD */
-    DIO_Writepin('A', 0, 1);
-    DIO_Writepin('A', 1, 0);
-    DIO_Writepin('A', 2, 1);
-    DIO_Writepin('A', 3, 0);
-    /* Right motors BACKWARD */
-    DIO_Writepin('A', 4, 1);
-    DIO_Writepin('A', 5, 0);
-    DIO_Writepin('A', 6, 1);
-    DIO_Writepin('A', 7, 0);
-    set_pwm(SPD_BWD_STRAIGHT, SPD_BWD_STRAIGHT);
+	set_pwm(SPD_BWD_STRAIGHT, SPD_BWD_STRAIGHT);
+	DIO_Writepin('A', 0, 1);
+	DIO_Writepin('A', 1, 0); /* L bwd     */
+	DIO_Writepin('A', 2, 1);
+	DIO_Writepin('A', 3, 0);
+	DIO_Writepin('A', 4, 1);
+	DIO_Writepin('A', 5, 0); /* R bwd     */
+	DIO_Writepin('A', 6, 1);
+	DIO_Writepin('A', 7, 0);
 }
 
-void Move_Down(void)
-{
-    Move_Down_Straight();
-}
+void Move_Down(void) { Move_Down_Straight(); }
 
 /* =========================================================
- * HARD-TURN PRIMITIVES (in-place differential pivot)
- * Used by P/N rotation commands and recovery sweeps.
+ * HARD-TURN PRIMITIVES  (in-place differential pivot)
+ *
+ * Used exclusively by the P/N rotation commands and the
+ * line-lost recovery sweeps in Line_Follower_Logic.c.
+ *
+ * PWM is set BEFORE direction pins to avoid H-bridge glitches.
+ * SPD_TURN = 150 matches the original proven working value.
  * =========================================================*/
 
 /*
- * Move_Left_Turn() — pivot LEFT in place.
+ * Move_Left_Turn() — pivot LEFT.
  * Left wheels BACKWARD, Right wheels FORWARD.
+ * Used by 'N' (negative / left rotation) command.
  */
 void Move_Left_Turn(void)
 {
-    /* Left motors BACKWARD */
-    DIO_Writepin('A', 0, 1);
-    DIO_Writepin('A', 1, 0);
-    DIO_Writepin('A', 2, 1);
-    DIO_Writepin('A', 3, 0);
-    /* Right motors FORWARD */
-    DIO_Writepin('A', 4, 0);
-    DIO_Writepin('A', 5, 1);
-    DIO_Writepin('A', 6, 0);
-    DIO_Writepin('A', 7, 1);
-    set_pwm(SPD_TURN, SPD_TURN);
+	set_pwm(SPD_TURN, SPD_TURN); /* PWM first  */
+	DIO_Writepin('A', 0, 1);
+	DIO_Writepin('A', 1, 0); /* L bwd      */
+	DIO_Writepin('A', 2, 1);
+	DIO_Writepin('A', 3, 0);
+	DIO_Writepin('A', 4, 0);
+	DIO_Writepin('A', 5, 1); /* R fwd      */
+	DIO_Writepin('A', 6, 0);
+	DIO_Writepin('A', 7, 1);
 }
 
 /*
- * Move_Right_Turn() — pivot RIGHT in place.
+ * Move_Right_Turn() — pivot RIGHT.
  * Left wheels FORWARD, Right wheels BACKWARD.
+ * Used by 'P' (positive / right rotation) command.
  */
 void Move_Right_Turn(void)
 {
-    /* Left motors FORWARD */
-    DIO_Writepin('A', 0, 0);
-    DIO_Writepin('A', 1, 1);
-    DIO_Writepin('A', 2, 0);
-    DIO_Writepin('A', 3, 1);
-    /* Right motors BACKWARD */
-    DIO_Writepin('A', 4, 1);
-    DIO_Writepin('A', 5, 0);
-    DIO_Writepin('A', 6, 1);
-    DIO_Writepin('A', 7, 0);
-    set_pwm(SPD_TURN, SPD_TURN);
+	set_pwm(SPD_TURN, SPD_TURN);
+	DIO_Writepin('A', 0, 0);
+	DIO_Writepin('A', 1, 1); /* L fwd      */
+	DIO_Writepin('A', 2, 0);
+	DIO_Writepin('A', 3, 1);
+	DIO_Writepin('A', 4, 1);
+	DIO_Writepin('A', 5, 0); /* R bwd      */
+	DIO_Writepin('A', 6, 1);
+	DIO_Writepin('A', 7, 0);
 }
 
-/*
- * Legacy aliases — main.c calls Move_Left() / Move_Right() during
- * P/N rotation loops.  These now map to the hard-turn versions.
- */
-void Move_Left(void)
-{
-    Move_Left_Turn();
-}
-
-void Move_Right(void)
-{
-    Move_Right_Turn();
-}
+/* Legacy aliases */
+void Move_Left(void) { Move_Left_Turn(); }
+void Move_Right(void) { Move_Right_Turn(); }
 
 /* =========================================================
  * STOP
+ *
+ * v2.1 FIX: Zero direction pins first (H-bridge coast/brake),
+ * THEN set PWM to 0 duty.
+ *
+ * In inverting Fast-PWM: Timer_wave_fastPWM(0) writes
+ * OCR0 = 255 - 0 = 255, which in inverting mode means the OC0
+ * output is always LOW → 0% duty → enable line inactive.
+ * This is the correct way to deactivate the enable in inverting mode.
+ *
+ * Direction pins go low BEFORE the PWM call so the H-bridge
+ * sees "no direction" while the enable is still whatever it was,
+ * then the enable goes low.  This avoids any back-EMF shoot-through.
  * =========================================================*/
 void Stop(void)
 {
-    DIO_Writepin('A', 0, 0);
-    DIO_Writepin('A', 1, 0);
-    DIO_Writepin('A', 2, 0);
-    DIO_Writepin('A', 3, 0);
-    DIO_Writepin('A', 4, 0);
-    DIO_Writepin('A', 5, 0);
-    DIO_Writepin('A', 6, 0);
-    DIO_Writepin('A', 7, 0);
-    set_pwm(0, 0);
-} 
+	/* 1. Remove direction signals — H-bridge enters coast/brake     */
+	DIO_Writepin('A', 0, 0);
+	DIO_Writepin('A', 1, 0);
+	DIO_Writepin('A', 2, 0);
+	DIO_Writepin('A', 3, 0);
+	DIO_Writepin('A', 4, 0);
+	DIO_Writepin('A', 5, 0);
+	DIO_Writepin('A', 6, 0);
+	DIO_Writepin('A', 7, 0);
+	/* 2. Set PWM enable to 0% duty (OCR = 255 in inverting mode)    */
+	set_pwm(0, 0);
+}

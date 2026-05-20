@@ -73,14 +73,14 @@
  */
 static void run_forward_until_intersection(void)
 {
-    Push_Forward();         /* 80 ms rolling start, exits intersection  */
+    Push_Forward(); /* 80 ms rolling start, exits intersection  */
 
     while (1)
     {
         if (Decide_Movement() == 1)
         {
             /* Decide_Movement already called Stop() internally.        */
-            _delay_ms(40);          /* motor coast-down                 */
+            _delay_ms(40); /* motor coast-down                 */
             UART_Send_string("s\r\n");
             break;
         }
@@ -94,7 +94,7 @@ static void run_forward_until_intersection(void)
  */
 static void run_backward_until_intersection(void)
 {
-    Push_Backward();        /* 80 ms rolling start                      */
+    Push_Backward(); /* 80 ms rolling start                      */
 
     while (1)
     {
@@ -117,10 +117,10 @@ int main(void)
         DIO_Setpindir('A', i, 1);
 
     /* ── Port D: IR sensor inputs ──────────────────────── */
-    Button_Init('D', 3);    /* front-left                              */
-    Button_Init('D', 4);    /* front-right                             */
-    Button_Init('D', 5);    /* back-left                               */
-    Button_Init('D', 6);    /* back-right                              */
+    Button_Init('D', 3); /* front-left                              */
+    Button_Init('D', 4); /* front-right                             */
+    Button_Init('D', 5); /* back-left                               */
+    Button_Init('D', 6); /* back-right                              */
 
     /* ── Status LEDs ───────────────────────────────────── */
     LED_Init('C', 0);
@@ -170,18 +170,33 @@ int main(void)
         {
             UART_Send_string("OK:P\r\n");
 
+            /* Start rotating immediately */
+            Move_Right_Turn();
+
             while (1)
             {
+                /* Non-blocking UART check */
+                if (!(UCSRA & (1 << RXC)))
+                {
+                    /* No byte yet — keep rotating */
+                    Move_Right_Turn();
+                    continue;
+                }
+
                 cmd = UART_Receive_data();
 
                 if (cmd == 'F')
                 {
+                    Stop();
+                    _delay_ms(40);
                     UART_Send_string("OK:F\r\n");
                     run_forward_until_intersection();
                     break;
                 }
                 else if (cmd == 'B')
                 {
+                    Stop();
+                    _delay_ms(40);
                     UART_Send_string("OK:B\r\n");
                     run_backward_until_intersection();
                     break;
@@ -195,36 +210,46 @@ int main(void)
                 }
                 else if (cmd == '\n' || cmd == '\r')
                 {
-                    /* ignore — keep rotating                         */
-                }
-                else
-                {
-                    /* keep rotating while waiting for RPi command    */
                     Move_Right_Turn();
                 }
+                /* any other byte: keep rotating */
             }
         }
 
         /* ══════════════════════════════════════════════
          * 'N' — NEGATIVE (LEFT) ROTATION
-         * Rotate left until RPi sends 'F', 'B', or 'S'.
          * ══════════════════════════════════════════════*/
         else if (cmd == 'N')
         {
             UART_Send_string("OK:N\r\n");
 
+            /* Start rotating immediately */
+            Move_Left_Turn();
+
             while (1)
             {
+                /* Non-blocking UART check */
+                if (!(UCSRA & (1 << RXC)))
+                {
+                    /* No byte yet — keep rotating */
+                    Move_Left_Turn();
+                    continue;
+                }
+
                 cmd = UART_Receive_data();
 
                 if (cmd == 'F')
                 {
+                    Stop();
+                    _delay_ms(40);
                     UART_Send_string("OK:F\r\n");
                     run_forward_until_intersection();
                     break;
                 }
                 else if (cmd == 'B')
                 {
+                    Stop();
+                    _delay_ms(40);
                     UART_Send_string("OK:B\r\n");
                     run_backward_until_intersection();
                     break;
@@ -238,23 +263,10 @@ int main(void)
                 }
                 else if (cmd == '\n' || cmd == '\r')
                 {
-                    /* ignore                                         */
-                }
-                else
-                {
                     Move_Left_Turn();
                 }
+                /* any other byte: keep rotating */
             }
-        }
-
-        /* ══════════════════════════════════════════════
-         * 'S' — STOP
-         * ══════════════════════════════════════════════*/
-        else if (cmd == 'S')
-        {
-            Stop();
-            _delay_ms(40);
-            UART_Send_string("OK:S\r\n");
         }
 
         /* ══════════════════════════════════════════════
@@ -266,15 +278,18 @@ int main(void)
          * ══════════════════════════════════════════════*/
         else if (cmd == '1' || cmd == '2' || cmd == '3')
         {
-            int lines_to_skip = (int)(cmd - '0') - 1;   /* 0, 1, or 2 */
+            int lines_to_skip = (int)(cmd - '0') - 1; /* 0, 1, or 2 */
             int lines_skipped = 0;
 
-            if      (cmd == '1') UART_Send_string("OK:1\r\n");
-            else if (cmd == '2') UART_Send_string("OK:2\r\n");
-            else                 UART_Send_string("OK:3\r\n");
+            if (cmd == '1')
+                UART_Send_string("OK:1\r\n");
+            else if (cmd == '2')
+                UART_Send_string("OK:2\r\n");
+            else
+                UART_Send_string("OK:3\r\n");
 
             /* Initial push to clear any current intersection.       */
-            Push_Backward();     /* 80 ms — exits current tape stripe */
+            Push_Backward(); /* 80 ms — exits current tape stripe */
 
             while (1)
             {
