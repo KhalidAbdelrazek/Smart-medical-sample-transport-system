@@ -101,7 +101,9 @@ int main(void)
         {
             UART_Send_string("OK:B\r\n");
 
-            Push_Backward();
+            while(1){
+                Push_Backward();
+            }
             _delay_ms(50);
 
             while (1)
@@ -133,9 +135,10 @@ int main(void)
                 if (Commands == 'F')
                 {
                     UART_Send_string("OK:F\r\n");
-
+                    while(1){
                     Push_Forward();
-                    _delay_ms(150);
+                    }
+                    _delay_ms(50);
 
                     while (1)
                     {
@@ -157,8 +160,10 @@ int main(void)
                 {
                     UART_Send_string("OK:B\r\n");
 
+                    while(1){
                     Push_Backward();
-                    _delay_ms(150);
+                    }
+                    _delay_ms(50);
 
                     while (1)
                     {
@@ -199,15 +204,18 @@ int main(void)
                 if (Commands == 'F')
                 {
                     UART_Send_string("OK:F\r\n");
-
+                while(1){
                     Push_Forward();
+                }
                     _delay_ms(50);
                     int counter = 1;
-
+                
                     while (1)
                     {
                         if (counter == 1) {
+                            while(1){
                             Push_Forward();
+                            }
                             counter = 0;
                         }
                         char Left_IR  = Button_Read('D', 3);
@@ -227,8 +235,9 @@ int main(void)
                 else if (Commands == 'B')
                 {
                     UART_Send_string("OK:B\r\n");
-
+                    while(1){
                     Push_Backward();
+                    }
                     _delay_ms(50);
 
                     while (1)

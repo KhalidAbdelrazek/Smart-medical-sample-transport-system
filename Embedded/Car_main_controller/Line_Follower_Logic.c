@@ -27,11 +27,11 @@ int Decide_Movement()
 
 	if (Left_IR == 1 && Right_IR == 0)
 	{
-		Move_Left_correction();
+		Move_Left();
 	}
 	else if (Left_IR == 0 && Right_IR == 1)
 	{
-		Move_Right_correction();
+		Move_Right();
 	}
 	else if (Left_IR == 1 && Right_IR == 1)
 	{
@@ -55,11 +55,11 @@ int Back_Decide_Movement()
 	// Conditions are SAME as forward, but movements are mirrored
 	if (Left_IR_B == 1 && Right_IR_B == 0)       // line is on the left
 	{
-		Move_Right_correction()   ;                       // steer left while reversing
+		Move_Right()   ;                       // steer left while reversing
 	}
 	else if (Left_IR_B == 0 && Right_IR_B == 1)  // line is on the right
 	{
-		Move_Left_correction();                        // steer right while reversing
+		Move_Left();                        // steer right while reversing
 	}
 	else if (Left_IR == 1 && Right_IR == 1)  // intersection
 	{
@@ -82,11 +82,11 @@ int Push_Forward(void)
 
 	if (Left_IR == 1 && Right_IR == 0)
 	{
-		Move_Left_correction();
+		Move_Left();
 	}
 	else if (Left_IR == 0 && Right_IR == 1)
 	{
-		Move_Right_correction();
+		Move_Right();
 	}
 	
 	else if (Left_IR == 0 && Right_IR == 0)
@@ -111,11 +111,11 @@ int Push_Backward(void)
 
 	if (Left_IR_B == 1 && Right_IR_B == 0)
 	{
-		Move_Left_correction();
+		Move_Left();
 	}
 	else if (Left_IR_B == 0 && Right_IR_B == 1)
 	{
-		Move_Right_correction();
+		Move_Right();
 	}
 	
 	else if (Left_IR == 1 && Right_IR == 1)

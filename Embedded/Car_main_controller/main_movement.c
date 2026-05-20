@@ -21,7 +21,7 @@ int Move_Up(void)
 	DIO_Writepin('A',6,0);
 	DIO_Writepin('A',7,1);
 	Timer_wave_fastPWM(Left_wheels);
-	Timer2_wave_fastPWM(Left_wheels);
+	// Timer2_wave_fastPWM(Left_wheels);
 }
 
 int Move_Down(void)
@@ -35,7 +35,7 @@ int Move_Down(void)
 	DIO_Writepin('A',6,1);
 	DIO_Writepin('A',7,0);
 	Timer_wave_fastPWM(Left_wheels);
-	Timer2_wave_fastPWM(Left_wheels);
+	// Timer2_wave_fastPWM(Left_wheels);
 }
 
 int Move_Right(void)
@@ -49,7 +49,7 @@ int Move_Right(void)
 	DIO_Writepin('A',6,1);
 	DIO_Writepin('A',7,0);
 	Timer_wave_fastPWM(Right_wheels);
-	Timer2_wave_fastPWM(Right_wheels);
+	// Timer2_wave_fastPWM(Right_wheels);
 }
 
 int Move_Left(void)
@@ -63,7 +63,7 @@ int Move_Left(void)
 	DIO_Writepin('A',6,0);
 	DIO_Writepin('A',7,1);
 	Timer_wave_fastPWM(Right_wheels);
-	Timer2_wave_fastPWM(Right_wheels);
+	// Timer2_wave_fastPWM(Right_wheels);
 }
 
 int Move_Left_correction(void)
@@ -77,7 +77,7 @@ int Move_Left_correction(void)
 	DIO_Writepin('A',6,0);
 	DIO_Writepin('A',7,1);
 	Timer_wave_fastPWM(mid);
-	Timer2_wave_fastPWM(Left_wheels);
+	// Timer2_wave_fastPWM(Left_wheels);
 }
 
 int move_Right_correction(void)
@@ -91,7 +91,7 @@ int move_Right_correction(void)
 	DIO_Writepin('A',6,1);
 	DIO_Writepin('A',7,0);
 	Timer_wave_fastPWM(Left_wheels);
-	Timer2_wave_fastPWM(mid);
+	// Timer2_wave_fastPWM(mid);
 }
 
 int Stop(void)
@@ -105,6 +105,6 @@ int Stop(void)
 	DIO_Writepin('A',6,0);
 	DIO_Writepin('A',7,0);
 	Timer_wave_fastPWM(0);
-	Timer2_wave_fastPWM(0);
+	// Timer2_wave_fastPWM(0);
 }
 
