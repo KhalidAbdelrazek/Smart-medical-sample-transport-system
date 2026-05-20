@@ -103,12 +103,9 @@ int main(void)
             {
                 char Left_IR  = Button_Read('D', 3);
                 char Right_IR = Button_Read('D', 4);
-<<<<<<< HEAD
                 char Left_IR_B  = Button_Read('D', 5);
 	            char Right_IR_B = Button_Read('D', 6);
 
-=======
->>>>>>> 707cb4859e36cf75b27e2e24337aa155f3947e2d
 
                 if (Left_IR == 1 && Right_IR == 1)
                 {
@@ -162,11 +159,8 @@ int main(void)
                     {
                         char Left_IR  = Button_Read('D', 3);
                         char Right_IR = Button_Read('D', 4);
-<<<<<<< HEAD
                         char Left_IR_B  = Button_Read('D', 5);
 	                    char Right_IR_B = Button_Read('D', 6);
-=======
->>>>>>> 707cb4859e36cf75b27e2e24337aa155f3947e2d
 
                         if (Left_IR == 1 && Right_IR == 1)
                         {
@@ -236,11 +230,8 @@ int main(void)
                     {
                         char Left_IR  = Button_Read('D', 3);
                         char Right_IR = Button_Read('D', 4);
-<<<<<<< HEAD
                         char Left_IR_B  = Button_Read('D', 5);
 	                    char Right_IR_B = Button_Read('D', 6);
-=======
->>>>>>> 707cb4859e36cf75b27e2e24337aa155f3947e2d
 
                         if (Left_IR == 1 && Right_IR == 1)
                         {
@@ -321,11 +312,8 @@ int main(void)
             {
                 char Left_IR  = Button_Read('D', 3);
                 char Right_IR = Button_Read('D', 4);
-<<<<<<< HEAD
                 char Left_IR_B  = Button_Read('D', 5);
 	            char Right_IR_B = Button_Read('D', 6);
-=======
->>>>>>> 707cb4859e36cf75b27e2e24337aa155f3947e2d
 
                 if (Left_IR == 1 && Right_IR == 1)
                 {
