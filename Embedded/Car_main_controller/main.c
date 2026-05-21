@@ -354,7 +354,7 @@ int main(void)
             // Small initial push to get off any current intersection
             while (1)
             {
-                if (Push_Forward())
+                if (Push_Backward())
                     break;
             }
 

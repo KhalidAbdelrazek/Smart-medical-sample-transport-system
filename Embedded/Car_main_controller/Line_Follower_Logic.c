@@ -53,11 +53,11 @@ int Back_Decide_Movement()
 	// Conditions are SAME as forward, but movements are mirrored
 	if (Left_IR_B == 1 && Right_IR_B == 0) // line is on the left
 	{
-		Move_Right(); // steer left while reversing
+		Move_Left(); // steer left while reversing
 	}
 	else if (Left_IR_B == 0 && Right_IR_B == 1) // line is on the right
 	{
-		Move_Left(); // steer right while reversing
+		Move_Right(); // steer right while reversing
 	}
 	else if (Left_IR == 1 && Right_IR == 1) // intersection
 	{
@@ -73,52 +73,65 @@ int Back_Decide_Movement()
 
 int Push_Forward(void)
 {
-	Left_IR = Button_Read('D', 3);
-	Right_IR = Button_Read('D', 4);
-	Left_IR_B = Button_Read('D', 5);
-	Right_IR_B = Button_Read('D', 6);
+    Left_IR   = Button_Read('D', 3);
+    Right_IR  = Button_Read('D', 4);
+    Left_IR_B = Button_Read('D', 5);
+    Right_IR_B = Button_Read('D', 6);
 
-	if (Left_IR_B == 1 && Right_IR_B == 1)
-	{
-		Stop();
-		return 1; // already on an intersection – just push through it
-	}
-	else if (Left_IR == 1 && Right_IR == 0)
-	{
-		Move_Left();
-	}
-	else if (Left_IR == 0 && Right_IR == 1)
-	{
-		Move_Right();
-	}
-
-	else if ((Left_IR == 0 && Right_IR == 0) || (Left_IR == 1 && Right_IR == 1))
-	{
-		Move_Up();
-	}
+    // Back IRs hit the line → we've pushed far enough, stop
+    if (Left_IR_B == 1 && Right_IR_B == 1)
+    {
+        Stop();
+        return 1;
+    }
+    // Front IRs on line → keep pushing through it
+    else if (Left_IR == 1 && Right_IR == 1)
+    {
+        Move_Up();
+    }
+    else if (Left_IR == 1 && Right_IR == 0)
+    {
+        Move_Left();
+    }
+    else if (Left_IR == 0 && Right_IR == 1)
+    {
+        Move_Right();
+    }
+    else // both white → move forward
+    {
+        Move_Up();
+    }
+    return 0;
 }
 
 int Push_Backward(void)
 {
-	Left_IR = Button_Read('D', 3);
-	Right_IR = Button_Read('D', 4);
-	Left_IR_B = Button_Read('D', 5);
-	Right_IR_B = Button_Read('D', 6);
+    Left_IR   = Button_Read('D', 3);
+    Right_IR  = Button_Read('D', 4);
+    Left_IR_B = Button_Read('D', 5);
+    Right_IR_B = Button_Read('D', 6);
 
-	if (Left_IR == 0 && Right_IR == 0)
-	{
-		return 1; // already on an intersection – just push through it
-	}
-	else if (Left_IR_B == 1 && Right_IR_B == 0)
-	{
-		Move_Left();
-	}
-	else if (Left_IR_B == 0 && Right_IR_B == 1)
-	{
-		Move_Right();
-	}
-	else if ((Left_IR == 1 && Right_IR == 1) || (Left_IR_B == 1 && Right_IR_B == 1))
-	{
-		Move_Down();
-	}
+    // Front IRs now white → we've pushed clear of the line
+    if (Left_IR == 0 && Right_IR == 0)
+    {
+        return 1;
+    }
+    // Front IRs still on black → keep pushing backward through it
+    else if (Left_IR == 1 && Right_IR == 1)
+    {
+        Move_Down();
+    }
+    else if (Left_IR_B == 1 && Right_IR_B == 0)
+    {
+        Move_Right();
+    }
+    else if (Left_IR_B == 0 && Right_IR_B == 1)
+    {
+        Move_Left();
+    }
+    else
+    {
+        Move_Down();
+    }
+    return 0;
 }
