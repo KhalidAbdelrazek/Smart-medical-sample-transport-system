@@ -146,6 +146,11 @@ class UARTCarController:
         """Push_Backward() / Backward_decide_mov() on ATmega."""
         logging.info("[UART TX] 'B' → ATmega Push_Backward()")
         return self.send_with_ack("B\n","OK:B")
+    
+    def blind_backward(self) -> bool:
+        """Blind_Backward() on ATmega — timed backward move, no line detection."""
+        logging.info("[UART TX] 'O' → ATmega Blind_Backward()")
+        return self.send_with_ack("O\n", "OK:O")
 
     def pve_rotate(self) -> bool:
         """Pve_Rotate() on ATmega (positive / clockwise rotation)."""

@@ -9,7 +9,7 @@
 #include "Timers.h"
 char Left_wheels = 55;
 char  mid = 80;
-char Right_wheels = 150;
+char Right_wheels = 200;
 int Move_Up(void)
 {
 	DIO_Writepin('A',0,0);

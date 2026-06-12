@@ -417,5 +417,36 @@ int main(void)
             _delay_ms(2000);
             LED_Off('C', 7);
         }
+		else if (Commands == 'O')
+		{
+			UART_Send_string("OK:O\r\n");
+
+			while (1)
+			{
+				if (Push_Backward())
+				{
+					Stop();
+					break;
+				}
+			}
+			_delay_ms(50);
+
+			while (1)
+			{
+				char Left_IR = Button_Read('D', 3);
+				char Right_IR = Button_Read('D', 4);
+				char Left_IR_B = Button_Read('D', 5);
+				char Right_IR_B = Button_Read('D', 6);
+
+				if (Left_IR == 1 && Right_IR == 1)
+				{
+					Stop();
+					_delay_ms(50);
+					UART_Send_string("s\r\n");
+					break;
+				}
+				Back_Decide_Movement_noIR();
+			}
+		}
     }
 }

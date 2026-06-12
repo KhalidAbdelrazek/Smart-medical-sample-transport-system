@@ -135,3 +135,30 @@ int Push_Backward(void)
     }
     return 0;
 }
+
+
+int Back_Decide_Movement_noIR()
+{
+
+	Left_IR   = Button_Read('D', 3);
+	Right_IR  = Button_Read('D', 4);
+	// Conditions are SAME as forward, but movements are mirrored
+	if (Left_IR == 1 && Right_IR == 0) // line is on the left
+	{
+		Move_Right(); // steer left while reversing
+	}
+	else if (Left_IR == 0 && Right_IR == 1) // line is on the right
+	{
+		Move_Left(); // steer right while reversing
+	}
+	else if (Left_IR == 1 && Right_IR == 1) // intersection
+	{
+		Stop();
+	}
+	else if (Left_IR == 0 && Right_IR == 0) // on track
+	{
+		Move_Down(); // keep reversing
+	}
+
+	return (Left_IR == 1 && Right_IR == 1) ? 1 : 0;
+}
