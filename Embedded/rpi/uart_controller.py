@@ -197,44 +197,79 @@ class UARTCarController:
         except Exception:
             pass
 
-    def send_with_ack(self, cmd: str, expected_ack: str, timeout=2.0):
+    def send_with_ack(self, cmd: str, expected_ack: str, timeout: float = 2.0,
+                      max_retries: int = 3, retry_delay: float = 0.2) -> bool:
         """
         Send UART command and wait for ATmega ACK.
+        If no ACK arrives within `timeout` seconds, the command is resent
+        automatically up to `max_retries` times before giving up.
+
+        Args:
+            cmd:          Command string to send (e.g. "F\\n").
+            expected_ack: ACK string to wait for  (e.g. "OK:F").
+            timeout:      Seconds to wait for ACK per attempt  (default 2.0).
+            max_retries:  Total send attempts including the first (default 3).
+            retry_delay:  Pause between a timeout and the next resend (default 0.2 s).
+
+        Returns:
+            True  — ACK received and verified.
+            False — All retries exhausted without a valid ACK.
         """
 
-        logging.info(f"[UART TX] Sending: {repr(cmd)}")
+        for attempt in range(1, max_retries + 1):
 
-        # Clear old garbage before sending
-        try:
-            self.ser.reset_input_buffer()
-        except Exception:
-            pass
+            logging.info(f"[UART TX] Attempt {attempt}/{max_retries} — sending: {repr(cmd)}")
+            print(f"  ➤  [UART TX] Attempt {attempt}/{max_retries} — cmd: {repr(cmd)}  expect: {expected_ack}")
 
-        # Send command
-        if not self.send_command_and_reconnect_if_failed(cmd):
-            return False
+            # Flush stale bytes before every send so an old ACK from a previous
+            # attempt cannot accidentally satisfy this one.
+            try:
+                self.ser.reset_input_buffer()
+            except Exception:
+                pass
 
-        start = time.time()
+            if not self.send_command_and_reconnect_if_failed(cmd):
+                # write itself failed — reconnect already triggered inside
+                # wait a moment then retry the whole loop
+                time.sleep(retry_delay)
+                continue
 
-        while time.time() - start < timeout:
+            # ── Wait for ACK ──────────────────────────────────
+            start = time.time()
+            while time.time() - start < timeout:
+                resp = self.read_and_reconnect_if_failed()
 
-            resp = self.read_and_reconnect_if_failed()
+                if resp is not None:
+                    print(f"[UART RX] {resp}")
+                    logging.info(f"[UART RX] {resp}")
 
-            if resp is not None:
+                    if resp == expected_ack:
+                        print(f"[UART ACK] ✅ VERIFIED {expected_ack}  (attempt {attempt})")
+                        logging.info(f"[UART ACK] VERIFIED {expected_ack} on attempt {attempt}")
+                        return True
 
-                print(f"[UART RX] {resp}")
-                logging.info(f"[UART RX] {resp}")
+                time.sleep(0.01)
 
-                if resp == expected_ack:
-                    print(f"[UART ACK] VERIFIED {expected_ack}")
-                    logging.info(f"[UART ACK] VERIFIED {expected_ack}")
-                    return True
+            # ── Timeout on this attempt ───────────────────────
+            logging.warning(
+                f"[UART] ACK TIMEOUT on attempt {attempt}/{max_retries} "
+                f"waiting for '{expected_ack}'"
+            )
+            print(
+                f"  ⚠️  [UART] No ACK for {repr(cmd)} after {timeout:.1f}s "
+                f"(attempt {attempt}/{max_retries})"
+                + ("  — retrying..." if attempt < max_retries else "  — giving up.")
+            )
 
-            time.sleep(0.01)
+            if attempt < max_retries:
+                time.sleep(retry_delay)
 
-        logging.error(f"[UART] ACK TIMEOUT waiting for {expected_ack}")
-        print(f"[UART ERROR] ACK TIMEOUT waiting for {expected_ack}")
-
+        # ── All retries exhausted ─────────────────────────────
+        logging.error(
+            f"[UART] FAILED after {max_retries} attempts — "
+            f"cmd={repr(cmd)}  expected={expected_ack}"
+        )
+        print(f"  💥 [UART ERROR] Command {repr(cmd)} failed after {max_retries} attempts.")
         return False
 
     def flush_input(self):
