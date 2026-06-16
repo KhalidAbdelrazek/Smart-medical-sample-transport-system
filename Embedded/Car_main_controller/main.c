@@ -417,6 +417,7 @@ int main(void)
             _delay_ms(2000);
             LED_Off('C', 7);
         }
+		/*
 		else if (Commands == 'O')
 		{
 			UART_Send_string("OK:O\r\n");
@@ -448,5 +449,6 @@ int main(void)
 				Back_Decide_Movement_noIR();
 			}
 		}
+		*/
     }
 }
