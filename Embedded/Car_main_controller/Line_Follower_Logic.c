@@ -47,6 +47,9 @@ int Decide_Movement()
 int Back_Decide_Movement()
 {
 
+	Left_IR = Button_Read('D', 3);
+	Right_IR = Button_Read('D', 4);
+	
 	Left_IR_B = Button_Read('D', 5);
 	Right_IR_B = Button_Read('D', 6);
 
