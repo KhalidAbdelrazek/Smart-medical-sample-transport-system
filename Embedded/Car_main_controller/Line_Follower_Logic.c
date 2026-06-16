@@ -46,32 +46,33 @@ int Decide_Movement()
 
 int Back_Decide_Movement()
 {
+    Left_IR    = Button_Read('D', 3);
+    Right_IR   = Button_Read('D', 4);
+    Left_IR_B  = Button_Read('D', 5);
+    Right_IR_B = Button_Read('D', 6);
 
-	Left_IR = Button_Read('D', 3);
-	Right_IR = Button_Read('D', 4);
-	
-	Left_IR_B = Button_Read('D', 5);
-	Right_IR_B = Button_Read('D', 6);
+    if (Left_IR == 1 && Right_IR == 1)          // front intersection → stop
+    {
+        Stop();
+    }
+    else if (Left_IR_B == 1 && Right_IR_B == 1) // both back on line → straight back
+    {
+        Move_Down();
+    }
+    else if (Left_IR_B == 1 && Right_IR_B == 0) // line left → steer left
+    {
+        Move_Left();
+    }
+    else if (Left_IR_B == 0 && Right_IR_B == 1) // line right → steer right
+    {
+        Move_Right();
+    }
+    else                                          // both white → straight back
+    {
+        Move_Down();
+    }
 
-	// Conditions are SAME as forward, but movements are mirrored
-	if (Left_IR_B == 1 && Right_IR_B == 0) // line is on the left
-	{
-		Move_Left(); // steer left while reversing
-	}
-	else if (Left_IR_B == 0 && Right_IR_B == 1) // line is on the right
-	{
-		Move_Right(); // steer right while reversing
-	}
-	else if (Left_IR == 1 && Right_IR == 1) // intersection
-	{
-		Stop();
-	}
-	else if (Left_IR_B == 0 && Right_IR_B == 0) // on track
-	{
-		Move_Down(); // keep reversing
-	}
-
-	return (Left_IR == 1 && Right_IR == 1) ? 1 : 0;
+    return (Left_IR == 1 && Right_IR == 1) ? 1 : 0;
 }
 
 int Push_Forward(void)
