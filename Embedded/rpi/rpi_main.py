@@ -673,6 +673,7 @@ def main():
                                                 current_room=next_room
                                             )
                                             proceed_received = True
+                                            needs_forward = False  # re-arm so the loop drives to the next intersection
                                             # wait_for_atmega_stop(car)
 
                                         else:
