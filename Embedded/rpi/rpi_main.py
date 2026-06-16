@@ -1,4 +1,4 @@
-# version 1.13 6/16/2026 8:03 PM
+# version 1.14 6/16/2026 11:03 PM
 #
 # Changes from 1.8:
 #   • RETURN_TO_STORAGE no longer sends 'B'.
@@ -480,6 +480,8 @@ def main():
                     go_to_storage  = False
                     rooms_to_visit = list(rooms)
                     i = 0
+                    
+                    needs_forward = True   # always drive to first intersection on entry
 
                     # ── Iterate through rooms ──────────────────
                     while i < len(rooms_to_visit):
@@ -495,7 +497,6 @@ def main():
                         )
 
                         # ── Room seek loop ─────────────────────
-                        needs_forward = True   # always drive to first intersection on entry
                         while True:
                             if needs_forward:
                                 car.flush_input()
