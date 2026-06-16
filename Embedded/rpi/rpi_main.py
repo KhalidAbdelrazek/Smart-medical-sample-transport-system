@@ -1,4 +1,4 @@
-# version 1.12 6/13/2026 12:31 AM
+# version 1.13 6/16/2026 8:03 pM
 #
 # Changes from 1.8:
 #   • RETURN_TO_STORAGE no longer sends 'B'.
@@ -583,7 +583,7 @@ def main():
                                         shared_state.update(current_state="LEAVING_ROOM")
                                         car.flush_input()
                                         print_uart_send("B\n")
-                                        car.blind_backward()
+                                        car.backward()
                                         wait_for_atmega_stop(car)
 
                                         # ── Step 2: Rotate +90° using IMU (mirrors rotate_to_90 but uses 'P') ──
