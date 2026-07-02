@@ -16,6 +16,8 @@ int Push_Forward(void);
 int Push_Backward(void);
 int Pve_Rotate();
 int Nve_Rotate();
+int Back_Decide_Movement_noIR();
+
 
 
 

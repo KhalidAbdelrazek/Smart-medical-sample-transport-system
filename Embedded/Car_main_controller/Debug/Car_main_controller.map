@@ -37,6 +37,14 @@ c:/program files/microchip/xc8/v2.36/avr/bin/../lib/gcc/avr/5.4.0/../../../../av
 c:/program files/microchip/xc8/v2.36/avr/bin/../lib/gcc/avr/5.4.0/avr5/memx-const\libgcc.a(_exit.o)
                               c:/program files/microchip/xc8/v2.36/avr/bin/../lib/gcc/avr/5.4.0/../../../../avr/lib/avr5/memx-const\libc.a(_Exit.o) (_exit)
 
+Allocating common symbols
+Common symbol       size              file
+
+Right_IR_B          0x1               Line_Follower_Logic.o
+Left_IR             0x1               Line_Follower_Logic.o
+Right_IR            0x1               Line_Follower_Logic.o
+Left_IR_B           0x1               Line_Follower_Logic.o
+
 Discarded input sections
 
  .data          0x0000000000000000        0x0 C:/Program Files (x86)/Atmel/Studio/7.0/Packs/atmel/ATmega_DFP/1.7.374/xc8/avr/lib/avr5/memx-const/crtatmega32.o
@@ -101,16 +109,19 @@ Discarded input sections
  .text          0x0000000000000000        0x0 Line_Follower_Logic.o
  .data          0x0000000000000000        0x0 Line_Follower_Logic.o
  .bss           0x0000000000000000        0x0 Line_Follower_Logic.o
- .text.Pve_Rotate
-                0x0000000000000000       0x10 Line_Follower_Logic.o
- .text.Nve_Rotate
-                0x0000000000000000       0x10 Line_Follower_Logic.o
+ .text.Back_Decide_Movement_noIR
+                0x0000000000000000       0x74 Line_Follower_Logic.o
  .text          0x0000000000000000        0x0 main.o
  .data          0x0000000000000000        0x0 main.o
  .bss           0x0000000000000000        0x0 main.o
  .text          0x0000000000000000        0x0 main_movement.o
  .data          0x0000000000000000        0x0 main_movement.o
  .bss           0x0000000000000000        0x0 main_movement.o
+ .text.Move_Left_correction
+                0x0000000000000000       0x8a main_movement.o
+ .text.move_Right_correction
+                0x0000000000000000       0x8a main_movement.o
+ .data.mid      0x0000000000000000        0x1 main_movement.o
  .text          0x0000000000000000        0x0 Timers.o
  .data          0x0000000000000000        0x0 Timers.o
  .bss           0x0000000000000000        0x0 Timers.o
@@ -468,7 +479,7 @@ END GROUP
 .rela.plt
  *(.rela.plt)
 
-.text           0x0000000000000000      0x188
+.text           0x0000000000000000      0x18c
  *(.vectors)
  .vectors       0x0000000000000000       0x54 C:/Program Files (x86)/Atmel/Studio/7.0/Packs/atmel/ATmega_DFP/1.7.374/xc8/avr/lib/avr5/memx-const/crtatmega32.o
                 0x0000000000000000                __vector_default
@@ -482,44 +493,44 @@ END GROUP
  .progmem.gcc_sw_table.DIO_Readpin
                 0x00000000000000e4       0x48 DIO.o
  *(.dinit)
- .dinit         0x000000000000012c        0x7 data_init
-                0x0000000000000134                . = ALIGN (0x2)
- *fill*         0x0000000000000133        0x1 
-                0x0000000000000134                __trampolines_start = .
+ .dinit         0x000000000000012c        0xc data_init
+                0x0000000000000138                . = ALIGN (0x2)
+ *fill*         0x0000000000000138        0x0 
+                0x0000000000000138                __trampolines_start = .
  *(.trampolines)
- .trampolines   0x0000000000000134        0x0 linker stubs
+ .trampolines   0x0000000000000138        0x0 linker stubs
  *(.trampolines*)
-                0x0000000000000134                __trampolines_end = .
+                0x0000000000000138                __trampolines_end = .
  *libprintf_flt.a:*(.progmem.data)
  *libc.a:*(.progmem.data)
-                0x0000000000000134                . = ALIGN (0x2)
+                0x0000000000000138                . = ALIGN (0x2)
  *(.jumptables)
  *(.jumptables*)
  *(.lowtext)
  *(.lowtext*)
-                0x0000000000000134                __ctors_start = .
+                0x0000000000000138                __ctors_start = .
  *(.ctors)
-                0x0000000000000134                __ctors_end = .
-                0x0000000000000134                __dtors_start = .
+                0x0000000000000138                __ctors_end = .
+                0x0000000000000138                __dtors_start = .
  *(.dtors)
-                0x0000000000000134                __dtors_end = .
+                0x0000000000000138                __dtors_end = .
  SORT(*)(.ctors)
  SORT(*)(.dtors)
  *(.init0)
- .init0         0x0000000000000134        0x0 C:/Program Files (x86)/Atmel/Studio/7.0/Packs/atmel/ATmega_DFP/1.7.374/xc8/avr/lib/avr5/memx-const/crtatmega32.o
-                0x0000000000000134                __init
+ .init0         0x0000000000000138        0x0 C:/Program Files (x86)/Atmel/Studio/7.0/Packs/atmel/ATmega_DFP/1.7.374/xc8/avr/lib/avr5/memx-const/crtatmega32.o
+                0x0000000000000138                __init
  *(.init0)
  *(.init1)
  *(.init1)
  *(.init2)
- .init2         0x0000000000000134        0xc C:/Program Files (x86)/Atmel/Studio/7.0/Packs/atmel/ATmega_DFP/1.7.374/xc8/avr/lib/avr5/memx-const/crtatmega32.o
+ .init2         0x0000000000000138        0xc C:/Program Files (x86)/Atmel/Studio/7.0/Packs/atmel/ATmega_DFP/1.7.374/xc8/avr/lib/avr5/memx-const/crtatmega32.o
  *(.init2)
  *(.init3)
  *(.init3)
  *(.init4)
- .init4         0x0000000000000140       0x3c c:/program files/microchip/xc8/v2.36/avr/bin/../lib/gcc/avr/5.4.0/avr5/memx-const\libgcc.a(_copy_data.o)
-                0x0000000000000140                __do_copy_data
-                0x000000000000016e                __do_clear_bss
+ .init4         0x0000000000000144       0x3c c:/program files/microchip/xc8/v2.36/avr/bin/../lib/gcc/avr/5.4.0/avr5/memx-const\libgcc.a(_copy_data.o)
+                0x0000000000000144                __do_copy_data
+                0x0000000000000172                __do_clear_bss
  *(.init4)
  *(.init5)
  *(.init5)
@@ -530,12 +541,12 @@ END GROUP
  *(.init8)
  *(.init8)
  *(.init9)
- .init9         0x000000000000017c        0x8 C:/Program Files (x86)/Atmel/Studio/7.0/Packs/atmel/ATmega_DFP/1.7.374/xc8/avr/lib/avr5/memx-const/crtatmega32.o
+ .init9         0x0000000000000180        0x8 C:/Program Files (x86)/Atmel/Studio/7.0/Packs/atmel/ATmega_DFP/1.7.374/xc8/avr/lib/avr5/memx-const/crtatmega32.o
  *(.init9)
-                0x0000000000000184                . = ALIGN (0x2)
+                0x0000000000000188                . = ALIGN (0x2)
  *(.fini9)
- .fini9         0x0000000000000184        0x0 c:/program files/microchip/xc8/v2.36/avr/bin/../lib/gcc/avr/5.4.0/avr5/memx-const\libgcc.a(_exit.o)
-                0x0000000000000184                _exit
+ .fini9         0x0000000000000188        0x0 c:/program files/microchip/xc8/v2.36/avr/bin/../lib/gcc/avr/5.4.0/avr5/memx-const\libgcc.a(_exit.o)
+                0x0000000000000188                _exit
  *(.fini9)
  *(.fini8)
  *(.fini8)
@@ -554,11 +565,11 @@ END GROUP
  *(.fini1)
  *(.fini1)
  *(.fini0)
- .fini0         0x0000000000000184        0x4 c:/program files/microchip/xc8/v2.36/avr/bin/../lib/gcc/avr/5.4.0/avr5/memx-const\libgcc.a(_exit.o)
+ .fini0         0x0000000000000188        0x4 c:/program files/microchip/xc8/v2.36/avr/bin/../lib/gcc/avr/5.4.0/avr5/memx-const\libgcc.a(_exit.o)
  *(.fini0)
-                0x0000000000000188                _etext = .
+                0x000000000000018c                _etext = .
 
-.data           0x0000000000800060        0x0 load address 0x0000000000000188
+.data           0x0000000000800060        0x0 load address 0x000000000000018c
                 [!provide]                        PROVIDE (__data_start, .)
  *(.gnu.linkonce.d*)
  *(.gnu.linkonce.r*)
@@ -566,18 +577,23 @@ END GROUP
                 0x0000000000800060                _edata = .
                 [!provide]                        PROVIDE (__data_end, .)
 
-.bss            0x0000000000800060        0x0
+.bss            0x0000000000800060        0x4
                 [!provide]                        PROVIDE (__bss_start, .)
  *(COMMON)
+ COMMON         0x0000000000800060        0x4 Line_Follower_Logic.o
+                0x0000000000800060                Right_IR_B
+                0x0000000000800061                Left_IR
+                0x0000000000800062                Right_IR
+                0x0000000000800063                Left_IR_B
                 [!provide]                        PROVIDE (__bss_end, .)
-                0x0000000000000188                __data_load_start = LOADADDR (.data)
-                0x0000000000000188                __data_load_end = (__data_load_start + SIZEOF (.data))
+                0x000000000000018c                __data_load_start = LOADADDR (.data)
+                0x000000000000018c                __data_load_end = (__data_load_start + SIZEOF (.data))
 
-.noinit         0x0000000000800060        0x0
+.noinit         0x0000000000800064        0x0
                 [!provide]                        PROVIDE (__noinit_start, .)
  *(.noinit*)
                 [!provide]                        PROVIDE (__noinit_end, .)
-                0x0000000000800060                _end = .
+                0x0000000000800064                _end = .
 
 .eeprom         0x0000000000810000        0x0
  *(.eeprom*)
@@ -661,7 +677,7 @@ END GROUP
 .debug_sfnames
  *(.debug_sfnames)
 
-.debug_aranges  0x0000000000000000      0x210
+.debug_aranges  0x0000000000000000      0x218
  *(.debug_aranges)
  .debug_aranges
                 0x0000000000000000       0x28 Button.o
@@ -670,130 +686,86 @@ END GROUP
  .debug_aranges
                 0x0000000000000098       0x40 LED.o
  .debug_aranges
-                0x00000000000000d8       0x48 Line_Follower_Logic.o
+                0x00000000000000d8       0x40 Line_Follower_Logic.o
  .debug_aranges
-                0x0000000000000120       0x20 main.o
+                0x0000000000000118       0x20 main.o
  .debug_aranges
-                0x0000000000000140       0x40 main_movement.o
+                0x0000000000000138       0x50 main_movement.o
  .debug_aranges
-                0x0000000000000180       0x58 Timers.o
+                0x0000000000000188       0x58 Timers.o
  .debug_aranges
-                0x00000000000001d8       0x38 USART.o
+                0x00000000000001e0       0x38 USART.o
 
 .debug_pubnames
  *(.debug_pubnames)
 
-<<<<<<< HEAD
-.debug_info     0x0000000000000000     0x3d1c
+.debug_info     0x0000000000000000     0x40d2
  *(.debug_info .gnu.linkonce.wi.*)
  .debug_info    0x0000000000000000      0x4e6 C:/Program Files (x86)/Atmel/Studio/7.0/Packs/atmel/ATmega_DFP/1.7.374/xc8/avr/lib/avr5/memx-const/crtatmega32.o
  .debug_info    0x00000000000004e6      0x30f Button.o
  .debug_info    0x00000000000007f5      0x639 DIO.o
  .debug_info    0x0000000000000e2e      0x3a6 LED.o
- .debug_info    0x00000000000011d4      0x65b Line_Follower_Logic.o
- .debug_info    0x000000000000182f     0x11d9 main.o
- .debug_info    0x0000000000002a08      0xa4b main_movement.o
- .debug_info    0x0000000000003453      0x569 Timers.o
- .debug_info    0x00000000000039bc      0x360 USART.o
-=======
-.debug_info     0x0000000000000000     0x29c0
- *(.debug_info .gnu.linkonce.wi.*)
- .debug_info    0x0000000000000000      0x4e6 C:/Program Files (x86)/Atmel/Studio/7.0/Packs/atmel/ATmega_DFP/1.7.374/xc8/avr/lib/avr5/memx-const/crtatmega32.o
- .debug_info    0x00000000000004e6      0x639 DIO.o
- .debug_info    0x0000000000000b1f      0x3a6 LED.o
- .debug_info    0x0000000000000ec5      0x826 main.o
- .debug_info    0x00000000000016eb      0xa42 main_movement.o
- .debug_info    0x000000000000212d      0x52b Timers.o
- .debug_info    0x0000000000002658      0x368 USART.o
->>>>>>> origin/embedded
+ .debug_info    0x00000000000011d4      0x667 Line_Follower_Logic.o
+ .debug_info    0x000000000000183b     0x11cf main.o
+ .debug_info    0x0000000000002a0a      0xdff main_movement.o
+ .debug_info    0x0000000000003809      0x569 Timers.o
+ .debug_info    0x0000000000003d72      0x360 USART.o
 
-.debug_abbrev   0x0000000000000000      0xccf
+.debug_abbrev   0x0000000000000000      0xc4b
  *(.debug_abbrev)
  .debug_abbrev  0x0000000000000000      0x4a3 C:/Program Files (x86)/Atmel/Studio/7.0/Packs/atmel/ATmega_DFP/1.7.374/xc8/avr/lib/avr5/memx-const/crtatmega32.o
  .debug_abbrev  0x00000000000004a3       0x9e Button.o
  .debug_abbrev  0x0000000000000541      0x14a DIO.o
  .debug_abbrev  0x000000000000068b       0x8f LED.o
- .debug_abbrev  0x000000000000071a      0x141 Line_Follower_Logic.o
- .debug_abbrev  0x000000000000085b      0x181 main.o
- .debug_abbrev  0x00000000000009dc       0xa7 main_movement.o
- .debug_abbrev  0x0000000000000a83      0x186 Timers.o
- .debug_abbrev  0x0000000000000c09       0xc6 USART.o
+ .debug_abbrev  0x000000000000071a       0xb0 Line_Follower_Logic.o
+ .debug_abbrev  0x00000000000007ca      0x18e main.o
+ .debug_abbrev  0x0000000000000958       0xa7 main_movement.o
+ .debug_abbrev  0x00000000000009ff      0x186 Timers.o
+ .debug_abbrev  0x0000000000000b85       0xc6 USART.o
 
-<<<<<<< HEAD
-.debug_line     0x0000000000000000     0x1420
+.debug_line     0x0000000000000000     0x1569
  *(.debug_line .debug_line.* .debug_line_end)
  .debug_line    0x0000000000000000      0x119 C:/Program Files (x86)/Atmel/Studio/7.0/Packs/atmel/ATmega_DFP/1.7.374/xc8/avr/lib/avr5/memx-const/crtatmega32.o
  .debug_line    0x0000000000000119       0x66 Button.o
  .debug_line    0x000000000000017f      0x3df DIO.o
  .debug_line    0x000000000000055e       0xa1 LED.o
- .debug_line    0x00000000000005ff      0x2e8 Line_Follower_Logic.o
- .debug_line    0x00000000000008e7      0x594 main.o
- .debug_line    0x0000000000000e7b      0x1b5 main_movement.o
- .debug_line    0x0000000000001030      0x2dc Timers.o
- .debug_line    0x000000000000130c      0x114 USART.o
+ .debug_line    0x00000000000005ff      0x3bc Line_Follower_Logic.o
+ .debug_line    0x00000000000009bb      0x569 main.o
+ .debug_line    0x0000000000000f24      0x255 main_movement.o
+ .debug_line    0x0000000000001179      0x2dc Timers.o
+ .debug_line    0x0000000000001455      0x114 USART.o
 
-.debug_frame    0x0000000000000000      0x384
+.debug_frame    0x0000000000000000      0x37c
  *(.debug_frame)
  .debug_frame   0x0000000000000000       0x34 Button.o
  .debug_frame   0x0000000000000034       0xe0 DIO.o
  .debug_frame   0x0000000000000114       0x64 LED.o
- .debug_frame   0x0000000000000178       0x8c Line_Follower_Logic.o
- .debug_frame   0x0000000000000204       0x24 main.o
- .debug_frame   0x0000000000000228       0x64 main_movement.o
- .debug_frame   0x000000000000028c       0x94 Timers.o
- .debug_frame   0x0000000000000320       0x64 USART.o
-=======
-.debug_line     0x0000000000000000      0xdd4
- *(.debug_line .debug_line.* .debug_line_end)
- .debug_line    0x0000000000000000      0x119 C:/Program Files (x86)/Atmel/Studio/7.0/Packs/atmel/ATmega_DFP/1.7.374/xc8/avr/lib/avr5/memx-const/crtatmega32.o
- .debug_line    0x0000000000000119      0x3df DIO.o
- .debug_line    0x00000000000004f8       0xa1 LED.o
- .debug_line    0x0000000000000599      0x2de main.o
- .debug_line    0x0000000000000877      0x1b4 main_movement.o
- .debug_line    0x0000000000000a2b      0x295 Timers.o
- .debug_line    0x0000000000000cc0      0x114 USART.o
+ .debug_frame   0x0000000000000178       0x64 Line_Follower_Logic.o
+ .debug_frame   0x00000000000001dc       0x24 main.o
+ .debug_frame   0x0000000000000200       0x84 main_movement.o
+ .debug_frame   0x0000000000000284       0x94 Timers.o
+ .debug_frame   0x0000000000000318       0x64 USART.o
 
-.debug_frame    0x0000000000000000      0x2e8
- *(.debug_frame)
- .debug_frame   0x0000000000000000       0xe0 DIO.o
- .debug_frame   0x00000000000000e0       0x64 LED.o
- .debug_frame   0x0000000000000144       0x58 main.o
- .debug_frame   0x000000000000019c       0x64 main_movement.o
- .debug_frame   0x0000000000000200       0x84 Timers.o
- .debug_frame   0x0000000000000284       0x64 USART.o
->>>>>>> origin/embedded
-
-.debug_str      0x0000000000000000      0x328
+.debug_str      0x0000000000000000      0x313
  *(.debug_str)
  .debug_str     0x0000000000000000      0x196 C:/Program Files (x86)/Atmel/Studio/7.0/Packs/atmel/ATmega_DFP/1.7.374/xc8/avr/lib/avr5/memx-const/crtatmega32.o
  .debug_str     0x0000000000000196       0x1a Button.o
  .debug_str     0x00000000000001b0        0xe DIO.o
  .debug_str     0x00000000000001be       0x35 LED.o
- .debug_str     0x00000000000001f3       0x40 Line_Follower_Logic.o
- .debug_str     0x0000000000000233       0xc2 main.o
- .debug_str     0x00000000000002f5       0x20 main_movement.o
- .debug_str     0x0000000000000315       0x13 Timers.o
- .debug_str     0x0000000000000328        0x0 USART.o
+ .debug_str     0x00000000000001f3       0x2b Line_Follower_Logic.o
+ .debug_str     0x000000000000021e       0xc2 main.o
+ .debug_str     0x00000000000002e0       0x20 main_movement.o
+ .debug_str     0x0000000000000300       0x13 Timers.o
+ .debug_str     0x0000000000000313        0x0 USART.o
 
-<<<<<<< HEAD
-.debug_loc      0x0000000000000000     0x1528
+.debug_loc      0x0000000000000000     0x11a8
  *(.debug_loc)
  .debug_loc     0x0000000000000000       0x84 Button.o
  .debug_loc     0x0000000000000084      0x641 DIO.o
  .debug_loc     0x00000000000006c5      0x14a LED.o
- .debug_loc     0x000000000000080f      0x25e Line_Follower_Logic.o
- .debug_loc     0x0000000000000a6d      0x905 main.o
- .debug_loc     0x0000000000001372      0x120 Timers.o
- .debug_loc     0x0000000000001492       0x96 USART.o
-=======
-.debug_loc      0x0000000000000000      0xa8d
- *(.debug_loc)
- .debug_loc     0x0000000000000000      0x641 DIO.o
- .debug_loc     0x0000000000000641      0x14a LED.o
- .debug_loc     0x000000000000078b      0x16d main.o
- .debug_loc     0x00000000000008f8       0xff Timers.o
- .debug_loc     0x00000000000009f7       0x96 USART.o
->>>>>>> origin/embedded
+ .debug_loc     0x000000000000080f      0x7e3 main.o
+ .debug_loc     0x0000000000000ff2      0x120 Timers.o
+ .debug_loc     0x0000000000001112       0x96 USART.o
 
 .debug_macinfo
  *(.debug_macinfo)
@@ -813,16 +785,16 @@ END GROUP
 .debug_pubtypes
  *(.debug_pubtypes)
 
-.debug_ranges   0x0000000000000000      0x280
+.debug_ranges   0x0000000000000000      0x258
  *(.debug_ranges)
  .debug_ranges  0x0000000000000000       0x18 Button.o
  .debug_ranges  0x0000000000000018       0x60 DIO.o
  .debug_ranges  0x0000000000000078       0x30 LED.o
- .debug_ranges  0x00000000000000a8       0x38 Line_Follower_Logic.o
- .debug_ranges  0x00000000000000e0      0x100 main.o
- .debug_ranges  0x00000000000001e0       0x30 main_movement.o
- .debug_ranges  0x0000000000000210       0x48 Timers.o
- .debug_ranges  0x0000000000000258       0x28 USART.o
+ .debug_ranges  0x00000000000000a8       0x30 Line_Follower_Logic.o
+ .debug_ranges  0x00000000000000d8       0xd0 main.o
+ .debug_ranges  0x00000000000001a8       0x40 main_movement.o
+ .debug_ranges  0x00000000000001e8       0x48 Timers.o
+ .debug_ranges  0x0000000000000230       0x28 USART.o
 
 .debug_macro
  *(.debug_macro)
@@ -835,556 +807,205 @@ LOAD data_init
  .note.gnu.avr.deviceinfo
                 0x0000000000000000       0x3c C:/Program Files (x86)/Atmel/Studio/7.0/Packs/atmel/ATmega_DFP/1.7.374/xc8/avr/lib/avr5/memx-const/crtatmega32.o
 
-<<<<<<< HEAD
-.progmemx.data  0x0000000000000188       0x64
+.progmemx.data  0x000000000000018c       0x64
  .progmemx.data
-                0x0000000000000188       0x64 main.o
+                0x000000000000018c       0x64 main.o
 
-.text.main      0x00000000000001ec      0x4c6
- .text.main     0x00000000000001ec      0x4c6 main.o
-                0x00000000000001ec                main
+.text.main      0x00000000000001f0      0x4be
+ .text.main     0x00000000000001f0      0x4be main.o
+                0x00000000000001f0                main
 
 .text.DIO_Setpindir
-                0x00000000000006b2       0xe0
+                0x00000000000006ae       0xe0
  .text.DIO_Setpindir
-                0x00000000000006b2       0xe0 DIO.o
-                0x00000000000006b2                DIO_Setpindir
+                0x00000000000006ae       0xe0 DIO.o
+                0x00000000000006ae                DIO_Setpindir
 
 .text.DIO_Writepin
-                0x0000000000000792       0xe0
+                0x000000000000078e       0xe0
  .text.DIO_Writepin
-                0x0000000000000792       0xe0 DIO.o
-                0x0000000000000792                DIO_Writepin
+                0x000000000000078e       0xe0 DIO.o
+                0x000000000000078e                DIO_Writepin
 
 .text.DIO_Readpin
-                0x0000000000000872       0xcc
+                0x000000000000086e       0xcc
  .text.DIO_Readpin
-                0x0000000000000872       0xcc DIO.o
-                0x0000000000000872                DIO_Readpin
-
-.text.Move_Up   0x000000000000093e       0x8a
- .text.Move_Up  0x000000000000093e       0x8a main_movement.o
-                0x000000000000093e                Move_Up
-
-.text.Move_Down
-                0x00000000000009c8       0x8a
- .text.Move_Down
-                0x00000000000009c8       0x8a main_movement.o
-                0x00000000000009c8                Move_Down
-
-.text.Move_Right
-                0x0000000000000a52       0x8a
- .text.Move_Right
-                0x0000000000000a52       0x8a main_movement.o
-                0x0000000000000a52                Move_Right
-
-.text.Move_Left
-                0x0000000000000adc       0x8a
- .text.Move_Left
-                0x0000000000000adc       0x8a main_movement.o
-                0x0000000000000adc                Move_Left
-
-.text.Stop      0x0000000000000b66       0x82
- .text.Stop     0x0000000000000b66       0x82 main_movement.o
-                0x0000000000000b66                Stop
-
-.text.Decide_Movement
-                0x0000000000000be8       0x7c
- .text.Decide_Movement
-                0x0000000000000be8       0x7c Line_Follower_Logic.o
-                0x0000000000000be8                Decide_Movement
+                0x000000000000086e       0xcc DIO.o
+                0x000000000000086e                DIO_Readpin
 
 .text.Back_Decide_Movement
-                0x0000000000000c64       0x7c
+                0x000000000000093a       0x9a
  .text.Back_Decide_Movement
-                0x0000000000000c64       0x7c Line_Follower_Logic.o
-                0x0000000000000c64                Back_Decide_Movement
-
-.text.UART_Init
-                0x0000000000000ce0       0x44
- .text.UART_Init
-                0x0000000000000ce0       0x44 USART.o
-                0x0000000000000ce0                UART_Init
-
-.text.libgcc.div
-                0x0000000000000d24       0x44
- .text.libgcc.div
-                0x0000000000000d24       0x44 c:/program files/microchip/xc8/v2.36/avr/bin/../lib/gcc/avr/5.4.0/avr5/memx-const\libgcc.a(_udivmodsi4.o)
-                0x0000000000000d24                __udivmodsi4
-
-.text.Timer_wave_fastPWM
-                0x0000000000000d68       0x30
- .text.Timer_wave_fastPWM
-                0x0000000000000d68       0x30 Timers.o
-                0x0000000000000d68                Timer_wave_fastPWM
-
-.text.UART_Send_string
-                0x0000000000000d98       0x2c
- .text.UART_Send_string
-                0x0000000000000d98       0x2c USART.o
-                0x0000000000000d98                UART_Send_string
+                0x000000000000093a       0x9a Line_Follower_Logic.o
+                0x000000000000093a                Back_Decide_Movement
 
 .text.Push_Forward
-                0x0000000000000dc4       0x1c
+                0x00000000000009d4       0x96
  .text.Push_Forward
-                0x0000000000000dc4       0x1c Line_Follower_Logic.o
-                0x0000000000000dc4                Push_Forward
+                0x00000000000009d4       0x96 Line_Follower_Logic.o
+                0x00000000000009d4                Push_Forward
 
 .text.Push_Backward
-                0x0000000000000de0       0x1c
+                0x0000000000000a6a       0x8e
  .text.Push_Backward
-                0x0000000000000de0       0x1c Line_Follower_Logic.o
-                0x0000000000000de0                Push_Backward
+                0x0000000000000a6a       0x8e Line_Follower_Logic.o
+                0x0000000000000a6a                Push_Backward
 
-.text.exit      0x0000000000000dfc       0x16
- .text.exit     0x0000000000000dfc       0x16 c:/program files/microchip/xc8/v2.36/avr/bin/../lib/gcc/avr/5.4.0/../../../../avr/lib/avr5/memx-const\libc.a(exit.o)
-                0x0000000000000dfc                exit
-
-.text.libgcc    0x0000000000000e12        0xc
- .text.libgcc   0x0000000000000e12        0xc c:/program files/microchip/xc8/v2.36/avr/bin/../lib/gcc/avr/5.4.0/avr5/memx-const\libgcc.a(_tablejump2.o)
-                0x0000000000000e12                __tablejump2__
-
-.text.Button_Init
-                0x0000000000000e1e        0x8
- .text.Button_Init
-                0x0000000000000e1e        0x8 Button.o
-                0x0000000000000e1e                Button_Init
-
-.text.LED_Init  0x0000000000000e26        0x8
- .text.LED_Init
-                0x0000000000000e26        0x8 LED.o
-                0x0000000000000e26                LED_Init
-
-.text.LED_On    0x0000000000000e2e        0x8
- .text.LED_On   0x0000000000000e2e        0x8 LED.o
-                0x0000000000000e2e                LED_On
-
-.text.LED_Off   0x0000000000000e36        0x8
- .text.LED_Off  0x0000000000000e36        0x8 LED.o
-                0x0000000000000e36                LED_Off
-
-.text.UART_Send_data
-                0x0000000000000e3e        0x8
- .text.UART_Send_data
-                0x0000000000000e3e        0x8 USART.o
-                0x0000000000000e3e                UART_Send_data
-
-.text.UART_Receive_data
-                0x0000000000000e46        0x8
- .text.UART_Receive_data
-                0x0000000000000e46        0x8 USART.o
-                0x0000000000000e46                UART_Receive_data
-
-.text.Button_Read
-                0x0000000000000e4e        0x6
- .text.Button_Read
-                0x0000000000000e4e        0x6 Button.o
-                0x0000000000000e4e                Button_Read
-
-.text           0x0000000000000e54        0x4
- .text          0x0000000000000e54        0x4 C:/Program Files (x86)/Atmel/Studio/7.0/Packs/atmel/ATmega_DFP/1.7.374/xc8/avr/lib/avr5/memx-const/crtatmega32.o
-                0x0000000000000e54                __vector_1
-                0x0000000000000e54                __vector_12
-                0x0000000000000e54                __bad_interrupt
-                0x0000000000000e54                __vector_6
-                0x0000000000000e54                __vector_3
-                0x0000000000000e54                __vector_11
-                0x0000000000000e54                __vector_13
-                0x0000000000000e54                __vector_17
-                0x0000000000000e54                __vector_19
-                0x0000000000000e54                __vector_7
-                0x0000000000000e54                __vector_5
-                0x0000000000000e54                __vector_4
-                0x0000000000000e54                __vector_9
-                0x0000000000000e54                __vector_2
-                0x0000000000000e54                __vector_15
-                0x0000000000000e54                __vector_8
-                0x0000000000000e54                __vector_14
-                0x0000000000000e54                __vector_10
-                0x0000000000000e54                __vector_16
-                0x0000000000000e54                __vector_18
-                0x0000000000000e54                __vector_20
-
-.text._Exit     0x0000000000000e58        0x4
- .text._Exit    0x0000000000000e58        0x4 c:/program files/microchip/xc8/v2.36/avr/bin/../lib/gcc/avr/5.4.0/../../../../avr/lib/avr5/memx-const\libc.a(_Exit.o)
-                0x0000000000000e58                _Exit
-
-.text.__dummy_fini
-                0x0000000000000e5c        0x2
- .text.__dummy_fini
-                0x0000000000000e5c        0x2 c:/program files/microchip/xc8/v2.36/avr/bin/../lib/gcc/avr/5.4.0/../../../../avr/lib/avr5/memx-const\libc.a(exit.o)
-                0x0000000000000e5c                _fini
-
-.text.__dummy_funcs_on_exit
-                0x0000000000000e5e        0x2
- .text.__dummy_funcs_on_exit
-                0x0000000000000e5e        0x2 c:/program files/microchip/xc8/v2.36/avr/bin/../lib/gcc/avr/5.4.0/../../../../avr/lib/avr5/memx-const\libc.a(exit.o)
-                0x0000000000000e5e                __funcs_on_exit
-
-.text.__dummy_simulator_exit
-                0x0000000000000e60        0x2
- .text.__dummy_simulator_exit
-                0x0000000000000e60        0x2 c:/program files/microchip/xc8/v2.36/avr/bin/../lib/gcc/avr/5.4.0/../../../../avr/lib/avr5/memx-const\libc.a(exit.o)
-                0x0000000000000e60                __simulator_exit
-
-.data.Right_wheels
-                0x0000000000800060        0x1 load address 0x0000000000000e62
- .data.Right_wheels
-                0x0000000000800060        0x1 main_movement.o
-                0x0000000000800060                Right_wheels
-
-.data.Left_wheels
-                0x0000000000800061        0x1 load address 0x0000000000000e63
- .data.Left_wheels
-                0x0000000000800061        0x1 main_movement.o
-                0x0000000000800061                Left_wheels
-=======
-.bss.last_cmd   0x0000000000800062        0x1
- .bss.last_cmd  0x0000000000800062        0x1 main.o
-                0x0000000000800062                last_cmd
-
-.progmemx.data  0x00000000000001aa      0x179
- .progmemx.data
-                0x00000000000001aa      0x179 main.o
-
-.progmemx.data.state_table
-                0x0000000000000323       0x16
- .progmemx.data.state_table
-                0x0000000000000323       0x16 c:/program files/microchip/xc8/v2.36/avr/bin/../lib/gcc/avr/5.4.0/../../../../avr/lib/avr5/memx-const\libc.a(__printf_core.o)
-
-.progmemx.data  0x0000000000000339        0x7
- .progmemx.data
-                0x0000000000000339        0x7 c:/program files/microchip/xc8/v2.36/avr/bin/../lib/gcc/avr/5.4.0/../../../../avr/lib/avr5/memx-const\libc.a(__fmt_s.o)
-
-.progmemx.data  0x0000000000000340        0x6
- .progmemx.data
-                0x0000000000000340        0x6 c:/program files/microchip/xc8/v2.36/avr/bin/../lib/gcc/avr/5.4.0/../../../../avr/lib/avr5/memx-const\libc.a(__printf_core.o)
-
-.text.__printf_core
-                0x0000000000000346      0x822
- .text.__printf_core
-                0x0000000000000346      0x822 c:/program files/microchip/xc8/v2.36/avr/bin/../lib/gcc/avr/5.4.0/../../../../avr/lib/avr5/memx-const\libc.a(__printf_core.o)
-                0x0000000000000346                __printf_core
-
-.text.__fmt_x   0x0000000000000b68      0x280
- .text.__fmt_x  0x0000000000000b68      0x280 c:/program files/microchip/xc8/v2.36/avr/bin/../lib/gcc/avr/5.4.0/../../../../avr/lib/avr5/memx-const\libc.a(__fmt_x.o)
-                0x0000000000000b68                __fmt_x_needed
-                0x0000000000000b68                __fmt_x
-
-.text.handle_command
-                0x0000000000000de8      0x1a6
- .text.handle_command
-                0x0000000000000de8      0x1a6 main.o
-                0x0000000000000de8                handle_command
-
-.text.__fmt_d   0x0000000000000f8e      0x17e
- .text.__fmt_d  0x0000000000000f8e      0x17e c:/program files/microchip/xc8/v2.36/avr/bin/../lib/gcc/avr/5.4.0/../../../../avr/lib/avr5/memx-const\libc.a(__fmt_d.o)
-                0x0000000000000f8e                __fmt_d
-                0x0000000000000f8e                __fmt_d_needed
-
-.text.__pop_int
-                0x000000000000110c      0x172
- .text.__pop_int
-                0x000000000000110c      0x172 c:/program files/microchip/xc8/v2.36/avr/bin/../lib/gcc/avr/5.4.0/../../../../avr/lib/avr5/memx-const\libc.a(__pop_int.o)
-                0x000000000000110c                __pop_int_needed
-                0x000000000000110c                __pop_int
-
-.text.__cvt_u   0x000000000000127e      0x14a
- .text.__cvt_u  0x000000000000127e      0x14a c:/program files/microchip/xc8/v2.36/avr/bin/../lib/gcc/avr/5.4.0/../../../../avr/lib/avr5/memx-const\libc.a(__fmt_u.o)
-                0x000000000000127e                __cvt_u
-
-.text.__pad     0x00000000000013c8      0x10e
- .text.__pad    0x00000000000013c8      0x10e c:/program files/microchip/xc8/v2.36/avr/bin/../lib/gcc/avr/5.4.0/../../../../avr/lib/avr5/memx-const\libc.a(__printf_core.o)
-                0x00000000000013c8                __pad
-
-.text.DIO_Setpindir
-                0x00000000000014d6       0xe0
- .text.DIO_Setpindir
-                0x00000000000014d6       0xe0 DIO.o
-                0x00000000000014d6                DIO_Setpindir
-
-.text.DIO_Writepin
-                0x00000000000015b6       0xe0
- .text.DIO_Writepin
-                0x00000000000015b6       0xe0 DIO.o
-                0x00000000000015b6                DIO_Writepin
-
-.text.__pop_ptr
-                0x0000000000001696       0xd8
- .text.__pop_ptr
-                0x0000000000001696       0xd8 c:/program files/microchip/xc8/v2.36/avr/bin/../lib/gcc/avr/5.4.0/../../../../avr/lib/avr5/memx-const\libc.a(__pop_ptr.o)
-                0x0000000000001696                __pop_ptr
-                0x0000000000001696                __pop_ptr_needed
-
-.text.__fmt_o   0x000000000000176e       0xd4
- .text.__fmt_o  0x000000000000176e       0xd4 c:/program files/microchip/xc8/v2.36/avr/bin/../lib/gcc/avr/5.4.0/../../../../avr/lib/avr5/memx-const\libc.a(__fmt_o.o)
-                0x000000000000176e                __fmt_o
-                0x000000000000176e                __fmt_o_needed
-
-.text.__fmt_s   0x0000000000001842       0xca
- .text.__fmt_s  0x0000000000001842       0xca c:/program files/microchip/xc8/v2.36/avr/bin/../lib/gcc/avr/5.4.0/../../../../avr/lib/avr5/memx-const\libc.a(__fmt_s.o)
-                0x0000000000001842                __fmt_s
-                0x0000000000001842                __fmt_0_needed
-                0x0000000000001842                __fmt_s_needed
-
-.text.__fmt_u   0x000000000000190c       0xb0
- .text.__fmt_u  0x000000000000190c       0xb0 c:/program files/microchip/xc8/v2.36/avr/bin/../lib/gcc/avr/5.4.0/../../../../avr/lib/avr5/memx-const\libc.a(__fmt_u.o)
-                0x000000000000190c                __fmt_u_needed
-                0x000000000000190c                __fmt_u
-
-.text.__vsnprintf
-                0x00000000000019bc       0xa4
- .text.__vsnprintf
-                0x00000000000019bc       0xa4 c:/program files/microchip/xc8/v2.36/avr/bin/../lib/gcc/avr/5.4.0/../../../../avr/lib/avr5/memx-const\libc.a(__int_vsnprintf.o)
-                0x00000000000019bc                __vsnprintf
-
-.text.libgcc.div
-                0x0000000000001a60       0xa2
- .text.libgcc.div
-                0x0000000000001a60       0xa2 c:/program files/microchip/xc8/v2.36/avr/bin/../lib/gcc/avr/5.4.0/avr5/memx-const\libgcc.a(_udivmod64.o)
-                0x0000000000001a60                __udivmod64
-
-.text.__fmt_state
-                0x0000000000001b02       0x9e
- .text.__fmt_state
-                0x0000000000001b02       0x9e c:/program files/microchip/xc8/v2.36/avr/bin/../lib/gcc/avr/5.4.0/../../../../avr/lib/avr5/memx-const\libc.a(__printf_core.o)
-                0x0000000000001b02                __fmt_state
-
-.text.fputc     0x0000000000001ba0       0x92
- .text.fputc    0x0000000000001ba0       0x92 c:/program files/microchip/xc8/v2.36/avr/bin/../lib/gcc/avr/5.4.0/../../../../avr/lib/avr5/memx-const\libc.a(fputc.o)
-                0x0000000000001ba0                fputc
-                0x0000000000001ba0                putc
-
-.text.atoi      0x0000000000001c32       0x90
- .text.atoi     0x0000000000001c32       0x90 c:/program files/microchip/xc8/v2.36/avr/bin/../lib/gcc/avr/5.4.0/../../../../avr/lib/avr5/memx-const\libc.a(atoi.o)
-                0x0000000000001c32                atoi
-
-.text.Move_Up   0x0000000000001cc2       0x8a
- .text.Move_Up  0x0000000000001cc2       0x8a main_movement.o
-                0x0000000000001cc2                Move_Up
+.text.Move_Up   0x0000000000000af8       0x8a
+ .text.Move_Up  0x0000000000000af8       0x8a main_movement.o
+                0x0000000000000af8                Move_Up
 
 .text.Move_Down
-                0x0000000000001d4c       0x8a
+                0x0000000000000b82       0x8a
  .text.Move_Down
-                0x0000000000001d4c       0x8a main_movement.o
-                0x0000000000001d4c                Move_Down
+                0x0000000000000b82       0x8a main_movement.o
+                0x0000000000000b82                Move_Down
 
 .text.Move_Right
-                0x0000000000001dd6       0x8a
+                0x0000000000000c0c       0x8a
  .text.Move_Right
-                0x0000000000001dd6       0x8a main_movement.o
-                0x0000000000001dd6                Move_Right
+                0x0000000000000c0c       0x8a main_movement.o
+                0x0000000000000c0c                Move_Right
 
 .text.Move_Left
-                0x0000000000001e60       0x8a
+                0x0000000000000c96       0x8a
  .text.Move_Left
-                0x0000000000001e60       0x8a main_movement.o
-                0x0000000000001e60                Move_Left
+                0x0000000000000c96       0x8a main_movement.o
+                0x0000000000000c96                Move_Left
 
-.text.Stop      0x0000000000001eea       0x82
- .text.Stop     0x0000000000001eea       0x82 main_movement.o
-                0x0000000000001eea                Stop
+.text.Stop      0x0000000000000d20       0x88
+ .text.Stop     0x0000000000000d20       0x88 main_movement.o
+                0x0000000000000d20                Stop
 
-.text.main      0x0000000000001f6c       0x7e
- .text.main     0x0000000000001f6c       0x7e main.o
-                0x0000000000001f6c                main
-
-.text.__out     0x0000000000001fea       0x68
- .text.__out    0x0000000000001fea       0x68 c:/program files/microchip/xc8/v2.36/avr/bin/../lib/gcc/avr/5.4.0/../../../../avr/lib/avr5/memx-const\libc.a(__printf_core.o)
-                0x0000000000001fea                __out
+.text.Decide_Movement
+                0x0000000000000da8       0x74
+ .text.Decide_Movement
+                0x0000000000000da8       0x74 Line_Follower_Logic.o
+                0x0000000000000da8                Decide_Movement
 
 .text.UART_Init
-                0x0000000000002052       0x44
+                0x0000000000000e1c       0x44
  .text.UART_Init
-                0x0000000000002052       0x44 USART.o
-                0x0000000000002052                UART_Init
+                0x0000000000000e1c       0x44 USART.o
+                0x0000000000000e1c                UART_Init
 
 .text.libgcc.div
-                0x0000000000002096       0x44
+                0x0000000000000e60       0x44
  .text.libgcc.div
-                0x0000000000002096       0x44 c:/program files/microchip/xc8/v2.36/avr/bin/../lib/gcc/avr/5.4.0/avr5/memx-const\libgcc.a(_udivmodsi4.o)
-                0x0000000000002096                __udivmodsi4
-
-.text.__pop_float
-                0x00000000000020da       0x40
- .text.__pop_float
-                0x00000000000020da       0x40 c:/program files/microchip/xc8/v2.36/avr/bin/../lib/gcc/avr/5.4.0/../../../../avr/lib/avr5/memx-const\libc.a(__pop_float.o)
-                0x00000000000020da                __pop_float_needed
-                0x00000000000020da                __pop_float
-
-.text.libgcc.builtins
-                0x000000000000211a       0x3c
- .text.libgcc.builtins
-                0x000000000000211a       0x3c c:/program files/microchip/xc8/v2.36/avr/bin/../lib/gcc/avr/5.4.0/avr5/memx-const\libgcc.a(_ashrdi3.o)
-                0x000000000000211a                __ashrdi3
-                0x000000000000211e                __lshrdi3
-
-.text.libgcc.prologue
-                0x0000000000002156       0x38
- .text.libgcc.prologue
-                0x0000000000002156       0x38 c:/program files/microchip/xc8/v2.36/avr/bin/../lib/gcc/avr/5.4.0/avr5/memx-const\libgcc.a(_prologue.o)
-                0x0000000000002156                __prologue_saves__
-
-.text.libgcc.prologue
-                0x000000000000218e       0x36
- .text.libgcc.prologue
-                0x000000000000218e       0x36 c:/program files/microchip/xc8/v2.36/avr/bin/../lib/gcc/avr/5.4.0/avr5/memx-const\libgcc.a(_epilogue.o)
-                0x000000000000218e                __epilogue_restores__
+                0x0000000000000e60       0x44 c:/program files/microchip/xc8/v2.36/avr/bin/../lib/gcc/avr/5.4.0/avr5/memx-const\libgcc.a(_udivmodsi4.o)
+                0x0000000000000e60                __udivmodsi4
 
 .text.Timer_wave_fastPWM
-                0x00000000000021c4       0x30
+                0x0000000000000ea4       0x30
  .text.Timer_wave_fastPWM
-                0x00000000000021c4       0x30 Timers.o
-                0x00000000000021c4                Timer_wave_fastPWM
-
-.text.__vfprintf
-                0x00000000000021f4       0x30
- .text.__vfprintf
-                0x00000000000021f4       0x30 c:/program files/microchip/xc8/v2.36/avr/bin/../lib/gcc/avr/5.4.0/../../../../avr/lib/avr5/memx-const\libc.a(__int_vfprintf.o)
-                0x00000000000021f4                __vfprintf
+                0x0000000000000ea4       0x30 Timers.o
+                0x0000000000000ea4                Timer_wave_fastPWM
 
 .text.UART_Send_string
-                0x0000000000002224       0x2c
+                0x0000000000000ed4       0x2c
  .text.UART_Send_string
-                0x0000000000002224       0x2c USART.o
-                0x0000000000002224                UART_Send_string
+                0x0000000000000ed4       0x2c USART.o
+                0x0000000000000ed4                UART_Send_string
 
-.text.strlen    0x0000000000002250       0x2c
- .text.strlen   0x0000000000002250       0x2c c:/program files/microchip/xc8/v2.36/avr/bin/../lib/gcc/avr/5.4.0/../../../../avr/lib/avr5/memx-const\libc.a(strlen.o)
-                0x0000000000002250                strlen
+.text.exit      0x0000000000000f00       0x16
+ .text.exit     0x0000000000000f00       0x16 c:/program files/microchip/xc8/v2.36/avr/bin/../lib/gcc/avr/5.4.0/../../../../avr/lib/avr5/memx-const\libc.a(exit.o)
+                0x0000000000000f00                exit
 
-.text.__wrap_sprintf
-                0x000000000000227c       0x26
- .text.__wrap_sprintf
-                0x000000000000227c       0x26 c:/program files/microchip/xc8/v2.36/avr/bin/../lib/gcc/avr/5.4.0/../../../../avr/lib/avr5/memx-const\libc.a(__sio_sprintf_doux.o)
-                0x000000000000227c                _sprintf_cdnopuxX
+.text.libgcc    0x0000000000000f16        0xc
+ .text.libgcc   0x0000000000000f16        0xc c:/program files/microchip/xc8/v2.36/avr/bin/../lib/gcc/avr/5.4.0/avr5/memx-const\libgcc.a(_tablejump2.o)
+                0x0000000000000f16                __tablejump2__
 
-.text.libgcc    0x00000000000022a2       0x20
- .text.libgcc   0x00000000000022a2       0x20 c:/program files/microchip/xc8/v2.36/avr/bin/../lib/gcc/avr/5.4.0/avr5/memx-const\libgcc.a(_negdi2.o)
-                0x00000000000022a2                __negdi2
+.text.Button_Init
+                0x0000000000000f22        0x8
+ .text.Button_Init
+                0x0000000000000f22        0x8 Button.o
+                0x0000000000000f22                Button_Init
 
-.text.libgcc.div
-                0x00000000000022c2       0x1c
- .text.libgcc.div
-                0x00000000000022c2       0x1c c:/program files/microchip/xc8/v2.36/avr/bin/../lib/gcc/avr/5.4.0/avr5/memx-const\libgcc.a(_udivdi3.o)
-                0x00000000000022c2                __umoddi3
-                0x00000000000022c6                __udivdi3
-                0x00000000000022c8                __udivdi3_umoddi3
-
-.text.libgcc    0x00000000000022de       0x1a
- .text.libgcc   0x00000000000022de       0x1a c:/program files/microchip/xc8/v2.36/avr/bin/../lib/gcc/avr/5.4.0/avr5/memx-const\libgcc.a(_movmemx.o)
-                0x00000000000022de                __movmemx_qi
-                0x00000000000022e0                __movmemx_hi
-
-.text.__vsprintf
-                0x00000000000022f8       0x18
- .text.__vsprintf
-                0x00000000000022f8       0x18 c:/program files/microchip/xc8/v2.36/avr/bin/../lib/gcc/avr/5.4.0/../../../../avr/lib/avr5/memx-const\libc.a(__int_vsprintf.o)
-                0x00000000000022f8                __vsprintf
-
-.text.libgcc    0x0000000000002310       0x18
- .text.libgcc   0x0000000000002310       0x18 c:/program files/microchip/xc8/v2.36/avr/bin/../lib/gcc/avr/5.4.0/avr5/memx-const\libgcc.a(_cmpdi2_s8.o)
-                0x0000000000002310                __cmpdi2_s8
-
-.text.exit      0x0000000000002328       0x16
- .text.exit     0x0000000000002328       0x16 c:/program files/microchip/xc8/v2.36/avr/bin/../lib/gcc/avr/5.4.0/../../../../avr/lib/avr5/memx-const\libc.a(exit.o)
-                0x0000000000002328                exit
-
-.text.memset    0x000000000000233e       0x12
- .text.memset   0x000000000000233e       0x12 c:/program files/microchip/xc8/v2.36/avr/bin/../lib/gcc/avr/5.4.0/../../../../avr/lib/avr5/memx-const\libc.a(memset.o)
-                0x000000000000233e                memset
-
-.text.toupper   0x0000000000002350       0x12
- .text.toupper  0x0000000000002350       0x12 c:/program files/microchip/xc8/v2.36/avr/bin/../lib/gcc/avr/5.4.0/../../../../avr/lib/avr5/memx-const\libc.a(toupper.o)
-                0x0000000000002350                toupper
-
-.text.tolower   0x0000000000002362       0x10
- .text.tolower  0x0000000000002362       0x10 c:/program files/microchip/xc8/v2.36/avr/bin/../lib/gcc/avr/5.4.0/../../../../avr/lib/avr5/memx-const\libc.a(tolower.o)
-                0x0000000000002362                tolower
-
-.text.libgcc    0x0000000000002372        0xc
- .text.libgcc   0x0000000000002372        0xc c:/program files/microchip/xc8/v2.36/avr/bin/../lib/gcc/avr/5.4.0/avr5/memx-const\libgcc.a(_tablejump2.o)
-                0x0000000000002372                __tablejump2__
-
-.text.LED_Init  0x000000000000237e        0x8
+.text.LED_Init  0x0000000000000f2a        0x8
  .text.LED_Init
-                0x000000000000237e        0x8 LED.o
-                0x000000000000237e                LED_Init
+                0x0000000000000f2a        0x8 LED.o
+                0x0000000000000f2a                LED_Init
 
-.text.LED_On    0x0000000000002386        0x8
- .text.LED_On   0x0000000000002386        0x8 LED.o
-                0x0000000000002386                LED_On
+.text.LED_On    0x0000000000000f32        0x8
+ .text.LED_On   0x0000000000000f32        0x8 LED.o
+                0x0000000000000f32                LED_On
 
-.text.LED_Off   0x000000000000238e        0x8
- .text.LED_Off  0x000000000000238e        0x8 LED.o
-                0x000000000000238e                LED_Off
+.text.LED_Off   0x0000000000000f3a        0x8
+ .text.LED_Off  0x0000000000000f3a        0x8 LED.o
+                0x0000000000000f3a                LED_Off
 
 .text.UART_Send_data
-                0x0000000000002396        0x8
+                0x0000000000000f42        0x8
  .text.UART_Send_data
-                0x0000000000002396        0x8 USART.o
-                0x0000000000002396                UART_Send_data
+                0x0000000000000f42        0x8 USART.o
+                0x0000000000000f42                UART_Send_data
 
 .text.UART_Receive_data
-                0x000000000000239e        0x8
+                0x0000000000000f4a        0x8
  .text.UART_Receive_data
-                0x000000000000239e        0x8 USART.o
-                0x000000000000239e                UART_Receive_data
+                0x0000000000000f4a        0x8 USART.o
+                0x0000000000000f4a                UART_Receive_data
 
-.text.__dummy_fmt4
-                0x00000000000023a6        0x6
- .text.__dummy_fmt4
-                0x00000000000023a6        0x6 c:/program files/microchip/xc8/v2.36/avr/bin/../lib/gcc/avr/5.4.0/../../../../avr/lib/avr5/memx-const\libc.a(__printf_core.o)
-                0x00000000000023a6                __fmt_fp
-                0x00000000000023a6                __fmt_a
+.text.Button_Read
+                0x0000000000000f52        0x6
+ .text.Button_Read
+                0x0000000000000f52        0x6 Button.o
+                0x0000000000000f52                Button_Read
 
-.text           0x00000000000023ac        0x4
- .text          0x00000000000023ac        0x4 C:/Program Files (x86)/Atmel/Studio/7.0/Packs/atmel/ATmega_DFP/1.7.374/xc8/avr/lib/avr5/memx-const/crtatmega32.o
-                0x00000000000023ac                __vector_1
-                0x00000000000023ac                __vector_12
-                0x00000000000023ac                __bad_interrupt
-                0x00000000000023ac                __vector_6
-                0x00000000000023ac                __vector_3
-                0x00000000000023ac                __vector_11
-                0x00000000000023ac                __vector_13
-                0x00000000000023ac                __vector_17
-                0x00000000000023ac                __vector_19
-                0x00000000000023ac                __vector_7
-                0x00000000000023ac                __vector_5
-                0x00000000000023ac                __vector_4
-                0x00000000000023ac                __vector_9
-                0x00000000000023ac                __vector_2
-                0x00000000000023ac                __vector_15
-                0x00000000000023ac                __vector_8
-                0x00000000000023ac                __vector_14
-                0x00000000000023ac                __vector_10
-                0x00000000000023ac                __vector_16
-                0x00000000000023ac                __vector_18
-                0x00000000000023ac                __vector_20
+.text           0x0000000000000f58        0x4
+ .text          0x0000000000000f58        0x4 C:/Program Files (x86)/Atmel/Studio/7.0/Packs/atmel/ATmega_DFP/1.7.374/xc8/avr/lib/avr5/memx-const/crtatmega32.o
+                0x0000000000000f58                __vector_1
+                0x0000000000000f58                __vector_12
+                0x0000000000000f58                __bad_interrupt
+                0x0000000000000f58                __vector_6
+                0x0000000000000f58                __vector_3
+                0x0000000000000f58                __vector_11
+                0x0000000000000f58                __vector_13
+                0x0000000000000f58                __vector_17
+                0x0000000000000f58                __vector_19
+                0x0000000000000f58                __vector_7
+                0x0000000000000f58                __vector_5
+                0x0000000000000f58                __vector_4
+                0x0000000000000f58                __vector_9
+                0x0000000000000f58                __vector_2
+                0x0000000000000f58                __vector_15
+                0x0000000000000f58                __vector_8
+                0x0000000000000f58                __vector_14
+                0x0000000000000f58                __vector_10
+                0x0000000000000f58                __vector_16
+                0x0000000000000f58                __vector_18
+                0x0000000000000f58                __vector_20
 
-.text._Exit     0x00000000000023b0        0x4
- .text._Exit    0x00000000000023b0        0x4 c:/program files/microchip/xc8/v2.36/avr/bin/../lib/gcc/avr/5.4.0/../../../../avr/lib/avr5/memx-const\libc.a(_Exit.o)
-                0x00000000000023b0                _Exit
+.text._Exit     0x0000000000000f5c        0x4
+ .text._Exit    0x0000000000000f5c        0x4 c:/program files/microchip/xc8/v2.36/avr/bin/../lib/gcc/avr/5.4.0/../../../../avr/lib/avr5/memx-const\libc.a(_Exit.o)
+                0x0000000000000f5c                _Exit
 
 .text.__dummy_fini
-                0x00000000000023b4        0x2
+                0x0000000000000f60        0x2
  .text.__dummy_fini
-                0x00000000000023b4        0x2 c:/program files/microchip/xc8/v2.36/avr/bin/../lib/gcc/avr/5.4.0/../../../../avr/lib/avr5/memx-const\libc.a(exit.o)
-                0x00000000000023b4                _fini
+                0x0000000000000f60        0x2 c:/program files/microchip/xc8/v2.36/avr/bin/../lib/gcc/avr/5.4.0/../../../../avr/lib/avr5/memx-const\libc.a(exit.o)
+                0x0000000000000f60                _fini
 
 .text.__dummy_funcs_on_exit
-                0x00000000000023b6        0x2
+                0x0000000000000f62        0x2
  .text.__dummy_funcs_on_exit
-                0x00000000000023b6        0x2 c:/program files/microchip/xc8/v2.36/avr/bin/../lib/gcc/avr/5.4.0/../../../../avr/lib/avr5/memx-const\libc.a(exit.o)
-                0x00000000000023b6                __funcs_on_exit
+                0x0000000000000f62        0x2 c:/program files/microchip/xc8/v2.36/avr/bin/../lib/gcc/avr/5.4.0/../../../../avr/lib/avr5/memx-const\libc.a(exit.o)
+                0x0000000000000f62                __funcs_on_exit
 
 .text.__dummy_simulator_exit
-                0x00000000000023b8        0x2
+                0x0000000000000f64        0x2
  .text.__dummy_simulator_exit
-                0x00000000000023b8        0x2 c:/program files/microchip/xc8/v2.36/avr/bin/../lib/gcc/avr/5.4.0/../../../../avr/lib/avr5/memx-const\libc.a(exit.o)
-                0x00000000000023b8                __simulator_exit
+                0x0000000000000f64        0x2 c:/program files/microchip/xc8/v2.36/avr/bin/../lib/gcc/avr/5.4.0/../../../../avr/lib/avr5/memx-const\libc.a(exit.o)
+                0x0000000000000f64                __simulator_exit
 
-.data.x         0x0000000000800063        0x1 load address 0x00000000000023ba
- .data.x        0x0000000000800063        0x1 main_movement.o
-                0x0000000000800063                x
->>>>>>> origin/embedded
+.data.Right_wheels
+                0x0000000000800064        0x1 load address 0x0000000000000f66
+ .data.Right_wheels
+                0x0000000000800064        0x1 main_movement.o
+                0x0000000000800064                Right_wheels
+
+.data.Left_wheels
+                0x0000000000800065        0x1 load address 0x0000000000000f67
+ .data.Left_wheels
+                0x0000000000800065        0x1 main_movement.o
+                0x0000000000800065                Left_wheels
