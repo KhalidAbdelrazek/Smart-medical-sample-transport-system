@@ -4,6 +4,7 @@ import json
 import serial
 import time
 
+
 # ================== MQTT CONFIG ==================
 MQTT_HOST = "81758f399b5b46b9875ac5e5f1e3ef1e.s1.eu.hivemq.cloud"
 MQTT_PORT = 8883
