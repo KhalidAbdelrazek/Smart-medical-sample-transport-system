@@ -89,17 +89,17 @@ The system is composed of **four tightly integrated layers**:
 │          dispatch/ · acknowledgement/ · arrival/ · control/     │
 └──────────────────────────┬──────────────────────────────────────┘
                            │  MQTT Topics
-┌──────────────────────────▼──────────────────────────────────────┐
-│                  IoT / EMBEDDED ROBOT                           │
-│   ┌─────────────────────────┐   ┌─────────────────────────┐    │
-│   │   Raspberry Pi          │◄──►   ATmega MCU             │    │
-│   │  (High-Level Brain)     │UART│ (Real-Time Control)      │    │
-│   │  · MQTT client          │   │ · Motor drivers           │    │
-│   │  · State machine        │   │ · IR line sensors         │    │
-│   │  · Camera + OCR         │   │ · Intersection detection  │    │
-│   │  · IMU / Gyroscope      │   │ · Buzzer signalling       │    │
-│   └─────────────────────────┘   └─────────────────────────┘    │
-└─────────────────────────────────────────────────────────────────┘
+┌──────────────────────────▼─────────────────────────────────────┐
+│                  IoT / EMBEDDED ROBOT                          │
+│   ┌─────────────────────────┐   ┌───────────────────────────┐  │
+│   │   Raspberry Pi          │◄──►   ATmega MCU              │  │
+│   │  (High-Level Brain)     │UART│ (Real-Time Control)      │  │
+│   │  · MQTT client          │   │ · Motor drivers           │  │
+│   │  · State machine        │   │ · IR line sensors         │  │
+│   │  · Camera + OCR         │   │ · Intersection detection  │  │
+│   │  · IMU / Gyroscope      │   │ · Buzzer signalling       │  │
+│   └─────────────────────────┘   └───────────────────────────┘  │
+└────────────────────────────────────────────────────────────────┘
 ```
 
 ---
