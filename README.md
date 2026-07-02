@@ -1,4 +1,5 @@
 # Smart Medical Sample Transport System
+<<<<<<< HEAD
 
 Welcome to the **Smart Medical Sample Transport System** repository. This project is a comprehensive graduation project designed to automate, secure, and monitor the transport of medical samples within healthcare facilities using smart robotic carts.
 
@@ -61,3 +62,8 @@ Smart-medical-sample-transport-system/
 
 ## 👥 Contributors
 Developed as part of a Graduation Project.
+=======
+test 
+test
+teeeeeeeeest
+>>>>>>> merge
