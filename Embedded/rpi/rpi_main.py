@@ -1,4 +1,4 @@
-# version 1.10 18/5/2026 9:21 PM
+# version 1.14 6/16/2026 11:03 PM
 #
 # Changes from 1.8:
 #   • RETURN_TO_STORAGE no longer sends 'B'.
@@ -480,6 +480,8 @@ def main():
                     go_to_storage  = False
                     rooms_to_visit = list(rooms)
                     i = 0
+                    
+                    needs_forward = True   # always drive to first intersection on entry
 
                     # ── Iterate through rooms ──────────────────
                     while i < len(rooms_to_visit):
@@ -496,14 +498,12 @@ def main():
 
                         # ── Room seek loop ─────────────────────
                         while True:
-                            # Flush stale UART bytes before commanding forward
-                            if i == 0:
+                            if needs_forward:
                                 car.flush_input()
-                                # Tell ATmega to start forward line-following
                                 print_uart_send("F\n")
                                 car.forward()
-                                # Block until ATmega detects intersection and sends 's'
                                 wait_for_atmega_stop(car)
+                                needs_forward = False   # don't re-drive until a mismatch advances us
 
                             
 
@@ -674,6 +674,7 @@ def main():
                                                 current_room=next_room
                                             )
                                             proceed_received = True
+                                            needs_forward = False  # re-arm so the loop drives to the next intersection
                                             # wait_for_atmega_stop(car)
 
                                         else:
@@ -689,13 +690,16 @@ def main():
                             else:
                                 logging.warning(f"[ROBOT] Room mismatch: expected '{room}', got '{detected_room}'. Advancing.")
                                 print(f"  ⚠️  [CAMERA] Mismatch — expected '{room}', got '{detected_room}'. Advancing past intersection...")
-                                car.flush_input()
-                                print_uart_send("F\n")
-                                car.forward()
-                                time.sleep(0.5)
-                                print_uart_send("S\n")
-                                car.stop()
-                                # Loop back to room seek loop for next intersection
+                                print_state("MOVING_TO_ROOM", f"Target room: {room}")
+                                shared_state.update(
+                                    current_state="MOVING_TO_ROOM",
+                                    current_room=room
+                                )
+                                # car.flush_input()
+                                # print_uart_send("F\n")
+                                # car.forward()
+                                # wait_for_atmega_stop(car)   # ← replace the fixed 0.5s sleep with proper stop detection
+                                needs_forward = True        # ← re-arm so the loop drives to the next intersection
 
                         if go_to_storage:
                             logging.info("[ROBOT] Batch aborted — car returned to STORAGE.")
