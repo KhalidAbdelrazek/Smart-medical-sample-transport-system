@@ -311,75 +311,75 @@ class AllTransportRequestsView(APIView):
 
 
 
-class RequestReturnView(APIView):
-    """
-    POST /api/transport/request-return/
-    Doctor requests returns for one or many samples using sample UUIDs.
-    """
-    permission_classes = [IsAuthenticated, IsDoctor]
+# class RequestReturnView(APIView):
+#     """
+#     POST /api/transport/request-return/
+#     Doctor requests returns for one or many samples using sample UUIDs.
+#     """
+#     permission_classes = [IsAuthenticated, IsDoctor]
 
-    @extend_schema(
-        tags=['Transport - Return - For Doctor'],
-        summary='Request Return (Batch)',
-        description='Create one RETURN transport request per sample using a shared batch_id.',
-        request=RequestReturnSerializer,
-        responses={201: TransportRequestSerializer(many=True)},
-    )
-    def post(self, request):
-        serializer = RequestReturnSerializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
+#     @extend_schema(
+#         tags=['Transport - Return - For Doctor'],
+#         summary='Request Return (Batch)',
+#         description='Create one RETURN transport request per sample using a shared batch_id.',
+#         request=RequestReturnSerializer,
+#         responses={201: TransportRequestSerializer(many=True)},
+#     )
+#     def post(self, request):
+#         serializer = RequestReturnSerializer(data=request.data)
+#         serializer.is_valid(raise_exception=True)
 
-        try:
-            sample_ids = serializer.validated_data.get('sample_ids', [])
-            sample_codes = serializer.validated_data.get('sample_codes', [])
+#         try:
+#             sample_ids = serializer.validated_data.get('sample_ids', [])
+#             sample_codes = serializer.validated_data.get('sample_codes', [])
 
-            if sample_codes:
-                batch_id, return_requests = request_return_by_codes(
-                    sample_codes=sample_codes,
-                    doctor=request.user,
-                )
-            else:
-                batch_id, return_requests = request_return_batch(
-                    sample_ids=sample_ids,
-                    doctor=request.user,
-                )
-            return unified_response(
-                success=True,
-                message=f"Created return batch with {len(return_requests)} sample(s)",
-                data={
-                    'batch_id': str(batch_id),
-                    'requests': TransportRequestSerializer(return_requests, many=True).data,
-                },
-                status=status.HTTP_201_CREATED,
-            )
-        except (NotFound, ValidationError) as e:
-            return unified_response(
-                success=False,
-                message=format_error_message(e),
-                status=status.HTTP_400_BAD_REQUEST,
-            )
+#             if sample_codes:
+#                 batch_id, return_requests = request_return_by_codes(
+#                     sample_codes=sample_codes,
+#                     doctor=request.user,
+#                 )
+#             else:
+#                 batch_id, return_requests = request_return_batch(
+#                     sample_ids=sample_ids,
+#                     doctor=request.user,
+#                 )
+#             return unified_response(
+#                 success=True,
+#                 message=f"Created return batch with {len(return_requests)} sample(s)",
+#                 data={
+#                     'batch_id': str(batch_id),
+#                     'requests': TransportRequestSerializer(return_requests, many=True).data,
+#                 },
+#                 status=status.HTTP_201_CREATED,
+#             )
+#         except (NotFound, ValidationError) as e:
+#             return unified_response(
+#                 success=False,
+#                 message=format_error_message(e),
+#                 status=status.HTTP_400_BAD_REQUEST,
+#             )
 
 
-class ReturnRequestsView(APIView):
-    """
-    GET /api/transport/return-requests/
-    Storage views grouped return requests by batch.
-    """
-    permission_classes = [IsAuthenticated, IsStorageEmployee]
+# class ReturnRequestsView(APIView):
+#     """
+#     GET /api/transport/return-requests/
+#     Storage views grouped return requests by batch.
+#     """
+#     permission_classes = [IsAuthenticated, IsStorageEmployee]
 
-    @extend_schema(
-        tags=['Transport - Return - For Storage'],
-        summary='List Return Requests',
-        description='Returns return requests grouped by batch_id.',
-    )
-    def get(self, request):
-        grouped = get_grouped_return_requests()
-        return unified_response(
-            success=True,
-            message=f"Found {len(grouped)} return batch(es)",
-            data=grouped,
-            status=status.HTTP_200_OK,
-        )
+#     @extend_schema(
+#         tags=['Transport - Return - For Storage'],
+#         summary='List Return Requests',
+#         description='Returns return requests grouped by batch_id.',
+#     )
+#     def get(self, request):
+#         grouped = get_grouped_return_requests()
+#         return unified_response(
+#             success=True,
+#             message=f"Found {len(grouped)} return batch(es)",
+#             data=grouped,
+#             status=status.HTTP_200_OK,
+#         )
 
 
 # ApproveReturnView has been removed — storage approval step is no longer needed.
