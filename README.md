@@ -175,7 +175,7 @@ Smart-medical-sample-transport-system/
 │   ├── openapi.json                 # OpenAPI schema
 │   └── mqtt-flow.md                 # MQTT flow documentation
 │
-├── smart_midecal_transport_app/     # Flutter cross-platform mobile app
+├── Flutter/     # Flutter cross-platform mobile app
 │   ├── lib/                         # Dart source code
 │   ├── assets/                      # Images, fonts, localization
 │   ├── android/ · ios/ · web/       # Platform-specific configs
@@ -208,7 +208,7 @@ Smart-medical-sample-transport-system/
 
 ### 1. 📱 Mobile Application (Flutter)
 
-> **Location:** `smart_midecal_transport_app/`
+> **Location:** `Flutter/`
 
 A cross-platform mobile application targeting **Android and iOS** from a single codebase. The app enforces strict role-based routing — each user type receives a completely separate, purpose-built interface upon login.
 
@@ -414,13 +414,13 @@ The server will be available at `http://127.0.0.1:8000/`
 
 ---
 
-### Mobile App Setup (`smart_midecal_transport_app/`)
+### Mobile App Setup (`Flutter/`)
 
 **Prerequisites:** Flutter SDK 3.8.1+, Dart SDK
 
 ```bash
 # 1. Navigate to the mobile app directory
-cd smart_midecal_transport_app
+cd Flutter
 
 # 2. Fetch all Flutter package dependencies
 flutter pub get
@@ -497,44 +497,44 @@ Backend ──────► carts/{cart_id}/control         ► Backend sends 
 <table>
   <tr>
     <td align="center" width="25%">
-      <img src="smart_midecal_transport_app/assets/teams/1.png" width="120" height="120" style="border-radius: 50%; object-fit: fit;" alt="Khalid Abdelrazk"/><br/>
+      <img src="Flutter/assets/teams/1.png" width="120" height="120" style="border-radius: 50%; object-fit: fit;" alt="Khalid Abdelrazk"/><br/>
       <b>Khalid Abdelrazk (Team Leader)</b><br/>
       Flutter & Embedded Systems Engineer
     </td>
     <td align="center" width="25%">
-      <img src="smart_midecal_transport_app/assets/teams/2.jpg" width="120" height="120" style="border-radius: 50%; object-fit: cover;" alt="Menna Tallah Khaled"/><br/>
+      <img src="Flutter/assets/teams/2.jpg" width="120" height="120" style="border-radius: 50%; object-fit: cover;" alt="Menna Tallah Khaled"/><br/>
       <b>Menna Tallah Khaled</b><br/>
       IoT & Embedded Systems Engineer
     </td>
     <td align="center" width="25%">
-      <img src="smart_midecal_transport_app/assets/teams/3.jpg" width="120" height="120" style="border-radius: 50%; object-fit: cover;" alt="Mohammed Fadel"/><br/>
+      <img src="Flutter/assets/teams/3.jpg" width="120" height="120" style="border-radius: 50%; object-fit: cover;" alt="Mohammed Fadel"/><br/>
       <b>Mohammed Fadel</b><br/>
       IoT & Embedded Systems Engineer
     </td>
     <td align="center" width="25%">
-      <img src="smart_midecal_transport_app/assets/teams/4.jpg" width="120" height="120" style="border-radius: 50%; object-fit: cover;" alt="Nader Ahmed"/><br/>
+      <img src="Flutter/assets/teams/4.jpg" width="120" height="120" style="border-radius: 50%; object-fit: cover;" alt="Nader Ahmed"/><br/>
       <b>Nader Ahmed</b><br/>
       Embedded Systems Engineer
     </td>
   </tr>
   <tr>
     <td align="center" width="25%">
-      <img src="smart_midecal_transport_app/assets/teams/5.jpg" width="120" height="120" style="border-radius: 50%; object-fit: cover;" alt="Mohammed Ashraf"/><br/>
+      <img src="Flutter/assets/teams/5.jpg" width="120" height="120" style="border-radius: 50%; object-fit: cover;" alt="Mohammed Ashraf"/><br/>
       <b>Mohammed Ashraf</b><br/>
       Back-End Developer
     </td>
     <td align="center" width="25%">
-      <img src="smart_midecal_transport_app/assets/teams/6.png" width="120" height="120" style="border-radius: 50%; object-fit: cover;" alt="Shahd Hegazy"/><br/>
+      <img src="Flutter/assets/teams/6.png" width="120" height="120" style="border-radius: 50%; object-fit: cover;" alt="Shahd Hegazy"/><br/>
       <b>Shahd Hegazy</b><br/>
       Back-End Developer
     </td>
     <td align="center" width="25%">
-      <img src="smart_midecal_transport_app/assets/teams/7.png" width="120" height="120" style="border-radius: 50%; object-fit: cover;" alt="Merna Ezzat"/><br/>
+      <img src="Flutter/assets/teams/7.png" width="120" height="120" style="border-radius: 50%; object-fit: cover;" alt="Merna Ezzat"/><br/>
       <b>Merna Ezzat</b><br/>
       Back-End Developer
     </td>
     <td align="center" width="25%">
-      <img src="smart_midecal_transport_app/assets/teams/8.png" width="120" height="120" style="border-radius: 50%; object-fit: cover;" alt="Mohmmed Tarek"/><br/>
+      <img src="Flutter/assets/teams/8.png" width="120" height="120" style="border-radius: 50%; object-fit: cover;" alt="Mohmmed Tarek"/><br/>
       <b>Mohmmed Tarek</b><br/>
       Flutter Developer
     </td>
