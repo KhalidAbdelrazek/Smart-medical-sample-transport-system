@@ -497,7 +497,7 @@ Backend ──────► carts/{cart_id}/control         ► Backend sends 
 <table>
   <tr>
     <td align="center" width="25%">
-      <img src="smart_midecal_transport_app/assets/teams/1.jpg" width="120" height="120" style="border-radius: 50%; object-fit: fit;" alt="Khalid Abdelrazk"/><br/>
+      <img src="smart_midecal_transport_app/assets/teams/1.png" width="120" height="120" style="border-radius: 50%; object-fit: fit;" alt="Khalid Abdelrazk"/><br/>
       <b>Khalid Abdelrazk (Team Leader)</b><br/>
       Flutter & Embedded Systems Engineer
     </td>
@@ -524,17 +524,17 @@ Backend ──────► carts/{cart_id}/control         ► Backend sends 
       Back-End Developer
     </td>
     <td align="center" width="25%">
-      <img src="smart_midecal_transport_app/assets/teams/6.jpg" width="120" height="120" style="border-radius: 50%; object-fit: cover;" alt="Shahd Hegazy"/><br/>
+      <img src="smart_midecal_transport_app/assets/teams/6.png" width="120" height="120" style="border-radius: 50%; object-fit: cover;" alt="Shahd Hegazy"/><br/>
       <b>Shahd Hegazy</b><br/>
       Back-End Developer
     </td>
     <td align="center" width="25%">
-      <img src="smart_midecal_transport_app/assets/teams/7.jpg" width="120" height="120" style="border-radius: 50%; object-fit: cover;" alt="Merna Ezzat"/><br/>
+      <img src="smart_midecal_transport_app/assets/teams/7.png" width="120" height="120" style="border-radius: 50%; object-fit: cover;" alt="Merna Ezzat"/><br/>
       <b>Merna Ezzat</b><br/>
       Back-End Developer
     </td>
     <td align="center" width="25%">
-      <img src="smart_midecal_transport_app/assets/teams/8.jpg" width="120" height="120" style="border-radius: 50%; object-fit: cover;" alt="Mohmmed Tarek"/><br/>
+      <img src="smart_midecal_transport_app/assets/teams/8.png" width="120" height="120" style="border-radius: 50%; object-fit: cover;" alt="Mohmmed Tarek"/><br/>
       <b>Mohmmed Tarek</b><br/>
       Flutter Developer
     </td>
