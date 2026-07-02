@@ -1,0 +1,711 @@
+openapi: 3.0.3
+info:
+  title: BioRoute — Smart Medical Blood Sample Transport API
+  version: 1.0.0
+  description: REST API for the BioRoute Smart Medical Sample Transport System. Includes
+    authentication, blood sample tracking, and automated car dispatch.
+paths:
+  /api/auth/admin/login/:
+    post:
+      operationId: api_auth_admin_login_create
+      description: Returns JWT tokens for Admin users only.
+      summary: Admin Login
+      tags:
+      - Auth
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AdminLoginRequest'
+            examples:
+              AdminLogin:
+                value:
+                  email: admin@bioroute.com
+                  password: AaAa112233_
+                summary: Admin Login
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/AdminLoginRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/AdminLoginRequest'
+        required: true
+      security:
+      - jwtAuth: []
+      - tokenAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  access:
+                    type: string
+                  refresh:
+                    type: string
+          description: ''
+  /api/auth/login/:
+    post:
+      operationId: api_auth_login_create
+      description: Returns JWT tokens for Doctors and Storage Employees.
+      summary: Doctor & Storage Employee Login
+      tags:
+      - Auth
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+            examples:
+              DoctorLogin:
+                value:
+                  email: doctor1@bioroute.com
+                  password: AaAa112233_
+                summary: Doctor Login
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+        required: true
+      security:
+      - jwtAuth: []
+      - tokenAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  access:
+                    type: string
+                  refresh:
+                    type: string
+          description: ''
+  /api/auth/profile/:
+    get:
+      operationId: api_auth_profile_retrieve
+      description: 'Returns profile info: id, name, role, department, shift, employee_id.'
+      summary: Get Current User Profile
+      tags:
+      - Auth
+      security:
+      - jwtAuth: []
+      - tokenAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Profile'
+          description: ''
+  /api/samples/{id}/:
+    get:
+      operationId: api_samples_retrieve
+      description: Retrieve blood sample details using its UUID. Doctor only.
+      summary: Get Blood Sample by ID
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - Samples
+      security:
+      - jwtAuth: []
+      - tokenAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BloodSample'
+          description: ''
+  /api/samples/request/:
+    post:
+      operationId: api_samples_request_create
+      description: Doctor sends sample_id and room_number. If the sample is in storage,
+        a transport request is created. Returns an error if the sample is out for
+        delivery.
+      summary: Request a Blood Sample
+      tags:
+      - Samples
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SampleRequestRequest'
+            examples:
+              SampleRequest:
+                value:
+                  sample_id: xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
+                  room_number: '305'
+                summary: Sample Request
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/SampleRequestRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/SampleRequestRequest'
+        required: true
+      security:
+      - jwtAuth: []
+      - tokenAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TransportRequest'
+          description: ''
+  /api/transport/add-to-car/:
+    post:
+      operationId: api_transport_add_to_car_create
+      description: Assign a requested sample to a car. Car status changes to LOADING.
+      summary: Add Sample to Car
+      tags:
+      - Transport
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AddToCarRequest'
+            examples:
+              AddToCar:
+                value:
+                  sample_id: xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
+                  car_id: 1
+                summary: Add To Car
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/AddToCarRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/AddToCarRequest'
+        required: true
+      security:
+      - jwtAuth: []
+      - tokenAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TransportRequest'
+          description: ''
+  /api/transport/dispatch-car/:
+    post:
+      operationId: api_transport_dispatch_car_create
+      description: Dispatch a car carrying samples. All loaded samples become OUT_FOR_DELIVERY.
+        Car becomes DISPATCHED. Returns error if car is empty.
+      summary: Dispatch Car
+      tags:
+      - Transport
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DispatchCarRequest'
+            examples:
+              DispatchCar:
+                value:
+                  car_id: 1
+                summary: Dispatch Car
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/DispatchCarRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/DispatchCarRequest'
+        required: true
+      security:
+      - jwtAuth: []
+      - tokenAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/TransportRequest'
+          description: ''
+  /api/transport/requests/:
+    get:
+      operationId: api_transport_requests_list
+      description: Returns all PENDING sample transport requests for the storage dashboard.
+      summary: List Pending Transport Requests
+      tags:
+      - Transport
+      security:
+      - jwtAuth: []
+      - tokenAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/TransportRequest'
+          description: ''
+  /api/transport/my-requests/:
+    get:
+      operationId: api_transport_my_requests_list
+      description: Returns all sample transport requests created by the authenticated doctor.
+      summary: List My Requests
+      tags:
+      - Transport
+      security:
+      - jwtAuth: []
+      - tokenAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  message:
+                    type: string
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/TransportRequest'
+          description: ''
+  /api/transport/requests/{request_id}/cancel/:
+    delete:
+      operationId: api_transport_requests_cancel_delete
+      description: Allows a doctor to cancel a transport request they made, provided it is still PENDING.
+      summary: Cancel Transport Request
+      parameters:
+      - in: path
+        name: request_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - Transport
+      security:
+      - jwtAuth: []
+      - tokenAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  message:
+                    type: string
+                  data:
+                    nullable: true
+          description: ''
+        '403':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  message:
+                    type: string
+          description: ''
+        '404':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  message:
+                    type: string
+          description: ''
+  /auth/token/:
+    post:
+      operationId: auth_token_create
+      tags:
+      - auth
+      requestBody:
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/AuthTokenRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/AuthTokenRequest'
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AuthTokenRequest'
+        required: true
+      security:
+      - jwtAuth: []
+      - tokenAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthToken'
+          description: ''
+  /mqtt-control/:
+    get:
+      operationId: mqtt_control_retrieve
+      description: Control the specific device via MQTT by sending cart and state
+        data.
+      summary: Control Device MQTT
+      parameters:
+      - in: query
+        name: cart
+        schema:
+          type: string
+        description: Identifier for the robot cart
+        required: true
+      - in: query
+        name: state
+        schema:
+          type: string
+        description: State ("C" for making the dispatch order)
+        required: true
+      tags:
+      - mqtt-control
+      security:
+      - jwtAuth: []
+      - tokenAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: {}
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: {}
+          description: ''
+        '500':
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: {}
+          description: ''
+components:
+  schemas:
+    AddToCarRequest:
+      type: object
+      description: Body for adding a sample to a car.
+      properties:
+        sample_id:
+          type: string
+          format: uuid
+        car_id:
+          type: integer
+      required:
+      - car_id
+      - sample_id
+    AdminLoginRequest:
+      type: object
+      description: Used exclusively by Admin for login.
+      properties:
+        email:
+          type: string
+          format: email
+          minLength: 1
+        password:
+          type: string
+          writeOnly: true
+          minLength: 1
+      required:
+      - email
+      - password
+    AuthToken:
+      type: object
+      properties:
+        token:
+          type: string
+          readOnly: true
+      required:
+      - token
+    AuthTokenRequest:
+      type: object
+      properties:
+        username:
+          type: string
+          writeOnly: true
+          minLength: 1
+        password:
+          type: string
+          writeOnly: true
+          minLength: 1
+      required:
+      - password
+      - username
+    BlankEnum:
+      enum:
+      - ''
+    BloodSample:
+      type: object
+      description: Serialize full blood sample data.
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        patient_name:
+          type: string
+          maxLength: 200
+        patient_id:
+          type: string
+          description: Hospital patient ID number
+          maxLength: 100
+        blood_type:
+          $ref: '#/components/schemas/BloodTypeEnum'
+        status:
+          allOf:
+          - $ref: '#/components/schemas/BloodSampleStatusEnum'
+          readOnly: true
+        is_in_storage:
+          type: boolean
+          readOnly: true
+          description: True = sample is physically in storage; False = out for delivery
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+      required:
+      - blood_type
+      - created_at
+      - id
+      - is_in_storage
+      - patient_id
+      - patient_name
+      - status
+      - updated_at
+    BloodSampleStatusEnum:
+      enum:
+      - IN_STORAGE
+      - REQUESTED
+      - OUT_FOR_DELIVERY
+      type: string
+      description: |-
+        * `IN_STORAGE` - In Storage
+        * `REQUESTED` - Requested
+        * `OUT_FOR_DELIVERY` - Out For Delivery
+    BloodTypeEnum:
+      enum:
+      - A+
+      - A-
+      - B+
+      - B-
+      - AB+
+      - AB-
+      - O+
+      - O-
+      type: string
+      description: |-
+        * `A+` - A+
+        * `A-` - A-
+        * `B+` - B+
+        * `B-` - B-
+        * `AB+` - AB+
+        * `AB-` - AB-
+        * `O+` - O+
+        * `O-` - O-
+    Car:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        car_number:
+          type: string
+          description: Unique car identifier, e.g. CAR-01
+          maxLength: 50
+        status:
+          allOf:
+          - $ref: '#/components/schemas/CarStatusEnum'
+          readOnly: true
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+      required:
+      - car_number
+      - created_at
+      - id
+      - status
+    CarStatusEnum:
+      enum:
+      - IDLE
+      - LOADING
+      - DISPATCHED
+      type: string
+      description: |-
+        * `IDLE` - Idle
+        * `LOADING` - Loading
+        * `DISPATCHED` - Dispatched
+    DispatchCarRequest:
+      type: object
+      description: Body for dispatching a car.
+      properties:
+        car_id:
+          type: integer
+      required:
+      - car_id
+    LoginRequest:
+      type: object
+      description: Used by both Doctor and Storage Employee for login.
+      properties:
+        email:
+          type: string
+          format: email
+          minLength: 1
+        password:
+          type: string
+          writeOnly: true
+          minLength: 1
+      required:
+      - email
+      - password
+    Profile:
+      type: object
+      description: |-
+        Returns user profile in the format expected by the Flutter app.
+        Fields: id, name, role, department, shift, employee_id
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        name:
+          type: string
+        role:
+          $ref: '#/components/schemas/RoleEnum'
+        department:
+          type: string
+          maxLength: 100
+        shift:
+          oneOf:
+          - $ref: '#/components/schemas/ShiftEnum'
+          - $ref: '#/components/schemas/BlankEnum'
+        employee_id:
+          type: string
+          maxLength: 50
+      required:
+      - id
+      - name
+    RoleEnum:
+      enum:
+      - ADMIN
+      - DOCTOR
+      - STORAGE_EMPLOYEE
+      type: string
+      description: |-
+        * `ADMIN` - Admin
+        * `DOCTOR` - Doctor
+        * `STORAGE_EMPLOYEE` - Storage Employee
+    SampleRequestRequest:
+      type: object
+      description: |-
+        Used by Doctors when requesting a sample.
+        The doctor sends: sample_id and room_number.
+      properties:
+        sample_id:
+          type: string
+          format: uuid
+        room_number:
+          type: string
+          minLength: 1
+          maxLength: 50
+      required:
+      - room_number
+      - sample_id
+    ShiftEnum:
+      enum:
+      - MORNING
+      - EVENING
+      - NIGHT
+      type: string
+      description: |-
+        * `MORNING` - Morning
+        * `EVENING` - Evening
+        * `NIGHT` - Night
+        * `` - N/A
+    TransportRequest:
+      type: object
+      description: Full serializer for transport requests (used in list and detail
+        responses).
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        sample:
+          allOf:
+          - $ref: '#/components/schemas/BloodSample'
+          readOnly: true
+        requested_by_name:
+          type: string
+          readOnly: true
+        room_number:
+          type: string
+          description: Room number where the sample should be delivered
+          maxLength: 50
+        assigned_car:
+          allOf:
+          - $ref: '#/components/schemas/Car'
+          readOnly: true
+        status:
+          $ref: '#/components/schemas/TransportStatusEnum'
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+      required:
+      - assigned_car
+      - created_at
+      - id
+      - requested_by_name
+      - room_number
+      - sample
+    TransportStatusEnum:
+      enum:
+      - PENDING
+      - LOADED
+      - DISPATCHED
+      type: string
+      description: |-
+        * `PENDING` - Pending
+        * `LOADED` - Loaded
+        * `DISPATCHED` - Dispatched
+  securitySchemes:
+    jwtAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+    tokenAuth:
+      type: apiKey
+      in: header
+      name: Authorization
+      description: Token-based authentication with required prefix "Token"
