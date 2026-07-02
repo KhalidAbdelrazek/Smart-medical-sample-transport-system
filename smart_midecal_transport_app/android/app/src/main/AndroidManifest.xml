@@ -14,13 +14,8 @@
 
     <application
         android:name="${applicationName}"
-<<<<<<< HEAD
-        android:label="smart_midecal_transport_app"
-        android:icon="@mipmap/ic_launcher">
-=======
         android:label="SMTS"
         android:icon="@mipmap/launcher_icon">
->>>>>>> merge
 
         <activity
             android:name=".MainActivity"
