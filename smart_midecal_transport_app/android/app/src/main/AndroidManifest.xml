@@ -14,7 +14,7 @@
 
     <application
         android:name="${applicationName}"
-        android:label="smart_midecal_transport_app"
+        android:label="SMTS"
         android:icon="@mipmap/launcher_icon">
 
         <activity
