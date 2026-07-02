@@ -497,7 +497,7 @@ Backend ──────► carts/{cart_id}/control         ► Backend sends 
 <table>
   <tr>
     <td align="center" width="25%">
-      <img src="smart_midecal_transport_app/assets/teams/1.jpg" width="120" height="120" style="border-radius: 50%; object-fit: cover;" alt="Khalid Abdelrazk"/><br/>
+      <img src="smart_midecal_transport_app/assets/teams/1.jpg" width="120" height="120" style="border-radius: 50%; object-fit: fit;" alt="Khalid Abdelrazk"/><br/>
       <b>Khalid Abdelrazk (Team Leader)</b><br/>
       Flutter & Embedded Systems Engineer
     </td>
