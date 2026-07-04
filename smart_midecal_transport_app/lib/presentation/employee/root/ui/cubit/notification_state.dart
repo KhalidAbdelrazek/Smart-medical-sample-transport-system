@@ -85,6 +85,9 @@ class NotificationState extends Equatable {
   String get dataSignature {
     final actions = List<String>.from(actionInFlightIds)..sort();
     final entering = List<String>.from(enteringIds)..sort();
+    final samples = List<String>.from(
+      returnableSamples.map((s) => s.sampleCode ?? ''),
+    )..sort();
     final buf = StringBuffer()
       ..write(isInitialLoading)
       ..write('|')
@@ -93,6 +96,8 @@ class NotificationState extends Equatable {
       ..write(entering.join(','))
       ..write('|')
       ..write(returnOffer)
+      ..write('|')
+      ..write(samples.join(','))
       ..write('|');
     for (final i in items) {
       buf

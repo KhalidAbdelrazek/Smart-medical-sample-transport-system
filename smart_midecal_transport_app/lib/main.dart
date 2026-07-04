@@ -31,10 +31,7 @@ void main() async {
 
   runApp(
     EasyLocalization(
-      supportedLocales: const [
-        Locale('en'),
-        Locale('ar'),
-      ],
+      supportedLocales: const [Locale('en'), Locale('ar')],
       path: 'assets/translations',
       fallbackLocale: const Locale('en'),
       saveLocale: true, // EasyLocalization will save last used locale
@@ -74,18 +71,20 @@ class MyApp extends StatelessWidget {
           // Theme setup
           theme: AppTheme().lightTheme,
           darkTheme: AppTheme().darkTheme,
-          themeMode:
-              themeProvider.isDark ? ThemeMode.dark : ThemeMode.light,
+          themeMode: themeProvider.isDark ? ThemeMode.dark : ThemeMode.light,
 
           // App navigation
           routes: Routes.routes,
           // initialRoute: RouteNames.register,
-          initialRoute: SharedPrefService.instance.getAccessToken() != null
-              ? SharedPrefService.instance.getRole() == 'DOCTOR'
-                  ? RouteNames.root
-                  : SharedPrefService.instance.getRole() == 'ADMIN'
-                  ? RouteNames.register : RouteNames.storageScreen
-              : SharedPrefService.instance.onBoardingViewed() ?? false
+          // initialRoute: SharedPrefService.instance.getAccessToken() != null
+          //     ? SharedPrefService.instance.getRole() == 'DOCTOR'
+          //         ? RouteNames.root
+          //         : SharedPrefService.instance.getRole() == 'ADMIN'
+          //         ? RouteNames.register : RouteNames.storageScreen
+          //     : SharedPrefService.instance.onBoardingViewed() ?? false
+          //     ? RouteNames.register
+          //     : RouteNames.onBoarding,
+          initialRoute: SharedPrefService.instance.onBoardingViewed() ?? false
               ? RouteNames.register
               : RouteNames.onBoarding,
         );

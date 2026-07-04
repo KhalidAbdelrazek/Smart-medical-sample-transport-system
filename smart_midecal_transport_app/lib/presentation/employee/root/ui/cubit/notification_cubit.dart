@@ -65,6 +65,10 @@ class NotificationCubit extends Cubit<NotificationState> {
           emit(state.withError(failure.errorMessage));
         },
         (response) {
+          print(
+            '🔎 RAW returnOffer=${response.data?.returnOffer} '
+            'samples=${response.data?.returnableSamples?.map((s) => s.sampleCode).toList()}',
+          );
           final rows =
               response.data?.arrivals ?? const <NotificationArrivalsEntity>[];
           final returnOffer = response.data?.returnOffer ?? false;
@@ -167,36 +171,32 @@ class NotificationCubit extends Cubit<NotificationState> {
   // Accept
   // ─────────────────────────────────────────────
 
-  /// Called when the user taps "Accept" on a notification card.
-  /// If [returnOffer] is true, shows the return-handoff dialog and
-  /// then calls confirmReturnHandoff with the user's selection.
-  /// If [returnOffer] is false, only confirmDelivery is called —
-  /// confirmReturnHandoff is intentionally skipped.
   Future<void> onAcceptTapped(BuildContext context, String requestId) async {
     if (state.actionInFlightIds.contains(requestId)) return;
 
+    // sampleCodes we'll send to confirmReturnHandoff — defaults to empty
+    // (still sent to the backend even when there's nothing to return).
+    List<String> selectedCodes = const [];
+
     if (state.returnOffer && state.returnableSamples.isNotEmpty) {
-      // Show the dialog and wait for the user's selection.
-      // null  → dismissed without a decision → do nothing
+      // null  → dismissed without a decision → do nothing at all
       // []    → user chose "No" → send empty list
       // [...] → user selected samples → send those codes
-      final selectedCodes = await ReturnHandoffDialog.show(
+      final result = await ReturnHandoffDialog.show(
         context,
         returnableSamples: state.returnableSamples,
       );
-      if (selectedCodes == null) return;
-      await _runConfirmDelivery(requestId, selectedCodes, sendHandoff: true);
-    } else {
-      // No return offer — just confirm delivery; do NOT call confirmReturnHandoff.
-      await _runConfirmDelivery(requestId, const [], sendHandoff: false);
+      if (result == null) return;
+      selectedCodes = result;
     }
+
+    await _runConfirmDelivery(requestId, selectedCodes);
   }
 
   Future<void> _runConfirmDelivery(
     String requestId,
-    List<String> sampleCodes, {
-    required bool sendHandoff,
-  }) async {
+    List<String> sampleCodes,
+  ) async {
     emit(
       state.copyWith(
         actionInFlightIds: {...state.actionInFlightIds, requestId},
@@ -224,23 +224,8 @@ class NotificationCubit extends Cubit<NotificationState> {
       return;
     }
 
-    // 2️⃣ Only call confirmReturnHandoff when the dialog was shown
-    //    (i.e. returnOffer was true and the user made a decision).
-    if (!sendHandoff) {
-      final nextItems = state.items
-          .where((i) => i.requestId != requestId)
-          .toList();
-      emit(
-        state
-            .copyWith(
-              items: nextItems,
-              actionInFlightIds: _without(state.actionInFlightIds, requestId),
-            )
-            .withSuccess('Delivery confirmed successfully'),
-      );
-      return;
-    }
-
+    // 2️⃣ Always call confirmReturnHandoff — even with an empty list —
+    //    so the backend is informed either way.
     final handoffResult = await _repository.confirmReturnHandoff(
       sampleCodes: sampleCodes,
     );
@@ -280,31 +265,27 @@ class NotificationCubit extends Cubit<NotificationState> {
   // Reject
   // ─────────────────────────────────────────────
 
-  /// Called when the user taps "Reject" on a notification card.
-  /// Same handoff logic as Accept — dialog is only shown when
-  /// returnOffer is true, and confirmReturnHandoff is only called
-  /// when the dialog was actually presented to the user.
   Future<void> onRejectTapped(BuildContext context, String requestId) async {
     if (state.actionInFlightIds.contains(requestId)) return;
 
+    List<String> selectedCodes = const [];
+
     if (state.returnOffer && state.returnableSamples.isNotEmpty) {
-      final selectedCodes = await ReturnHandoffDialog.show(
+      final result = await ReturnHandoffDialog.show(
         context,
         returnableSamples: state.returnableSamples,
       );
-      if (selectedCodes == null) return;
-      await _runRejectDelivery(requestId, selectedCodes, sendHandoff: true);
-    } else {
-      // No return offer — just reject delivery; do NOT call confirmReturnHandoff.
-      await _runRejectDelivery(requestId, const [], sendHandoff: false);
+      if (result == null) return;
+      selectedCodes = result;
     }
+
+    await _runRejectDelivery(requestId, selectedCodes);
   }
 
   Future<void> _runRejectDelivery(
     String requestId,
-    List<String> sampleCodes, {
-    required bool sendHandoff,
-  }) async {
+    List<String> sampleCodes,
+  ) async {
     emit(
       state.copyWith(
         actionInFlightIds: {...state.actionInFlightIds, requestId},
@@ -327,22 +308,7 @@ class NotificationCubit extends Cubit<NotificationState> {
       return;
     }
 
-    // 2️⃣ Only call confirmReturnHandoff when the dialog was shown.
-    if (!sendHandoff) {
-      final nextItems = state.items
-          .where((i) => i.requestId != requestId)
-          .toList();
-      emit(
-        state
-            .copyWith(
-              items: nextItems,
-              actionInFlightIds: _without(state.actionInFlightIds, requestId),
-            )
-            .withSuccess('Delivery rejected successfully'),
-      );
-      return;
-    }
-
+    // 2️⃣ Always call confirmReturnHandoff — even with an empty list.
     final handoffResult = await _repository.confirmReturnHandoff(
       sampleCodes: sampleCodes,
     );
