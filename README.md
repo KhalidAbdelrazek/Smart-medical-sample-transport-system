@@ -57,9 +57,9 @@ The full Smart Medical Sample Transport System spans four layers: this **mobile 
 
 ```
 ┌─────────────────────────────────────────┐
-│           THIS APP (Flutter)             │
-│    Doctor · Storage Staff · Admin UI     │
-└───────────────────┬───────────────────────┘
+│           THIS APP (Flutter)            │
+│    Doctor · Storage Staff · Admin UI    │
+└───────────────────┬─────────────────────┘
                     │  REST API + JWT
                     ▼
             Django Backend Server
@@ -205,14 +205,12 @@ flutter build ios --release
 <table>
   <tr>
     <td align="center" width="50%">
-      <img src="
-smart_midecal_transport_app/assets/teams/1.png" width="120" height="120" style="border-radius: 50%; object-fit: cover;" alt="Khalid Abdelrazk"/><br/>
+      <img src="smart_midecal_transport_app/assets/teams/1.png" width="120" height="120" style="border-radius: 50%; object-fit: cover;" alt="Khalid Abdelrazk"/><br/>
       <b>Khalid Abdelrazk (Team Leader)</b><br/>
       Flutter Developer
     </td>
     <td align="center" width="50%">
-      <img src="
-smart_midecal_transport_app/assets/teams/8.png" width="120" height="120" style="border-radius: 50%; object-fit: cover;" alt="Mohammed Tarek"/><br/>
+      <img src="smart_midecal_transport_app/assets/teams/8.png" width="120" height="120" style="border-radius: 50%; object-fit: cover;" alt="Mohammed Tarek"/><br/>
       <b>Mohammed Tarek</b><br/>
       Flutter Developer
     </td>
