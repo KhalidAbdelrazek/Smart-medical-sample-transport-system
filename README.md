@@ -144,11 +144,6 @@ python ledcontrol.py
       <b>Mohammed Fadel</b><br/>
       IoT & Embedded Systems Engineer
     </td>
-    <td align="center" width="33%">
-      <img src="Iot/teams/1.png" width="120" height="120" style="border-radius: 50%; object-fit: cover;" alt="Khalid Abdelrazk"/><br/>
-      <b>Khalid Abdelrazk (Team Leader)</b><br/>
-      Flutter & Embedded Systems Engineer
-    </td>
   </tr>
 </table>
 
