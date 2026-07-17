@@ -61,8 +61,8 @@ The full system spans four layers: a **Flutter mobile app**, this **Django backe
                 │  REST API + JWT
                 ▼
 ┌───────────────────────────────────┐
-│         THIS SERVER (Django)       │
-│  Auth · Business Logic · Dispatch  │
+│         THIS SERVER (Django)      │
+│  Auth · Business Logic · Dispatch │
 └───────────────────┬───────────────┘
                     │  MQTT Publish / Subscribe
                     ▼
