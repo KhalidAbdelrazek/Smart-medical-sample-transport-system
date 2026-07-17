@@ -224,24 +224,24 @@ python rpi_main.py
 <table>
   <tr>
     <td align="center" width="33%">
-      <img src="assets/teams/1.png" width="120" height="120" style="border-radius: 50%; object-fit: cover;" alt="Khalid Abdelrazk"/><br/>
+      <img src="Embedded/teams/1.png" width="120" height="120" style="border-radius: 50%; object-fit: cover;" alt="Khalid Abdelrazk"/><br/>
       <b>Khalid Abdelrazk (Team Leader)</b><br/>
-      Flutter & Embedded Systems Engineer
+      Embedded Systems Engineer
     </td>
     <td align="center" width="33%">
-      <img src="assets/teams/2.jpg" width="120" height="120" style="border-radius: 50%; object-fit: cover;" alt="Menna Tallah Khaled"/><br/>
+      <img src="Embedded/teams/2.jpg" width="120" height="120" style="border-radius: 50%; object-fit: cover;" alt="Menna Tallah Khaled"/><br/>
       <b>Menna Tallah Khaled</b><br/>
       IoT & Embedded Systems Engineer
     </td>
     <td align="center" width="33%">
-      <img src="assets/teams/3.jpg" width="120" height="120" style="border-radius: 50%; object-fit: cover;" alt="Mohammed Fadel"/><br/>
+      <img src="Embedded/teams/3.jpg" width="120" height="120" style="border-radius: 50%; object-fit: cover;" alt="Mohammed Fadel"/><br/>
       <b>Mohammed Fadel</b><br/>
       IoT & Embedded Systems Engineer
     </td>
   </tr>
   <tr>
     <td align="center" width="33%">
-      <img src="assets/teams/4.jpg" width="120" height="120" style="border-radius: 50%; object-fit: cover;" alt="Nader Ahmed"/><br/>
+      <img src="Embedded/teams/4.jpg" width="120" height="120" style="border-radius: 50%; object-fit: cover;" alt="Nader Ahmed"/><br/>
       <b>Nader Ahmed</b><br/>
       Embedded Systems Engineer
     </td>
